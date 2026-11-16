@@ -6,6 +6,7 @@ Version = tag; all crates of the workspace (`fs-interfaces`, `fs-types`, `fs-mcp
 
 - Breaking: the module `rpc` (38 source files) and the feature `rpc` are gone; the server and client runtime (Unix socket and named pipe, envelope, RFC 9457 problems as RPC errors, pages, change feed, version handshake, `Worker`) moves to the new library `fs-rpc` (ADR 0092 draft). Migration: `fs_interfaces::rpc::...` becomes `fs_rpc::...`.
 - `fs-interfaces` no longer depends on `fs-objects` (the dependency was only used by `rpc`): it depends on none of our runtime repos, so the repo graph has no cycle (`fs-interfaces` to `fs-objects` to `fs-types` to `fs-interfaces`).
+- The test `texts_contract` stays here without its `Problem` round-trip test (that one moved to `fs-rpc`, `tests/rpc_problem_texts.rs`).
 - Nothing else changes: schemas, generated code, `provider`, `values` and `fs-types` stay as in 0.0.25. All crates of the workspace carry 0.0.26.
 - Auf Deutsch: Das Modul `rpc` und das Feature `rpc` entfallen; die RPC-Laufzeit liegt jetzt in der Bibliothek `fs-rpc`. `fs-interfaces` haengt nicht mehr von `fs-objects` ab. Umstellung: `fs_interfaces::rpc::` wird `fs_rpc::`.
 
