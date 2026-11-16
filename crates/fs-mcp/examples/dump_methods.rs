@@ -5,7 +5,10 @@ use fs_mcp::{CapnpcSource, ContractSource};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let dir = std::env::args().nth(1).unwrap_or_else(|| "schema".into());
-    for c in CapnpcSource::new(dir).contracts()? {
+    for c in CapnpcSource::new(dir)
+        .with_schemas(fs_types::SCHEMA_DIR)
+        .contracts()?
+    {
         for i in &c.interfaces {
             for m in &i.methods {
                 let p: Vec<_> = m.params.iter().map(|f| f.name.as_str()).collect();

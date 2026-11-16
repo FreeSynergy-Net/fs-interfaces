@@ -16,7 +16,7 @@ using Envelope = C.Envelope;
 using SupportReport = C.SupportReport;
 using ChangeListener = C.ChangeListener;
 using Subscription = C.Subscription;
-using T = import "types.capnp";
+using T = import "/types.capnp";
 
 struct Event {
   envelope   @0 :Envelope;         # AS2 `Event` envelope

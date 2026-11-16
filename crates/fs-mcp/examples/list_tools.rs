@@ -12,7 +12,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = std::env::args().skip(1);
     let schema = args.next().unwrap_or_else(|| "schema".into());
     let marks = args.next().unwrap_or_else(|| "crates/fs-mcp/marks".into());
-    let contracts = CapnpcSource::new(schema).contracts()?;
+    let contracts = CapnpcSource::new(schema)
+        .with_schemas(fs_types::SCHEMA_DIR)
+        .contracts()?;
     let marks = MarkFiles::from_dir(marks)?;
     let catalog = Generator::new(&marks, Blocklist::standard()).generate(&contracts)?;
     for l in &catalog.left_out {

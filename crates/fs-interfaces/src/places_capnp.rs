@@ -189,7 +189,7 @@ pub mod place {
             ::capnp::word(125, 163, 129, 69, 95, 100, 239, 214),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(185, 2, 0, 0, 80, 3, 0, 0),
+            ::capnp::word(186, 2, 0, 0, 81, 3, 0, 0),
             ::capnp::word(21, 0, 0, 0, 154, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -441,7 +441,7 @@ pub mod place_page {
             ::capnp::word(125, 163, 129, 69, 95, 100, 239, 214),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(82, 3, 0, 0, 142, 3, 0, 0),
+            ::capnp::word(83, 3, 0, 0, 143, 3, 0, 0),
             ::capnp::word(21, 0, 0, 0, 186, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -693,7 +693,7 @@ pub mod b_box {
             ::capnp::word(125, 163, 129, 69, 95, 100, 239, 214),
             ::capnp::word(0, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(189, 4, 0, 0, 22, 5, 0, 0),
+            ::capnp::word(190, 4, 0, 0, 23, 5, 0, 0),
             ::capnp::word(21, 0, 0, 0, 146, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -5427,7 +5427,7 @@ pub mod places {
                 self.reader.total_size()
             }
             #[inline]
-            pub fn get_catalog(self) -> ::capnp::Result<crate::types_capnp::type_catalog::Client> {
+            pub fn get_catalog(self) -> ::capnp::Result<::fs_types::types_capnp::type_catalog::Client> {
                 match self.reader.get_pointer_field(0).get_capability() { ::core::result::Result::Ok(c) => ::core::result::Result::Ok(::capnp::capability::FromClientHook::new(c)), ::core::result::Result::Err(e) => ::core::result::Result::Err(e)}
             }
             #[inline]
@@ -5489,11 +5489,11 @@ pub mod places {
                 self.builder.as_reader().total_size()
             }
             #[inline]
-            pub fn get_catalog(self) -> ::capnp::Result<crate::types_capnp::type_catalog::Client> {
+            pub fn get_catalog(self) -> ::capnp::Result<::fs_types::types_capnp::type_catalog::Client> {
                 match self.builder.get_pointer_field(0).get_capability() { ::core::result::Result::Ok(c) => ::core::result::Result::Ok(::capnp::capability::FromClientHook::new(c)), ::core::result::Result::Err(e) => ::core::result::Result::Err(e)}
             }
             #[inline]
-            pub fn set_catalog(&mut self, value: crate::types_capnp::type_catalog::Client)  {
+            pub fn set_catalog(&mut self, value: ::fs_types::types_capnp::type_catalog::Client)  {
                 self.builder.reborrow().get_pointer_field(0).set_capability(value.client.hook);
             }
             #[inline]
@@ -5509,7 +5509,7 @@ pub mod places {
             }
         }
         impl Pipeline  {
-            pub fn get_catalog(&self) -> crate::types_capnp::type_catalog::Client {
+            pub fn get_catalog(&self) -> ::fs_types::types_capnp::type_catalog::Client {
                 ::capnp::capability::FromClientHook::new(self._typeless.get_pointer_field(0).as_cap())
             }
         }
@@ -5552,7 +5552,7 @@ pub mod places {
             ];
             pub(crate) fn get_field_types(index: u16) -> ::capnp::introspect::Type {
                 match index {
-                    0 => <crate::types_capnp::type_catalog::Owned as ::capnp::introspect::Introspect>::introspect(),
+                    0 => <::fs_types::types_capnp::type_catalog::Owned as ::capnp::introspect::Introspect>::introspect(),
                     _ => ::capnp::introspect::panic_invalid_field_index(index),
                 }
             }

@@ -225,7 +225,7 @@ pub mod person {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(3, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(44, 6, 0, 0, 214, 7, 0, 0),
+            ::capnp::word(45, 6, 0, 0, 215, 7, 0, 0),
             ::capnp::word(21, 0, 0, 0, 162, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -515,7 +515,7 @@ pub mod person_page {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(251, 7, 0, 0, 57, 8, 0, 0),
+            ::capnp::word(252, 7, 0, 0, 58, 8, 0, 0),
             ::capnp::word(21, 0, 0, 0, 194, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -791,7 +791,7 @@ pub mod person_filter {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(3, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(125, 8, 0, 0, 108, 9, 0, 0),
+            ::capnp::word(126, 8, 0, 0, 109, 9, 0, 0),
             ::capnp::word(21, 0, 0, 0, 210, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -1104,7 +1104,7 @@ pub mod import_report {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(4, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(110, 9, 0, 0, 104, 10, 0, 0),
+            ::capnp::word(111, 9, 0, 0, 105, 10, 0, 0),
             ::capnp::word(21, 0, 0, 0, 210, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -1401,7 +1401,7 @@ pub mod person_problem {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(106, 10, 0, 0, 20, 11, 0, 0),
+            ::capnp::word(107, 10, 0, 0, 21, 11, 0, 0),
             ::capnp::word(21, 0, 0, 0, 218, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -1650,7 +1650,7 @@ pub mod relation {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(87, 11, 0, 0, 14, 12, 0, 0),
+            ::capnp::word(88, 11, 0, 0, 15, 12, 0, 0),
             ::capnp::word(21, 0, 0, 0, 178, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -1758,7 +1758,7 @@ pub(crate) static ENCODED_NODE: [::capnp::Word; 32] = [
     ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-    ::capnp::word(99, 12, 0, 0, 153, 12, 0, 0),
+    ::capnp::word(100, 12, 0, 0, 154, 12, 0, 0),
     ::capnp::word(21, 0, 0, 0, 186, 0, 0, 0),
     ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -2002,7 +2002,7 @@ pub mod same_person_proposal {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(3, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(155, 12, 0, 0, 250, 12, 0, 0),
+            ::capnp::word(156, 12, 0, 0, 251, 12, 0, 0),
             ::capnp::word(21, 0, 0, 0, 2, 1, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -2271,7 +2271,7 @@ pub mod localized {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(72, 13, 0, 0, 126, 13, 0, 0),
+            ::capnp::word(73, 13, 0, 0, 127, 13, 0, 0),
             ::capnp::word(21, 0, 0, 0, 186, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -2544,7 +2544,7 @@ pub mod role_field {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(3, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(128, 13, 0, 0, 30, 14, 0, 0),
+            ::capnp::word(129, 13, 0, 0, 31, 14, 0, 0),
             ::capnp::word(21, 0, 0, 0, 186, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -2673,7 +2673,7 @@ pub(crate) static ENCODED_NODE: [::capnp::Word; 31] = [
     ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-    ::capnp::word(32, 14, 0, 0, 84, 14, 0, 0),
+    ::capnp::word(33, 14, 0, 0, 85, 14, 0, 0),
     ::capnp::word(21, 0, 0, 0, 186, 0, 0, 0),
     ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -3114,7 +3114,7 @@ pub mod role_definition {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(11, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(86, 14, 0, 0, 72, 18, 0, 0),
+            ::capnp::word(87, 14, 0, 0, 73, 18, 0, 0),
             ::capnp::word(21, 0, 0, 0, 226, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -3630,7 +3630,7 @@ pub mod role_assignment {
             ::capnp::word(36, 203, 149, 100, 30, 224, 29, 244),
             ::capnp::word(5, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(74, 18, 0, 0, 114, 19, 0, 0),
+            ::capnp::word(75, 18, 0, 0, 115, 19, 0, 0),
             ::capnp::word(21, 0, 0, 0, 226, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -5646,7 +5646,7 @@ pub mod people {
                 self.reader.total_size()
             }
             #[inline]
-            pub fn get_catalog(self) -> ::capnp::Result<crate::types_capnp::type_catalog::Client> {
+            pub fn get_catalog(self) -> ::capnp::Result<::fs_types::types_capnp::type_catalog::Client> {
                 match self.reader.get_pointer_field(0).get_capability() { ::core::result::Result::Ok(c) => ::core::result::Result::Ok(::capnp::capability::FromClientHook::new(c)), ::core::result::Result::Err(e) => ::core::result::Result::Err(e)}
             }
             #[inline]
@@ -5708,11 +5708,11 @@ pub mod people {
                 self.builder.as_reader().total_size()
             }
             #[inline]
-            pub fn get_catalog(self) -> ::capnp::Result<crate::types_capnp::type_catalog::Client> {
+            pub fn get_catalog(self) -> ::capnp::Result<::fs_types::types_capnp::type_catalog::Client> {
                 match self.builder.get_pointer_field(0).get_capability() { ::core::result::Result::Ok(c) => ::core::result::Result::Ok(::capnp::capability::FromClientHook::new(c)), ::core::result::Result::Err(e) => ::core::result::Result::Err(e)}
             }
             #[inline]
-            pub fn set_catalog(&mut self, value: crate::types_capnp::type_catalog::Client)  {
+            pub fn set_catalog(&mut self, value: ::fs_types::types_capnp::type_catalog::Client)  {
                 self.builder.reborrow().get_pointer_field(0).set_capability(value.client.hook);
             }
             #[inline]
@@ -5728,7 +5728,7 @@ pub mod people {
             }
         }
         impl Pipeline  {
-            pub fn get_catalog(&self) -> crate::types_capnp::type_catalog::Client {
+            pub fn get_catalog(&self) -> ::fs_types::types_capnp::type_catalog::Client {
                 ::capnp::capability::FromClientHook::new(self._typeless.get_pointer_field(0).as_cap())
             }
         }
@@ -5771,7 +5771,7 @@ pub mod people {
             ];
             pub(crate) fn get_field_types(index: u16) -> ::capnp::introspect::Type {
                 match index {
-                    0 => <crate::types_capnp::type_catalog::Owned as ::capnp::introspect::Introspect>::introspect(),
+                    0 => <::fs_types::types_capnp::type_catalog::Owned as ::capnp::introspect::Introspect>::introspect(),
                     _ => ::capnp::introspect::panic_invalid_field_index(index),
                 }
             }
@@ -19528,7 +19528,7 @@ pub mod persons {
                 !self.reader.get_pointer_field(0).is_null()
             }
             #[inline]
-            pub fn get_edit(self) -> ::capnp::Result<crate::types_capnp::edit::Reader<'a>> {
+            pub fn get_edit(self) -> ::capnp::Result<::fs_types::types_capnp::edit::Reader<'a>> {
                 ::capnp::traits::FromPointerReader::get_from_pointer(&self.reader.get_pointer_field(1), ::core::option::Option::None)
             }
             #[inline]
@@ -19606,15 +19606,15 @@ pub mod persons {
                 !self.builder.is_pointer_field_null(0)
             }
             #[inline]
-            pub fn get_edit(self) -> ::capnp::Result<crate::types_capnp::edit::Builder<'a>> {
+            pub fn get_edit(self) -> ::capnp::Result<::fs_types::types_capnp::edit::Builder<'a>> {
                 ::capnp::traits::FromPointerBuilder::get_from_pointer(self.builder.get_pointer_field(1), ::core::option::Option::None)
             }
             #[inline]
-            pub fn set_edit(&mut self, value: crate::types_capnp::edit::Reader<'_>) -> ::capnp::Result<()> {
+            pub fn set_edit(&mut self, value: ::fs_types::types_capnp::edit::Reader<'_>) -> ::capnp::Result<()> {
                 ::capnp::traits::SetterInput::set_pointer_builder(self.builder.reborrow().get_pointer_field(1), value, false)
             }
             #[inline]
-            pub fn init_edit(self, ) -> crate::types_capnp::edit::Builder<'a> {
+            pub fn init_edit(self, ) -> ::fs_types::types_capnp::edit::Builder<'a> {
                 ::capnp::traits::FromPointerBuilder::init_pointer(self.builder.get_pointer_field(1), 0)
             }
             #[inline]
@@ -19633,7 +19633,7 @@ pub mod persons {
             pub fn get_id(&self) -> crate::common_capnp::uuid::Pipeline {
                 ::capnp::capability::FromTypelessPipeline::new(self._typeless.get_pointer_field(0))
             }
-            pub fn get_edit(&self) -> crate::types_capnp::edit::Pipeline {
+            pub fn get_edit(&self) -> ::fs_types::types_capnp::edit::Pipeline {
                 ::capnp::capability::FromTypelessPipeline::new(self._typeless.get_pointer_field(1))
             }
         }
@@ -19692,7 +19692,7 @@ pub mod persons {
             pub(crate) fn get_field_types(index: u16) -> ::capnp::introspect::Type {
                 match index {
                     0 => <crate::common_capnp::uuid::Owned as ::capnp::introspect::Introspect>::introspect(),
-                    1 => <crate::types_capnp::edit::Owned as ::capnp::introspect::Introspect>::introspect(),
+                    1 => <::fs_types::types_capnp::edit::Owned as ::capnp::introspect::Introspect>::introspect(),
                     _ => ::capnp::introspect::panic_invalid_field_index(index),
                 }
             }

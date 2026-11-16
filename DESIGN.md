@@ -61,7 +61,7 @@ Latest tag v0.47.0 (header corrected 2026-11-08; the next lines list 0.44.0 and 
 | `rpc` (feature): socket with lock file, connection, problems, envelope, pages, feed | done, draft |
 | `rpc::client` (feature): `Worker<R: Remote>` (thread, current-thread runtime + `LocalSet`, command queue, `Timeouts` 5 s connect / 30 s call, drop cuts the connection first (commands under way get `Disconnected`, a write may be left half done), then joins; a command that waits on nothing from the connection keeps the drop waiting up to the call deadline; on the connection thread itself nothing is joined), `call_limited(server, limit, future)` gives any call on any connection (also the bare `Connection` after `connect_matching`) a deadline and a typed `Fault::TimedOut`; the timed-out call is dropped, the connection stays usable (v0.0.18); reply guard (`Fault::Interrupted`), `Fault` naming the deadline, `problems` (`Failure::of`, `local_type`, `first_number`, `object_id_in`, `without_store_prefix`, `unsupported_of`); taken from the people and tasks clients, which map to their own `Error` and problem type URIs themselves | done, draft; tests in `tests/rpc_client*.rs` against a real server |
 | Tests | 2 oracle, 3 provider, 40 `rpc` (+21 problem extensions and text format), 19 `rpc::client` (+2 unit), 1 doc test |
-| `types.capnp` (new, draft 0.1, 2026-11-10; ADR 0066): `BasicType` (email, phone, name, address, place, date, date-time, language, link, image, key, choice, keywords, reference, text), the type description (`TypeDescription`, `FieldDescription`, `CommandDescription`, `CommandKind`) and `TypeCatalog.describe`; Rust side in the workspace crate `fs-types` (see `crates/fs-types/DESIGN.md`: where it lives, pattern map, free crate `calcard` for JSContact/vCard, `Unsupported` list) | new, draft, 0 of 2 consumers |
+| `types.capnp` (new, draft 0.1, 2026-11-10; ADR 0066): `BasicType` (email, phone, name, address, place, date, date-time, language, link, image, key, choice, keywords, reference, text), the type description (`TypeDescription`, `FieldDescription`, `CommandDescription`, `CommandKind`) and `TypeCatalog.describe`; since v0.0.27 the schema and the Rust side live in the repository `fs-types` (ADR 0093; see its `DESIGN.md`) | new, draft, 0 of 2 consumers |
 | `rpc::run_until_signal` registers SIGTERM and SIGINT before it binds the socket and opens the store (a stop during the start was a hard kill; found by thread P under load; test `rpc_signal_start.rs`, which dies by SIGTERM without the fix). A signal during the start is remembered and ends the serving as soon as it begins | done |
 | Interfaces at 1.0 | none; the draft -> 1.0 gate needs two independent consumers per interface |
 
@@ -174,11 +174,19 @@ The remedy is `chmod g-w` on the directory the message names, or another `--data
 * Owner of `common.capnp` (`fs-objects` is proposed in ADR 0050).
 * More topics from the catalogue (people, groups, events, files ...) as their owners write drafts.
 
+## v0.0.27 (2026-11-16): `fs-types` moved out (ADR 0093, accepted)
+- The workspace crate `fs-types`, `schema/types.capnp`, `src/types_capnp.rs`, the feature `values` (`EmailAddress`, `PhoneNumber`, `ValueProblem`, trait `ContactValue`) and the dependency `idna` are removed; they live in the repository FreeSynergy/fs-types (v0.0.1, history kept). `fs-interfaces` depends on it (`fs-types`, git tag `v0.0.1`) and re-exports nothing from it: one path per type; a program that needs the basic types pins `fs-types` itself (one source in the lock).
+- 13 schemas (events, files, streaming, surveys, texts, tasks, groups, history, people, messenger, whiteboard, places, resources) say `using T = import "/types.capnp"`. `regenerate` and the tests give the compiler `fs_types::SCHEMA_DIR` as import path and `crates_provide_map({0x916fad50f1c14440 => "fs_types"})`; the generated code points at `::fs_types::types_capnp`. File id and type ids are unchanged, the wire is unchanged (the generated files differ from v0.0.26 only in `crate::types_capnp` becoming `::fs_types::types_capnp`).
+- `tests/generated_matches_official.rs` compares 17 schemas against both compilers and writes into the test target (`CARGO_TARGET_TMPDIR`), not `/tmp`. `fs-mcp` reads the contracts of `fs-types` too (`CapnpcSource::with_schemas`), so its tool list is unchanged.
+- All crates of the workspace carry 0.0.27.
+
 ## fs-mcp
 
 The MCP tool generator (stage 1, lists only) lives in `crates/fs-mcp`; see its `DESIGN.md`.
 
-## Contact values (feature `values`, 0.51.0)
+## Contact values (feature `values`, 0.51.0; moved to `fs-types` in v0.0.27)
+
+History: since v0.0.27 these value objects live in the repository `fs-types` (ADR 0093); this crate has no feature `values` any more.
 
 `values::{EmailAddress, PhoneNumber, ContactValue, ValueProblem}`: value objects shared by all programs (e-mail by the practical HTML rule with IDNA-mapped domains and the 254-character limit; phone E.164). Equality and hash follow the canonical form. A failure is a code, the sentence is the program's. Not a contract: no schema, no draft status.
 

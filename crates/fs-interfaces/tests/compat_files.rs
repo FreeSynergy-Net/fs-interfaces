@@ -1,7 +1,7 @@
 //! `Sort.foldersFirst` (0.0.19) is true by default: what an old client sends (no such field) reads as true.
 use fs_interfaces::common_capnp;
 use fs_interfaces::files_capnp as new;
-use fs_interfaces::types_capnp;
+use fs_types::types_capnp;
 
 #[path = "compat/files_v0_0_18_capnp.rs"]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]

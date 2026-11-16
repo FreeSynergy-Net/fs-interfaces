@@ -23,7 +23,7 @@
 @0x9a4e27c1f6d3b850;
 
 using C = import "common.capnp";
-using T = import "types.capnp";
+using T = import "/types.capnp";
 using Uuid = C.Uuid;
 using Timestamp = C.Timestamp;
 using Cursor = C.Cursor;

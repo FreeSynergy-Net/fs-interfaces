@@ -21,7 +21,7 @@ using Cursor = C.Cursor;
 using Problem = C.Problem;
 using Envelope = C.Envelope;
 using Blob = C.Blob;
-using T = import "types.capnp";
+using T = import "/types.capnp";
 
 # pages: one struct per item type (Cap'n Proto has no List(T) over generic parameters)
 struct MessagePage      { items @0 :List(MessageSummary);      next @1 :Cursor; skipped @2 :UInt32; }   # skipped = unreadable local records on this page; empty items with a next is not the end

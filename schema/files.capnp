@@ -41,7 +41,7 @@ using Blob = C.Blob;
 using SupportReport = C.SupportReport;
 using ChangeListener = C.ChangeListener;
 using Subscription = C.Subscription;
-using T = import "types.capnp";
+using T = import "/types.capnp";
 
 const nameConflictProblemType   :Text = "https://freesynergy.net/problems/files/name-conflict";
 const invalidNameProblemType    :Text = "https://freesynergy.net/problems/files/invalid-name";

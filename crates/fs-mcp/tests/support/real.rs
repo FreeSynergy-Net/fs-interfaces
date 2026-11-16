@@ -20,6 +20,7 @@ pub fn marks_dir() -> PathBuf {
 }
 pub fn contracts() -> Vec<Contract> {
     CapnpcSource::new(schema_dir())
+        .with_schemas(fs_types::SCHEMA_DIR)
         .contracts()
         .expect("the real schemas compile")
 }

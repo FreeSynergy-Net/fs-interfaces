@@ -13,7 +13,7 @@ using Timestamp = C.Timestamp;
 using Cursor = C.Cursor;
 using Envelope = C.Envelope;
 using SupportReport = C.SupportReport;
-using T = import "types.capnp";
+using T = import "/types.capnp";
 using ChangeListener = C.ChangeListener;
 using Subscription = C.Subscription;
 

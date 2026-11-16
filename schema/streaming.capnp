@@ -31,7 +31,7 @@ using Envelope = C.Envelope;
 using CapabilityList = C.CapabilityList;
 using SupportReport = C.SupportReport;
 using Subscription = C.Subscription;
-using T = import "types.capnp";
+using T = import "/types.capnp";
 
 enum StreamState { idle @0; checking @1; live @2; ended @3; error @4; interrupted @5; }
 

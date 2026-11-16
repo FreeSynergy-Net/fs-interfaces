@@ -1,9 +1,9 @@
 [workspace]
 resolver = "2"
-members = ["crates/fs-interfaces", "crates/regenerate", "crates/fs-mcp", "crates/fs-types"]
+members = ["crates/fs-interfaces", "crates/regenerate", "crates/fs-mcp"]
 
 [workspace.package]
-version = "0.0.26"
+version = "0.0.27"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.89"

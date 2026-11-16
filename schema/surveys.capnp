@@ -26,7 +26,7 @@
 @0xd6b1f4a27c3e9085;
 
 using C = import "common.capnp";
-using T = import "types.capnp";
+using T = import "/types.capnp";
 using Uuid = C.Uuid;
 using Cursor = C.Cursor;
 using Envelope = C.Envelope;

@@ -24,7 +24,7 @@ using Envelope = C.Envelope;
 using CapabilityList = C.CapabilityList;
 using ChangeListener = C.ChangeListener;
 using Subscription = C.Subscription;
-using T = import "types.capnp";
+using T = import "/types.capnp";
 
 # RFC 9253 relation of a task to another object (JSCalendar `relatedTo`)
 enum Relation {

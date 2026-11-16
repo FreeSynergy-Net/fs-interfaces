@@ -4,10 +4,18 @@
 //! ```text
 //! cargo run -p regenerate
 //! ```
+//!
+//! The basic types come from `fs-types` (ADR 0093): the schemas say `import "/types.capnp"`, the import path is
+//! `fs_types::SCHEMA_DIR`, and the generated code points at `::fs_types::types_capnp`.
+
+use std::collections::HashMap;
 
 use capnp_compiler::CompileCommand;
 
-const SCHEMAS: [&str; 18] = [
+/// File id of `types.capnp` in `fs-types`.
+const TYPES_FILE_ID: u64 = 0x916f_ad50_f1c1_4440;
+
+const SCHEMAS: [&str; 17] = [
     "common",
     "tasks",
     "messenger",
@@ -24,13 +32,13 @@ const SCHEMAS: [&str; 18] = [
     "whiteboard",
     "streaming",
     "store",
-    "types",
     "comments",
 ];
 
 fn main() {
     let mut cmd = CompileCommand::new();
     cmd.src_prefix("schema");
+    cmd.import_path(fs_types::SCHEMA_DIR);
     for s in SCHEMAS {
         cmd.file(format!("schema/{s}.capnp"));
     }
@@ -38,6 +46,7 @@ fn main() {
     std::fs::create_dir_all("crates/fs-interfaces/src").expect("create src");
     capnpc::codegen::CodeGenerationCommand::new()
         .output_directory("crates/fs-interfaces/src")
+        .crates_provide_map(HashMap::from([(TYPES_FILE_ID, "fs_types".to_owned())]))
         .run(&request[..])
         .expect("code generation failed");
     println!(

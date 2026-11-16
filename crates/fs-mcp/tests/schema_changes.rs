@@ -39,7 +39,10 @@ fn a_new_interface_without_marks_is_listed_and_counts_as_unknown() {
         "new-interface",
         "interface Extra { wipe @0 () -> (); look @1 () -> (label :Text); }\ninterface Messenger2 { extra @0 () -> (extra :Extra); }",
     );
-    let contracts = CapnpcSource::new(&e.0).contracts().unwrap();
+    let contracts = CapnpcSource::new(&e.0)
+        .with_schemas(fs_types::SCHEMA_DIR)
+        .contracts()
+        .unwrap();
     let c = generate_with(&contracts, &marks(), Blocklist::standard());
     for m in ["wipe", "look"] {
         let t = Target::item("messenger", "Extra", m);
@@ -60,7 +63,10 @@ fn a_new_guard_interface_never_becomes_a_tool_even_when_marked_read() {
         "guard",
         "interface Guard { allow @0 (what :Text) -> (); }\ninterface Holder { guard @0 () -> (guard :Guard); }",
     );
-    let contracts = CapnpcSource::new(&e.0).contracts().unwrap();
+    let contracts = CapnpcSource::new(&e.0)
+        .with_schemas(fs_types::SCHEMA_DIR)
+        .contracts()
+        .unwrap();
     let mark_all =
         fs_mcp::MarkFiles::from_sources(&[("messenger", "[Guard]\nallow = \"read\"\n")]).unwrap();
     let c = generate_with(&contracts, &mark_all, Blocklist::standard());
@@ -78,7 +84,10 @@ fn a_new_guard_interface_never_becomes_a_tool_even_when_marked_read() {
 fn a_new_secret_field_is_excluded_until_somebody_releases_it() {
     let extra = "struct Link { url @0 :Text; apiToken @1 :Text; }\ninterface Links { open @0 (link :Link) -> (); }";
     let e = Edited::new("secret", extra);
-    let contracts = CapnpcSource::new(&e.0).contracts().unwrap();
+    let contracts = CapnpcSource::new(&e.0)
+        .with_schemas(fs_types::SCHEMA_DIR)
+        .contracts()
+        .unwrap();
     let marked =
         fs_mcp::MarkFiles::from_sources(&[("messenger", "[Links]\nopen = \"read\"\n")]).unwrap();
     let c = generate_with(&contracts, &marked, Blocklist::standard());
@@ -119,7 +128,10 @@ fn review_counterexamples_on_a_copy_of_the_real_schemas() {
         interface LabF { open @0 () -> (store :SecretStore); }\n\
         interface LabG { take @0 (source :C.Blob) -> (); }";
     let e = Edited::new("review2", extra);
-    let contracts = CapnpcSource::new(&e.0).contracts().unwrap();
+    let contracts = CapnpcSource::new(&e.0)
+        .with_schemas(fs_types::SCHEMA_DIR)
+        .contracts()
+        .unwrap();
     let c = generate_with(&contracts, &marks(), Blocklist::standard());
     let tool = |o: &str, m: &str| {
         c.tools
@@ -150,7 +162,10 @@ fn named_parameter_structures_with_groups_or_unions_are_never_a_tool() {
         struct Pure { union { safe @0 :Text; danger @1 :Text; } }\n\
         interface LabH { a5 @0 () -> Acct; a4 @1 Pure -> (); }";
     let e = Edited::new("named", extra);
-    let contracts = CapnpcSource::new(&e.0).contracts().unwrap();
+    let contracts = CapnpcSource::new(&e.0)
+        .with_schemas(fs_types::SCHEMA_DIR)
+        .contracts()
+        .unwrap();
     let marked = fs_mcp::MarkFiles::from_sources(&[("messenger", "[Pure]\ndanger = { risk = \"excluded\", reason = \"test\" }\n[LabH]\na5 = \"read\"\na4 = \"read\"\n")]).unwrap();
     let c = generate_with(&contracts, &marked, Blocklist::standard());
     assert!(
@@ -173,7 +188,10 @@ fn a_listener_method_with_an_unclear_event_makes_no_resource() {
         interface EvListener { changed @0 Ev -> stream; }\n\
         interface Api { subscribe @0 (listener :EvListener) -> (subscription :C.Subscription); }";
     let e = Edited::new("evlistener", extra);
-    let contracts = CapnpcSource::new(&e.0).contracts().unwrap();
+    let contracts = CapnpcSource::new(&e.0)
+        .with_schemas(fs_types::SCHEMA_DIR)
+        .contracts()
+        .unwrap();
     let marked =
         fs_mcp::MarkFiles::from_sources(&[("messenger", "[Api]\nsubscribe = \"read\"\n")]).unwrap();
     let c = generate_with(&contracts, &marked, Blocklist::standard());

@@ -35,7 +35,7 @@ using CapabilityList = C.CapabilityList;
 using SupportReport = C.SupportReport;
 using ChangeListener = C.ChangeListener;
 using Subscription = C.Subscription;
-using T = import "types.capnp";
+using T = import "/types.capnp";
 
 struct Point { x @0 :Float64; y @1 :Float64; }
 

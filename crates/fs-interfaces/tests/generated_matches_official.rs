@@ -1,10 +1,15 @@
 //! The committed generated code must equal what the official compiler (`capnpc-embedded`, capnp
 //! 1.4.0 as WASM) produces, and what our own compiler (`capnp-compiler`) produces. This keeps the
 //! committed files honest and tests our compiler against the official one on the real schemas.
+//!
+//! The schemas say `import "/types.capnp"`; the import path is `fs_types::SCHEMA_DIR` (ADR 0093) and the
+//! generated code points at `::fs_types::types_capnp`. Output goes to the test target
+//! (`CARGO_TARGET_TMPDIR`), never to `/tmp` (memory).
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-const SCHEMAS: [&str; 18] = [
+const SCHEMAS: [&str; 17] = [
     "common",
     "tasks",
     "messenger",
@@ -21,25 +26,30 @@ const SCHEMAS: [&str; 18] = [
     "whiteboard",
     "streaming",
     "store",
-    "types",
     "comments",
 ];
+
+/// File id of `types.capnp` in `fs-types`.
+const TYPES_FILE_ID: u64 = 0x916f_ad50_f1c1_4440;
 
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
 fn generate(request: &[u8], tag: &str) -> PathBuf {
-    let out = std::env::temp_dir().join(format!("fs-interfaces-{tag}-{}", std::process::id()));
+    let out = Path::new(env!("CARGO_TARGET_TMPDIR"))
+        .join(format!("fs-interfaces-{tag}-{}", std::process::id()));
     std::fs::create_dir_all(&out).unwrap();
     capnpc::codegen::CodeGenerationCommand::new()
         .output_directory(&out)
+        .crates_provide_map(HashMap::from([(TYPES_FILE_ID, "fs_types".to_owned())]))
         .run(request)
         .unwrap();
     out
 }
 
 fn assert_same(dir: &Path, who: &str) {
+    let mut differs = Vec::new();
     for s in SCHEMAS {
         let name = format!("{s}_capnp.rs");
         let committed = std::fs::read_to_string(
@@ -49,18 +59,22 @@ fn assert_same(dir: &Path, who: &str) {
         )
         .unwrap();
         let fresh = std::fs::read_to_string(dir.join(&name)).unwrap();
-        assert!(
-            committed == fresh,
-            "{name} differs from the output of {who}"
-        );
+        if committed != fresh {
+            differs.push(name);
+        }
     }
     let _ = std::fs::remove_dir_all(dir);
+    assert!(
+        differs.is_empty(),
+        "{differs:?} differ from the output of {who}"
+    );
 }
 
 #[test]
 fn official_compiler_output_is_committed() {
     let schema = root().join("schema");
     let mut cmd = capnpc_embedded::CompileCommand::new();
+    cmd.import_path(fs_types::SCHEMA_DIR);
     for s in SCHEMAS {
         cmd.file(schema.join(format!("{s}.capnp")));
     }
@@ -73,6 +87,7 @@ fn own_compiler_output_is_committed() {
     let schema = root().join("schema");
     let mut cmd = capnp_compiler::CompileCommand::new();
     cmd.src_prefix(&schema);
+    cmd.import_path(fs_types::SCHEMA_DIR);
     for s in SCHEMAS {
         cmd.file(schema.join(format!("{s}.capnp")));
     }

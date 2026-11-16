@@ -13,6 +13,8 @@ use crate::{Contract, ContractSource, Error};
 /// All `*.capnp` files of one directory, compiled together.
 pub struct CapnpcSource {
     dir: PathBuf,
+    /// Directories of other crates' schemas: import path, and their contracts are listed too.
+    extra: Vec<PathBuf>,
 }
 
 impl CapnpcSource {
@@ -21,20 +23,38 @@ impl CapnpcSource {
     pub fn new(dir: impl AsRef<Path>) -> Self {
         Self {
             dir: dir.as_ref().to_path_buf(),
+            extra: Vec::new(),
         }
     }
+
+    /// Also reads the contracts in `dir` (for example `fs_types::SCHEMA_DIR`, ADR 0093): it becomes an import
+    /// path, so `import "/types.capnp"` resolves, and its contracts are listed like the others.
+    #[must_use]
+    pub fn with_schemas(mut self, dir: impl AsRef<Path>) -> Self {
+        self.extra.push(dir.as_ref().to_path_buf());
+        self
+    }
+}
+
+fn capnp_files(dir: &Path) -> Result<Vec<PathBuf>, Error> {
+    let mut files: Vec<PathBuf> = std::fs::read_dir(dir)
+        .map_err(|e| Error::Compile(format!("{}: {e}", dir.display())))?
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| p.extension().is_some_and(|x| x == "capnp"))
+        .collect();
+    files.sort();
+    Ok(files)
 }
 
 impl ContractSource for CapnpcSource {
     fn contracts(&self) -> Result<Vec<Contract>, Error> {
-        let mut files: Vec<PathBuf> = std::fs::read_dir(&self.dir)
-            .map_err(|e| Error::Compile(format!("{}: {e}", self.dir.display())))?
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| p.extension().is_some_and(|x| x == "capnp"))
-            .collect();
-        files.sort();
+        let mut files = capnp_files(&self.dir)?;
         let mut cmd = CompileCommand::new();
         cmd.src_prefix(&self.dir);
+        for extra in &self.extra {
+            cmd.import_path(extra);
+            files.extend(capnp_files(extra)?);
+        }
         for f in &files {
             cmd.file(f);
         }

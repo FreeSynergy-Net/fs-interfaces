@@ -19,10 +19,10 @@
 //! * [`whiteboard_capnp`] - boards and their elements (owner `fs-draw`)
 //! * [`streaming_capnp`] - live streams and where they go (owner `fs-broadcast`)
 //! * [`store_capnp`] - install and update programs from Git sources (owner `fs-packages`)
-//! * [`types_capnp`] - basic types and the type description (owner: the shared types layer, crate `fs-types`)
 //!
-//! [`values`] (feature `values`) holds the contact values every program shares: [`values::EmailAddress`] and
-//! [`values::PhoneNumber`], valid on construction (value objects, trait [`values::ContactValue`]).
+//! The basic types (e-mail, phone, person reference, instant, `TypeCatalog` ...) and their schema live in the crate
+//! `fs-types` (ADR 0093), not here, and are not re-exported: a program that needs them depends on `fs-types` itself.
+//! The generated modules reference them as `::fs_types::types_capnp`.
 //!
 //! [`provider`] holds the Rust side of the provider rule: [`Unsupported`] and [`Capabilities`].
 //!
@@ -32,8 +32,6 @@
 #![deny(missing_docs)]
 #![warn(clippy::pedantic)]
 
-#[cfg(feature = "values")]
-pub mod values;
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 pub mod common_capnp;
@@ -85,9 +83,6 @@ pub mod whiteboard_capnp;
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 pub mod texts_capnp;
-#[rustfmt::skip]
-#[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
-pub mod types_capnp;
 
 pub mod capabilities;
 pub mod provider;
