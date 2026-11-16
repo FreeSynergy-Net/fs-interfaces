@@ -32,6 +32,9 @@ fn constants_are_on_the_list() {
         name::IDENTITY_OAUTH2,
         name::IDENTITY_SSH_KEYS,
         name::IDENTITY_PASSKEYS,
+        name::GATEWAY_REVERSE_PROXY,
+        name::MESSAGING_MATRIX,
+        name::MESSAGING_MATRIX_OIDC_SERVER,
     ] {
         assert!(capabilities::is_known(n), "{n}");
     }
@@ -66,6 +69,9 @@ fn display_names_pair_with_the_schema_keys_and_planned_is_marked() {
         name::IDENTITY_OAUTH2,
         name::IDENTITY_SSH_KEYS,
         name::IDENTITY_PASSKEYS,
+        name::GATEWAY_REVERSE_PROXY,
+        name::MESSAGING_MATRIX,
+        name::MESSAGING_MATRIX_OIDC_SERVER,
     ] {
         assert!(capabilities::is_planned(n), "{n}");
     }

@@ -62,6 +62,12 @@ pub mod name {
     pub const IDENTITY_SSH_KEYS: &str = "identity.ssh-keys";
     /// Sign-in with `WebAuthn` passkeys.
     pub const IDENTITY_PASSKEYS: &str = "identity.passkeys";
+    /// A reverse proxy in front of programs.
+    pub const GATEWAY_REVERSE_PROXY: &str = "gateway.reverse-proxy";
+    /// A Matrix homeserver.
+    pub const MESSAGING_MATRIX: &str = "messaging.matrix";
+    /// The sign-in server of a Matrix homeserver, for Matrix clients only.
+    pub const MESSAGING_MATRIX_OIDC_SERVER: &str = "messaging.matrix.oidc-server";
 }
 
 /// Every capability of the list, in file order. A line that is not of the form `key | display | status | description`
