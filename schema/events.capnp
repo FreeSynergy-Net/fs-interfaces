@@ -1,7 +1,7 @@
-# fs-calendar contract — DRAFT 0.1 (2026-11-06)
+# fs-calendars contract — DRAFT 0.1 (2026-11-06)
 #
-# STATUS: DRAFT. Owner program: fs-calendar. Lives in fs-interfaces (ADR 0045, 0050).
-# Consumers so far: none (0 of 2). Provider: fs-calendar-core.
+# STATUS: DRAFT. Owner program: fs-calendars. Lives in fs-interfaces (ADR 0045, 0050).
+# Consumers so far: none (0 of 2). Provider: fs-calendars-core.
 # JSCalendar `Event` belongs here, `Task` to tasks.capnp; a calendar shows tasks only through that.
 # An event travels as JSCalendar 2.0 JSON text, which stays authoritative, next to the AS2 envelope.
 # Evolution rules: never renumber or remove fields/methods; only append.

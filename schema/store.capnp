@@ -1,12 +1,12 @@
-# fs-store contract — DRAFT 0.1 (2026-11-08)
+# fs-packages contract — DRAFT 0.1 (2026-11-08)
 #
-# STATUS: DRAFT, PROVISIONAL. Owner program: fs-store (FreeSynergy.Store, formerly "launcher"). Lives in
-# fs-interfaces (ADR 0045). Consumers so far: the CLI `fs-store` (1 of 2); the Blinc GUI will be the second.
+# STATUS: DRAFT, PROVISIONAL. Owner program: fs-packages (FreeSynergy.Store, formerly "launcher"). Lives in
+# fs-interfaces (ADR 0045). Consumers so far: the CLI `fs-packages` (1 of 2); the Blinc GUI will be the second.
 #
 # The store installs, updates and removes FreeSynergy programs from Git sources. A source holds an
 # AppStream catalog (`catalog.xml`) and its detached OpenPGP signature; every release file is checked
 # against the trusted key before anything is installed, a failed update is rolled back, and a running
-# program is never replaced. The store updates itself by `update("fs-store")`. Design: fs-store/DESIGN.md.
+# program is never replaced. The store updates itself by `update("fs-packages")`. Design: fs-packages/DESIGN.md.
 #
 # Names of packages are AppStream component ids. Versions are `major.minor.patch` with an optional
 # `-alpha|beta|rc.N`. The built-in reference source can be switched off but never removed.
@@ -166,7 +166,7 @@ interface Store {
   # `source` empty = the best verified offer of all enabled sources; with two sources offering one name
   # the caller names the source, or the call is refused as ambiguous
   install       @8 (name :Text, source :Text) -> (job :Job);                  # package.install
-  update        @9 (name :Text, source :Text) -> (job :Job);                  # package.update; "fs-store" updates the store itself
+  update        @9 (name :Text, source :Text) -> (job :Job);                  # package.update; "fs-packages" updates the store itself
   job           @10 (id :Text) -> (found :Bool, job :Job);        # package.read
   # changes of jobs (phase); each job is announced as `created` and then `updated`
   subscribe     @11 (listener :ChangeListener) -> (subscription :Subscription);

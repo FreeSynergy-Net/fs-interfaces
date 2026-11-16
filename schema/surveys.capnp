@@ -1,6 +1,6 @@
-# fs-surveys contract — DRAFT 0.1 (2026-11-06)
+# fs-forms contract — DRAFT 0.1 (2026-11-06)
 #
-# STATUS: DRAFT, PROVISIONAL. Owner program: fs-surveys. Lives in fs-interfaces (ADR 0045).
+# STATUS: DRAFT, PROVISIONAL. Owner program: fs-forms. Lives in fs-interfaces (ADR 0045).
 # Consumers so far: none (0 of 2). No survey frontends are analysed yet; the requirements say this
 # contract comes from our architecture and general knowledge and must be checked against them.
 #

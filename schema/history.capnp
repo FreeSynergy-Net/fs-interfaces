@@ -1,6 +1,6 @@
-# fs-activity contract — DRAFT 0.1 (2026-11-06)
+# fs-activities contract — DRAFT 0.1 (2026-11-06)
 #
-# STATUS: DRAFT, PROVISIONAL. Owner program: fs-activity. Lives in fs-interfaces (ADR 0045).
+# STATUS: DRAFT, PROVISIONAL. Owner program: fs-activities. Lives in fs-interfaces (ADR 0045).
 # Consumers so far: none (0 of 2). No history frontends are analysed yet.
 #
 # An observer of what happened, in every program (ADR 0020). It writes nothing of its own but a

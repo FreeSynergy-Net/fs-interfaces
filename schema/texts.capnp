@@ -1,7 +1,7 @@
-# fs-wiki contract — DRAFT 0.2 (2026-11-08)
+# fs-texts contract — DRAFT 0.2 (2026-11-08)
 #
-# STATUS: DRAFT. Owner program: fs-wiki. Lives in fs-interfaces (ADR 0045, 0050).
-# Consumers so far: 1 of 2 (fs-wiki-core / fs-wiki-server). Provider: fs-wiki-core over the text library fs-text.
+# STATUS: DRAFT. Owner program: fs-texts. Lives in fs-interfaces (ADR 0045, 0050).
+# Consumers so far: 1 of 2 (fs-texts-core / fs-texts-server). Provider: fs-texts-core over the text library fs-texts.
 # Every text is a wiki entry (ADR 0031): text + layers, the database is the truth, files are exports
 # (ADR 0042). A text travels as the JSON form of its document, with its AS2 envelope; Markdown goes
 # in and out through import and export. Evolution rules: only append.

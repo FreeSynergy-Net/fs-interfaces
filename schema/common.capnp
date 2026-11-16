@@ -2,7 +2,7 @@
 #
 # STATUS: DRAFT (ADR 0045: draft -> tested by >= 2 independent consumers -> 1.0 -> only version jumps).
 # Owner program: fs-objects (envelope, activity log; proposed in ADR 0050) - shared types for all topics.
-# Consumers: fs-tasks, fs-hub, fs-messenger (contract draft), fs-calendar.
+# Consumers: fs-tasks, fs-registry, fs-messages (contract draft), fs-calendars.
 #
 # Shared by every program contract (ADR 0021). Evolution rules: only append, never renumber.
 # Provider rule (ADR 0045): every provider offers ALL methods of its interface; what truly cannot be

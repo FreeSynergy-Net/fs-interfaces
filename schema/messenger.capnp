@@ -1,6 +1,6 @@
-# fs-messenger contract — DRAFT 0.3 (2026-11-06)
+# fs-messages contract — DRAFT 0.3 (2026-11-06)
 #
-# STATUS: DRAFT (ADR 0045). Owner program: fs-messenger. Consumers: none yet (0 of 2 needed).
+# STATUS: DRAFT (ADR 0045). Owner program: fs-messages. Consumers: none yet (0 of 2 needed).
 # Moved here from fs-documentation/temp/contracts. Providers (mail, Matrix, Telegram ...) follow
 # the provider rule: all methods offered, "not possible" = Unsupported (see common.capnp).
 #

@@ -1,7 +1,7 @@
 # FreeSynergy hub contract — DRAFT 0.1 (ADR 0019, 0021, 0029).
 #
-# STATUS: DRAFT (ADR 0045). Owner program: fs-hub. Consumers: fs-hub-client (programs that register
-# with the hub: fs-tasks, fs-calendar ... as they adopt it); 1 of 2 independent users so far.
+# STATUS: DRAFT (ADR 0045). Owner program: fs-registry. Consumers: fs-registry-client (programs that register
+# with the hub: fs-tasks, fs-calendars ... as they adopt it); 1 of 2 independent users so far.
 #
 # Evolution rules: only append fields/methods, never renumber, never reuse an ordinal.
 @0xd2a7c5e91f0b43a8;

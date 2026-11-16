@@ -1,6 +1,6 @@
-# fs-streaming contract — DRAFT 0.1 (2026-11-06)
+# fs-broadcast contract — DRAFT 0.1 (2026-11-06)
 #
-# STATUS: DRAFT, PROVISIONAL. Owner program: fs-streaming. Lives in fs-interfaces (ADR 0045).
+# STATUS: DRAFT, PROVISIONAL. Owner program: fs-broadcast. Lives in fs-interfaces (ADR 0045).
 # Consumers so far: none (0 of 2). Stage 1 of docs/en/programs/apps/streaming/design.md: receive one
 # stream, send it to many targets without decoding it, and record it. Nothing here decodes or encodes,
 # so any codec a sender uses passes through (enhanced RTMP included).

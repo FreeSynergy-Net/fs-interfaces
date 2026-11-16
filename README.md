@@ -68,20 +68,20 @@ interface), ADR 0040 (pure-Rust Cap'n Proto compiler, generated code committed).
 |--------|-------|---------------|--------|
 | `common.capnp` | Shared types: ids, envelope, change feed, provider rule | fs-objects (proposed) | draft |
 | `tasks.capnp` | Tasks (JSCalendar `Task`) | fs-tasks | draft |
-| `messenger.capnp` | Messages | fs-messenger | draft |
-| `hub.capnp` | Hub: register, activity log, sessions | fs-hub | draft |
+| `messenger.capnp` | Messages | fs-messages | draft |
+| `hub.capnp` | Hub: register, activity log, sessions | fs-registry | draft |
 | `people.capnp` | People, relations, roles, AI marking (JSContact) | fs-people | draft |
 | `groups.capnp` | Groups, nesting, membership, invitations, delegation | fs-groups | draft |
 | `files.capnp` | Files, folders, resumable upload; backends that keep the bytes | fs-files | draft |
-| `events.capnp` | Events (JSCalendar `Event`), instances, invitations | fs-calendar | draft |
+| `events.capnp` | Events (JSCalendar `Event`), instances, invitations | fs-calendars | draft |
 | `places.capnp` | Places (GeoJSON); sources of map tiles | fs-maps | draft |
-| `texts.capnp` | Texts: text + layers, links, history, trash, spaces, templates, redirects, search | fs-wiki | draft |
-| `surveys.capnp` | Surveys, answers, results; AI participation per survey | fs-surveys | draft |
-| `history.capnp` | History as an observer of the activity log | fs-activity | draft |
+| `texts.capnp` | Texts: text + layers, links, history, trash, spaces, templates, redirects, search | fs-texts | draft |
+| `surveys.capnp` | Surveys, answers, results; AI participation per survey | fs-forms | draft |
+| `history.capnp` | History as an observer of the activity log | fs-activities | draft |
 | `resources.capnp` | Resources: what we have, need and who has time | fs-resources | draft |
-| `whiteboard.capnp` | Boards, objects, strokes | fs-whiteboard | draft |
-| `streaming.capnp` | Streams: receive, forward, record | fs-streaming | draft |
-| `store.capnp` | The store: sources, available, install, update | fs-store | draft |
+| `whiteboard.capnp` | Boards, objects, strokes | fs-draw | draft |
+| `streaming.capnp` | Streams: receive, forward, record | fs-broadcast | draft |
+| `store.capnp` | The store: sources, available, install, update | fs-packages | draft |
 
 Each schema file starts with a header naming status, owner and consumers.
 

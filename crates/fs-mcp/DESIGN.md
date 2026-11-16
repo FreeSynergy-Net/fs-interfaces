@@ -2,7 +2,7 @@
 
 MCP tool generator for the Cap'n Proto contracts (ADR 0021 with the extension of 2026-11-07, ADR 0054 "Lesen ist nicht harmlos",
 ADR 0056). **Stage 1 only lists:** it turns the contracts into tools and resource templates *as data*. There is no server, no
-bridge and no call. Every later execution must refuse until the engine brake (Thread 2, `fs-messenger-guard`) exists.
+bridge and no call. Every later execution must refuse until the engine brake (Thread 2, `fs-messages-guard`) exists.
 
 **Location is provisional** (crate in `fs-interfaces`, branch `mcp`); the strategy decides the final repo.
 **Marks stay in `marks/*.toml`.** They move into Cap'n Proto annotations after the sprint; there is deliberately no

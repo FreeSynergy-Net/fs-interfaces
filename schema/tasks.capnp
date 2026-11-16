@@ -4,7 +4,7 @@
 #
 # Target rules (ADR 0045): the interface is a target, not a snapshot. It stays DRAFT until two
 # independent consumers have tested it, then it becomes 1.0, and from then on only version jumps.
-# Consumers so far: fs-calendar (1 of 2).
+# Consumers so far: fs-calendars (1 of 2).
 #
 # Source: docs/en/programs/apps/tasks/design.md (interface sketch). The Rust form of `Items` and of
 # the subscription is the trait pair `TaskItems` / `TaskFeed` in crates/fs-tasks-core (ADR 0043:

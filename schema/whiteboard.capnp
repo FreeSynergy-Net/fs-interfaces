@@ -1,6 +1,6 @@
-# fs-whiteboard contract — DRAFT 0.1 (2026-11-06)
+# fs-draw contract — DRAFT 0.1 (2026-11-06)
 #
-# STATUS: DRAFT, PROVISIONAL. Owner program: fs-whiteboard. Lives in fs-interfaces (ADR 0045).
+# STATUS: DRAFT, PROVISIONAL. Owner program: fs-draw. Lives in fs-interfaces (ADR 0045).
 # Consumers so far: none (0 of 2). No open standard describes a board as a queryable model, so this is
 # our own specification and a candidate for submission (ADR 0014;
 # docs/en/programs/apps/whiteboard/design.md).
@@ -10,7 +10,7 @@
 # person's colour change does not undo another's move. The clocks and the merge belong to the stored
 # form, and travel with it, not with this interface; `sync` between devices is not in this contract
 # yet (the hub delivers only other programs' activities). The merge units are the members of `Element`,
-# each one of `Style`, and `Page` by itself; they are listed in fs-whiteboard/DESIGN.md.
+# each one of `Style`, and `Page` by itself; they are listed in fs-draw/DESIGN.md.
 #
 # The points of a finished stroke never change, so they cannot conflict; they are relative to the
 # frame, which can move and scale. A deleted element stays as a marker with its properties, so a
