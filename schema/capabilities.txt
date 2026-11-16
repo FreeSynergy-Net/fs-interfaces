@@ -22,7 +22,7 @@ files | Files | stable | Files and folders
 storage.provider | Storage provider | planned | A storage provider: a tree of things one has access to (ADR 0070)
 texts | Texts | stable | Texts and the wiki
 places | Places | stable | Places (GeoJSON)
-surveys | Decisions | stable | Asking and deciding together
+surveys | Forms | stable | Asking and deciding together
 whiteboard | Boards | stable | Visual boards
 streaming | Live media | stable | Live media
 store | Store | stable | Installing and updating programs

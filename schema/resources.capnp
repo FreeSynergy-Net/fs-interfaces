@@ -1,8 +1,9 @@
 # fs-resources contract — DRAFT 0.1 (2026-11-06)
 #
 # STATUS: DRAFT, PROVISIONAL. Owner program: fs-resources. Lives in fs-interfaces (ADR 0045).
-# Consumers so far: none (0 of 2). No standard for a resource model was found and no frontends of this
-# category are analysed, so the model is our own (docs/en/programs/apps/resources/index.md).
+# Consumers so far: none (0 of 2). The model follows REA (ISO/IEC 15944-4) and its open form ValueFlows
+# (ADR 0076: economic resources, events, agents); no frontends of this category are analysed yet, so the
+# concrete shapes are our own (docs/en/programs/apps/resources/index.md).
 #
 # What we have (things, rooms, material), who has time (capacity), what we need and who offers it.
 # Things and people's time share planning, so they are one program; costs are not part of it yet.

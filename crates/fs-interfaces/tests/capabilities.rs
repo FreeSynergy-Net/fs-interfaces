@@ -60,7 +60,7 @@ fn every_line_of_the_file_is_read() {
 #[test]
 fn display_names_pair_with_the_schema_keys_and_planned_is_marked() {
     assert_eq!(capabilities::display_name("whiteboard"), Some("Boards"));
-    assert_eq!(capabilities::display_name("surveys"), Some("Decisions"));
+    assert_eq!(capabilities::display_name("surveys"), Some("Forms"));
     assert_eq!(capabilities::display_name("messenger"), Some("Messages"));
     assert_eq!(capabilities::display_name("boards"), None);
     assert!(capabilities::is_planned(name::STORAGE_PROVIDER));
