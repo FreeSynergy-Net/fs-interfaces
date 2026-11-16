@@ -12,8 +12,6 @@ changes, consumers depend on this repo by git tag (ADR 0043, `coding.md` §8).
 | `src/*_capnp.rs` (generated, committed) | Adapter | wire form; one module per schema, no generator needed at build time |
 | `src/provider.rs` `Unsupported` | Null Object | the explicit "not possible" (RFC 9457 `Problem`, status 501) |
 | `src/provider.rs` `Capabilities` | Value object | a provider's report of what it can do (`Support` per capability) |
-| `src/rpc/*` (feature `rpc`) | Adapter, Factory, Observer; `rpc/problem`: Value object (`Problem`, extensions), Adapter (`wire`: error text), `keys`: `Pattern: none`, constants | the shared server and client side of every contract: socket, RPC system, envelope, RFC 9457 problems as RPC errors, pages, change feed |
-| `src/rpc/client/*` (feature `rpc`) | Command (+ Strategy `Remote`, RAII guard `Reply`); `Timeouts`/`Fault`: `Pattern: none` in the file, plain data types; `call_limited` (Decorator, one function): the call deadline for a bare `Connection` too, and the one the `Worker` uses (`Worker::call_within` takes a deadline per call); `problems`: `Pattern: none`, free helper functions | the client half every program's client shares: the thread that owns the `!Send` connection, fed by commands from any thread (the command is a boxed closure, not an enum with `apply`: the calls differ per contract); the guard turns a command that ends without an answer into `Fault::Interrupted` instead of "connection gone"; deadlines as configuration; `Problem` read back typed. Mapping to a program's own `Error` and its problem type URIs stay in that program's client |
 | `crates/regenerate` | Pipeline | `capnp-compiler` -> `CodeGeneratorRequest` -> `capnpc` -> files |
 | `tests/generated_matches_official.rs` | Oracle test | official compiler and ours must produce the committed code |
 
@@ -246,3 +244,7 @@ only, because the pedantic clippy of `fs-types` already fails on `main`).
 - Die KI-Grenze für Positionen ist die STADT (`AccuracyLevel::Km10`, ca. 10 km; Nutzerentscheidung 16.11.), nicht mehr ~1 km; Wegbeschreibung/Routing ohne KI darf genau sein. Erzwingt `fs-access`, nicht der Typ.
 - Alle Crates der Workspace tragen die Version 0.0.25; nicht getaggt. Verbraucher von `fs-interfaces` mit Feature `rpc` müssen `fs-objects` v0.0.3 im Lock haben (siehe Bericht des Laufs).
 
+## v0.0.26 (2026-11-16): `rpc` moved to `fs-rpc` (ADR 0092 draft)
+- The module `rpc` (feature `rpc`) and the dependency on `fs-objects` are removed; `fs-interfaces` holds contracts only (schemas, generated code, `provider`, `values`, `fs-types`) and depends on none of our runtime repos. The runtime lives in the library `fs-rpc` (`fs_interfaces::rpc::X` becomes `fs_rpc::X`). Reason: `fs-interfaces` (rpc) to `fs-objects` (v5) to `fs-types` to `fs-interfaces` was a cycle (two `fs-types` in a lock).
+- Everything above about `rpc` (tables, notes, limits, hardening, handshake) is history of the code that now lives in `fs-rpc`; the sections stay as record.
+- All crates of the workspace carry 0.0.26; not tagged.

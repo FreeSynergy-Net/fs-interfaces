@@ -13,7 +13,7 @@ Latest tag: `v0.0.1`.
 - Cap'n Proto schemas for: common types, tasks, messenger, hub, people, groups, files, events, places and texts, and, according to the design file, surveys, history, resources, whiteboard and streaming. The README table lists the first ten; the DESIGN file has the full list.
 - The Rust code generated from them is committed, so a normal build needs no schema compiler.
 - A shared provider rule: `Unsupported` and `Capabilities` for "what can you do?" and "this is not possible".
-- Shared server and client code for local sockets (feature `rpc`): errors in the RFC 9457 form, paging, change feeds.
+- The server and client code for local sockets (errors in the RFC 9457 form, paging, change feeds) lives in `fs-rpc` since v0.0.26, not here.
 - Every generated file is checked to be identical to what the official Cap'n Proto compiler produces.
 - `fs-mcp`: a first stage that lists, from the contracts, the tools an AI could be offered, with risk classes. It has no server and runs nothing.
 
