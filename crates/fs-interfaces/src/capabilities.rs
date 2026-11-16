@@ -65,9 +65,9 @@ pub mod name {
     /// A reverse proxy in front of programs.
     pub const GATEWAY_REVERSE_PROXY: &str = "gateway.reverse-proxy";
     /// A Matrix homeserver.
-    pub const MESSAGING_MATRIX: &str = "messaging.matrix";
+    pub const MESSAGES_MATRIX: &str = "messages.matrix";
     /// The sign-in server of a Matrix homeserver, for Matrix clients only.
-    pub const MESSAGING_MATRIX_OIDC_SERVER: &str = "messaging.matrix.oidc-server";
+    pub const MESSAGES_MATRIX_OIDC_SERVER: &str = "messages.matrix.oidc-server";
 }
 
 /// Every capability of the list, in file order. A line that is not of the form `key | display | status | description`
