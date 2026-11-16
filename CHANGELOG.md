@@ -4,8 +4,9 @@ Version = tag; all crates of the workspace (`fs-interfaces`, `fs-types`, `fs-mcp
 
 ## 0.0.25
 
-- `fs-objects` in feature `rpc` pinned to tag v0.0.3 (was v0.0.1): the only `fs-objects` version in the lock of every consumer.
-- `fs-types`: new `Location` (JSCalendar `Location`, RFC 8984 section 4.2.5: name required, description, location types, coordinates as `GeoPoint`, postal `Address`, links) with `LocationParts` for the JSCalendar mapping; no new wire kind (coordinates travel as `Place`).
+- `fs-interfaces` uses `fs-objects` v0.0.3 (was v0.0.1); consumers must follow with the lift (until then their locks hold two versions).
+- `Location`: `name` optional (RFC 8984 section 4.2.5; `Location::new()` takes no name, `with_name`), new `relativeTo` (`RelativeTo`: start/end) and `timeZone` (`Zone`); `LocationParts` has private fields with a builder and getters (new JSCalendar fields later break nobody). Maps to `fs-jscalendar`'s `Location` object (not touched here). Open for v0.0.26: NFC for description, lower case for types, bounds, link `rel`/`contentType`/`title`.
+- `fs-types`: new `Location` (JSCalendar `Location`, RFC 8984 section 4.2.5: name optional, description, location types, coordinates as `GeoPoint`, postal `Address`, links) with `LocationParts` for the JSCalendar mapping; no new wire kind (coordinates travel as `Place`).
 - `fs-types`: `Place::parse` / `canonical` normalise through `GeoPoint` (`geo:0,180` is `geo:0,-180`, `geo:-0,-0` is `geo:0,0`); `Place` to `GeoPoint` to `Place` loses nothing now. A negative `u=` is `OutOfRange` for `Place` as for `GeoPoint` (was `BadPlace`).
 - `AccuracyLevel` documentation: the AI sees at most the city (about 10 km); routing without an AI may be exact (rule lives in `fs-access`, not enforced by the type).
 
