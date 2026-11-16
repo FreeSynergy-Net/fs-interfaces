@@ -1,0 +1,22 @@
+# Changelog
+
+Version = tag; all crates of the workspace (`fs-interfaces`, `fs-types`, `fs-mcp`, `regenerate`) carry the same version. The Cap'n Proto schema and the capability list only grow (append only). Details: `DESIGN.md`.
+
+## 0.0.25
+
+- `fs-objects` in feature `rpc` pinned to tag v0.0.3 (was v0.0.1): the only `fs-objects` version in the lock of every consumer.
+- `fs-types`: new `Location` (JSCalendar `Location`, RFC 8984 section 4.2.5: name required, description, location types, coordinates as `GeoPoint`, postal `Address`, links) with `LocationParts` for the JSCalendar mapping; no new wire kind (coordinates travel as `Place`).
+- `fs-types`: `Place::parse` / `canonical` normalise through `GeoPoint` (`geo:0,180` is `geo:0,-180`, `geo:-0,-0` is `geo:0,0`); `Place` to `GeoPoint` to `Place` loses nothing now. A negative `u=` is `OutOfRange` for `Place` as for `GeoPoint` (was `BadPlace`).
+- `AccuracyLevel` documentation: the AI sees at most the city (about 10 km); routing without an AI may be exact (rule lives in `fs-access`, not enforced by the type).
+
+## 0.0.24
+
+- `fs-types`: `GeoPoint` (WGS 84, `geo:` URI RFC 5870, GeoJSON helpers), `PositionFix` with `FixSource`, `AccuracyLevel` (blur to a grid; `at_level` always blurs, also with a forged `blur` field). `Place::point()` and `Place::from_point()`. Additive; wire format unchanged.
+
+## 0.0.23
+
+- Names wave (ADR 0087): owner and program names in comments, headers and documentation follow the renames; no capability key, Cap'n Proto type or contract changed.
+
+## 0.0.22
+
+- `fs-types`: the shared types of the topic crates (`Utc`, `LocalDateTime`, `Zone`, `PersonRef`, `PersonArt`, `Attendee`, `ContactAddress`, `ObjectId`, `Revision`, `MediaType`, `FileRef`, `Page`, `PageCursor`, `Capabilities`, `Problem`), `TypeProblem` as the union of the stand-in problems; `Reference` and `ContactAddress` refuse an empty rest; `Utc` range and leap second checked.
