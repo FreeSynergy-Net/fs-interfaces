@@ -14,7 +14,7 @@
 //! * [`places_capnp`] - places, and sources of map tiles (owner `fs-maps`)
 //! * [`texts_capnp`] - texts (owner `fs-wiki`)
 //! * [`surveys_capnp`] - surveys and decisions (owner `fs-surveys`)
-//! * [`history_capnp`] - what happened, across programs (owner `fs-history`)
+//! * [`history_capnp`] - what happened, across programs (owner `fs-activity`)
 //! * [`resources_capnp`] - things, capacity, needs and offers (owner `fs-resources`)
 //! * [`whiteboard_capnp`] - boards and their elements (owner `fs-whiteboard`)
 //! * [`streaming_capnp`] - live streams and where they go (owner `fs-streaming`)

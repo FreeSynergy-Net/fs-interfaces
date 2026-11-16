@@ -77,7 +77,7 @@ interface), ADR 0040 (pure-Rust Cap'n Proto compiler, generated code committed).
 | `places.capnp` | Places (GeoJSON); sources of map tiles | fs-maps | draft |
 | `texts.capnp` | Texts: text + layers, links, history, trash, spaces, templates, redirects, search | fs-wiki | draft |
 | `surveys.capnp` | Surveys, answers, results; AI participation per survey | fs-surveys | draft |
-| `history.capnp` | History as an observer of the activity log | fs-history | draft |
+| `history.capnp` | History as an observer of the activity log | fs-activity | draft |
 | `resources.capnp` | Resources: what we have, need and who has time | fs-resources | draft |
 | `whiteboard.capnp` | Boards, objects, strokes | fs-whiteboard | draft |
 | `streaming.capnp` | Streams: receive, forward, record | fs-streaming | draft |
