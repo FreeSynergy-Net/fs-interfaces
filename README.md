@@ -8,9 +8,9 @@ What is different here: an interface is a target, not something that grows. It i
 
 ## What it can do today
 
-Latest tag: `v0.0.1`.
+Latest tag: `v0.0.27`.
 
-- The basic types (e-mail, phone, person reference, instant, type description ...) are not here: they live in [`fs-types`](https://github.com/FreeSynergy/fs-types) (ADR 0093). Our schemas import `"/types.capnp"` from it; a program that needs these types pins `fs-types` itself.
+- The basic types (e-mail, phone, person reference, instant, type description ...) are not here: they live in [`fs-types`](https://github.com/FreeSynergy/fs-types) (ADR 0093). Our schemas import `"/types.capnp"` from it; a program that needs these types pins `fs-types` itself. `fs_types::Capabilities` stays in `fs-types` next to `fs_interfaces::provider::Capabilities` (V3 open).
 - Cap'n Proto schemas for: common types, tasks, messenger, hub, people, groups, files, events, places and texts, and, according to the design file, surveys, history, resources, whiteboard and streaming. The README table lists the first ten; the DESIGN file has the full list.
 - The Rust code generated from them is committed, so a normal build needs no schema compiler.
 - A shared provider rule: `Unsupported` and `Capabilities` for "what can you do?" and "this is not possible".

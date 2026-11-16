@@ -26,6 +26,8 @@ memberships, invitations, backends, hub registration: no tool, not even for read
 | `jsonschema.rs`, `capnpc_source/types.rs` | Visitor | one arm per `TypeRef` / Cap'n Proto type variant, outside the data |
 | `capnpc_source/names.rs` | none | id lookup tables built once per request; nothing is looked up by kind |
 
+The schemas of this repository import `"/types.capnp"` from `fs-types`. `CapnpcSource::with_schemas` adds that schema directory to the compiler; without `.with_schemas(fs_types::SCHEMA_DIR)` our schemas do not compile.
+
 ## What it does
 
 Per **method** and per **union member** (a method with a pure-union parameter, `Conversation.act`, is split) one tool:
