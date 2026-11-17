@@ -19,6 +19,7 @@
 //! * [`whiteboard_capnp`] - boards and their elements (owner `fs-draw`)
 //! * [`streaming_capnp`] - live streams and where they go (owner `fs-broadcast`)
 //! * [`store_capnp`] - install and update programs from Git sources (owner `fs-packages`)
+//! * [`settings_capnp`] - settings of a person and instance defaults, served by one process (owner `fs-settings`)
 //!
 //! The basic types (e-mail, phone, person reference, instant, `TypeCatalog` ...) and their schema live in the crate
 //! `fs-types` (ADR 0093), not here, and are not re-exported: a program that needs them depends on `fs-types` itself.
@@ -65,6 +66,9 @@ pub mod places_capnp;
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 pub mod resources_capnp;
+#[rustfmt::skip]
+#[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
+pub mod settings_capnp;
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 pub mod streaming_capnp;

@@ -5,10 +5,10 @@ Version = tag; all crates of the workspace (`fs-interfaces`, `fs-mcp`, `regenera
 ## Unreleased (0.0.28)
 
 - `fs-types` is pinned at `v0.0.3` (was `v0.0.1`): `fs-interfaces`, `fs-mcp`, `regenerate`. New basic types `integer`, `duration`, `flag`, `whole` (appended); `TypeProblem` is `#[non_exhaustive]`. This repository has no `match` on `BasicType` or `TypeProblem`; consumers with an exhaustive `match` need a `_` arm. The lock must hold one `fs-types`, from that repository only.
-- New contract `schema/settings.capnp` (DRAFT 0.1, owner fs-settings, ADR 0045/0100; provisional, to be replaced by the storage trait draft): `Settings`, `Instance`, `Raw`, `Layer`, `Place`, `Kind`, `Declaration`, `Lock`, `Effective`, `Health`, `LogEntry`. Failures are `Problem` with a code and parameters, times are UTC.
-- Auf Deutsch: `fs-types` ist auf `v0.0.3` gepinnt (vorher `v0.0.1`): neue Grundtypen `integer`, `duration`, `flag`, `whole`; `TypeProblem` ist `#[non_exhaustive]`. Neuer Vertrag `schema/settings.capnp` (ENTWURF 0.1, Eigentuemer fs-settings; vorlaeufig, wird durch den Speicher-Trait-Entwurf ersetzt): Fehler als Code mit Parametern, Zeiten UTC.
-- PROVISIONAL stock for the second cascade (fs-types 0.0.4); values are typed (`kind` + `canonical` of fs-types `BasicType`, no raw text); `unlock` needs a reason; lock time is `Timestamp` (ms UTC).
-- Open until the build: `Cargo.lock` (regenerate with cargo, never by hand), `src/settings_capnp.rs` (`cargo run -p regenerate`), `pub mod settings_capnp;` in `lib.rs`, versions to 0.0.28 and the date by the release commit.
+- New contract `schema/settings.capnp` (DRAFT 0.2, owner fs-settings, ADR 0045/0100; the store is served by one process): `SettingsHub`, `Store`, `Admin`, `Raw` (typed union flag/whole/text), `Scope`, `Place`, `Entry`, `Lock`, `LockEntry`, `Snapshot`, `Health`, `Index`, `LogEntry`. Failures are `Problem` with a code and parameters, times are UTC milliseconds, `unlock` needs a reason. Capability `settings` (planned) appended. Generated `src/settings_capnp.rs` and `pub mod settings_capnp;` included.
+- Auf Deutsch: `fs-types` ist auf `v0.0.3` gepinnt (vorher `v0.0.1`): neue Grundtypen `integer`, `duration`, `flag`, `whole`; `TypeProblem` ist `#[non_exhaustive]`. Neuer Vertrag `schema/settings.capnp` (ENTWURF 0.2, Eigentuemer fs-settings): ein Dienst haelt den Speicher; `SettingsHub`, `Store`, `Admin`; Werte als typisierte Union (Flag, Ganzzahl, Text), Fehler als Code mit Parametern, Zeiten UTC in Millisekunden, `unlock` nur mit Grund. Faehigkeit `settings` angehaengt.
+- Second cascade: still pinned at fs-types v0.0.3 (no type of v0.0.4 is used); the pin moves to v0.0.4 when that is tagged.
+- Open until the release commit: versions to 0.0.28 and the date by the release commit.
 
 ## 0.0.27
 

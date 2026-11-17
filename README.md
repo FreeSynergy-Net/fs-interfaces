@@ -83,7 +83,7 @@ interface), ADR 0040 (pure-Rust Cap'n Proto compiler, generated code committed).
 | `whiteboard.capnp` | Boards, objects, strokes | fs-draw | draft |
 | `streaming.capnp` | Streams: receive, forward, record | fs-broadcast | draft |
 | `store.capnp` | The store: sources, available, install, update | fs-packages | draft |
-| `settings.capnp` | Settings: catalog, layers, profiles, locks, instance log (provisional draft, since 0.0.28) | fs-settings | draft |
+| `settings.capnp` | Settings: store per program, profile index, instance defaults, locks with reason, log (draft 0.2, since 0.0.28) | fs-settings | draft |
 
 Each schema file starts with a header naming status, owner and consumers.
 
