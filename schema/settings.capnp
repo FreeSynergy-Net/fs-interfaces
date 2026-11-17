@@ -1,6 +1,6 @@
 # fs-settings contract — DRAFT 0.1 (2026-11-17)
 #
-# STATUS: DRAFT. Owner program: fs-settings (library `fs-settings`, programs `fs-settings-bin/-server/-app`). Lives in
+# STATUS: DRAFT (provisional, kept as stock for the second cascade with fs-types 0.0.4; not on main). Owner program: fs-settings (library `fs-settings`, programs `fs-settings-bin/-server/-app`). Lives in
 # fs-interfaces (ADR 0045, 0100). PROVISIONAL: replaced by the storage trait draft (trait round, fs-settings-store) when it lands.
 # Consumers so far: none (0 of 2).
 #
@@ -27,14 +27,14 @@ using Timestamp = C.Timestamp;
 using Cursor = C.Cursor;
 using Problem = C.Problem;
 using Subscription = C.Subscription;
+using T = import "/types.capnp";
 
-# What a store keeps for one value (matches the `BasicType` kinds flag, whole, text of fs-types 0.0.3).
+# A value, typed by fs-types (no raw text): the basic type says what it is, `canonical` is its canonical text form
+# (`BasicValue::canonical` of fs-types 0.0.3: flag `true`/`false`, whole `0`.., integer, text, choice, language ...). types.capnp has no value
+# struct, only the enum `BasicType`, so kind + canonical text is the typed form on the wire. PROVISIONAL: the storage trait draft decides.
 struct Raw {
-  union {
-    flag  @0 :Bool;
-    whole @1 :Int64;
-    text  @2 :Text;
-  }
+  kind      @0 :T.BasicType;
+  canonical @1 :Text;
 }
 
 # The layer a value comes from, lowest first; the effective value is the highest layer that has one.
@@ -115,6 +115,6 @@ interface Settings {                                      # one per program and 
 interface Instance {                                      # the admin's side; every call checks the admin right
   instanceSet @0 (key :Text, value :Raw, reset :Bool) -> ();      # instance default
   lock        @1 (key :Text, value :Raw, reason :Text) -> ();     # lockedBy/lockedAt set by the server
-  unlock      @2 (key :Text, reason :Text) -> ();
+  unlock      @2 (key :Text, reason :Text) -> ();                  # reason required (reason-missing)
   log         @3 (after :Data, size :UInt32) -> (entries :List(LogEntry));   # read only
 }
