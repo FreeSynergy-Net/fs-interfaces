@@ -8,7 +8,7 @@ What is different here: an interface is a target, not something that grows. It i
 
 ## What it can do today
 
-Latest tag: `v0.0.27`.
+Latest tag: `v0.0.27` (next, unreleased: `fs-types` pin `v0.0.3`).
 
 - The basic types (e-mail, phone, person reference, instant, type description ...) are not here: they live in [`fs-types`](https://github.com/FreeSynergy/fs-types) (ADR 0093). Our schemas import `"/types.capnp"` from it; a program that needs these types pins `fs-types` itself. `fs_types::Capabilities` stays in `fs-types` next to `fs_interfaces::provider::Capabilities` (V3 open).
 - Cap'n Proto schemas for: common types, tasks, messenger, hub, people, groups, files, events, places and texts, and, according to the design file, surveys, history, resources, whiteboard and streaming. The README table lists the first ten; the DESIGN file has the full list.

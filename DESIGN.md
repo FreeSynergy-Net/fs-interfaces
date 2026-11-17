@@ -181,6 +181,9 @@ The remedy is `chmod g-w` on the directory the message names, or another `--data
 - `tests/generated_matches_official.rs` compares 17 schemas against both compilers and writes into the test target (`CARGO_TARGET_TMPDIR`), not `/tmp`. `fs-mcp` reads the contracts of `fs-types` too (`CapnpcSource::with_schemas`), so its tool list is unchanged.
 - All crates of the workspace carry 0.0.27.
 
+## v0.0.28 (Unreleased): `fs-types` v0.0.3
+- Pin of `fs-types` from `v0.0.1` to `v0.0.3` in `fs-interfaces`, `fs-mcp`, `regenerate`. No schema, no generated file changes (`BasicType` lives in `fs-types`).
+
 ## fs-mcp
 
 The MCP tool generator (stage 1, lists only) lives in `crates/fs-mcp`; see its `DESIGN.md`.

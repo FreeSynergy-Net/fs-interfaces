@@ -2,6 +2,11 @@
 
 Version = tag; all crates of the workspace (`fs-interfaces`, `fs-mcp`, `regenerate`) carry the same version. The Cap'n Proto schema and the capability list only grow (append only). Details: `DESIGN.md`.
 
+## Unreleased (0.0.28)
+
+- `fs-types` is pinned at `v0.0.3` (was `v0.0.1`): `fs-interfaces`, `fs-mcp`, `regenerate`. No schema change. `BasicType` gains `integer`, `duration`, `flag`, `whole` (appended) and `TypeProblem` is `#[non_exhaustive]`; this repository has no `match` on either. The lock must hold one `fs-types`, from that repository only. Version and date by the release commit.
+- Auf Deutsch: `fs-types` ist auf `v0.0.3` gepinnt (vorher `v0.0.1`); keine Schema-Aenderung. Version und Datum setzt der Release-Commit.
+
 ## 0.0.27
 
 - Origin: `fs-types` is moved out to FreeSynergy/fs-types v0.0.1 (history kept), see ADR 0093. Removed here: the workspace crate `fs-types`, `schema/types.capnp`, `src/types_capnp.rs`, the feature `values` (`EmailAddress`, `PhoneNumber`, `ValueProblem`, trait `ContactValue`) and the dependency `idna`. `fs-interfaces` depends on `fs-types` (git, tag `v0.0.1`).
