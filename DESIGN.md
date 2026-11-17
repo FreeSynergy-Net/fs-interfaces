@@ -181,6 +181,10 @@ The remedy is `chmod g-w` on the directory the message names, or another `--data
 - `tests/generated_matches_official.rs` compares 17 schemas against both compilers and writes into the test target (`CARGO_TARGET_TMPDIR`), not `/tmp`. `fs-mcp` reads the contracts of `fs-types` too (`CapnpcSource::with_schemas`), so its tool list is unchanged.
 - All crates of the workspace carry 0.0.27.
 
+## v0.0.28 (Unreleased): `fs-types` v0.0.3 and the contract `settings` (draft)
+- `fs-types` pin from `v0.0.1` to `v0.0.3` (three `Cargo.toml`: `fs-interfaces`, `fs-mcp`, `regenerate`). `BasicType` gets `integer`, `duration`, `flag`, `whole` and `TypeProblem` is `#[non_exhaustive]`; no code of this repository matches on either type, and no generated file here embeds `BasicType` (it lives in `fs-types`), so nothing is regenerated for the pin.
+- New `schema/settings.capnp` (draft 0.1, owner fs-settings, ADR 0045/0100): `Settings` (catalog, get, list, set, watch, health, profiles) and `Instance` (instanceSet, lock, unlock, log); errors are `Common.Problem` with a code and parameters, times UTC, the caller identity comes from the connection. PROVISIONAL: replaced by the storage trait draft when it lands. `regenerate` and `generated_matches_official` list 18 schemas; `src/settings_capnp.rs` and the `pub mod settings_capnp;` line are added by the regeneration (needs a build).
+
 ## fs-mcp
 
 The MCP tool generator (stage 1, lists only) lives in `crates/fs-mcp`; see its `DESIGN.md`.
