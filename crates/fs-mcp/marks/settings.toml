@@ -3,6 +3,10 @@
 # The settings store is engine business: every program reaches it through one process, an agent never edits settings
 # or instance locks directly (administration, ADR 0056); the whole interfaces are left out.
 
+# Marks only decide what CAN be offered over MCP; what is allowed is decided per right in fs-access (preset: off). To review:
+# reading the store could be offered as a tool (right `settings.read`, default off); writing only to the settings of the
+# agent's own actor, never as the person (ADR 0054/0091); `Admin` stays excluded. Until then all three are excluded (safe preset).
+
 [SettingsHub]
 "@interface" = { risk = "excluded", reason = "hands out the settings stores and the instance administration: engine only, an agent is never admin (ADR 0056)" }
 
