@@ -1,120 +1,77 @@
-# fs-settings contract — DRAFT 0.1 (2026-11-17)
+# fs-settings contract - DRAFT 0.2 (2026-11-17)
 #
-# STATUS: DRAFT (provisional, kept as stock for the second cascade with fs-types 0.0.4; not on main). Owner program: fs-settings (library `fs-settings`, programs `fs-settings-bin/-server/-app`). Lives in
-# fs-interfaces (ADR 0045, 0100). PROVISIONAL: replaced by the storage trait draft (trait round, fs-settings-store) when it lands.
+# STATUS: DRAFT (ADR 0045). Owner program: fs-settings (library `fs-settings`). Lives in fs-interfaces (ADR 0045, 0100).
+# Replaces draft 0.1 (catalog / layers / profiles on one `Settings` interface): the store lives in a database owned by ONE
+# process, `fs-settings serve` (PLAN-speicher-schnittstelle.md section 1, c0 decisions 1-2). Every program reaches it through this contract.
 # Consumers so far: none (0 of 2).
 #
-# Source: .scratch/katalog-plan/trait-runde/fs-settings/settings.capnp and PLAN-speicher-schnittstelle.md. The Rust form is the
-# trait `SettingsStore` in the crate fs-settings (Rust traits live there, this file is only the wire form).
-#
-# Rules: typed, no JSON (ADR 0086). A failure is a `Common.Problem` whose `type` is the URI
-# "https://freesynergy.net/problems/settings/<code>" and whose `extensions` carry the parameters (key/value pairs); `title` and
-# `detail` hold the code and nothing else, never an English sentence (ADR 0057). Codes: store-broken (file, cause), store-newer
-# (file, found, known), store-unreachable (socket), store-busy (file), read-only (which), locked (key), not-declared (key),
-# wrong-type (key), reason-missing (key), not-allowed (key), no-such-profile (name), profile-exists (name), import-invalid
-# (file, line, cause), import-conflict (key, cause). Times are UTC (`Common.Timestamp`, milliseconds).
-# Caller identity: the server takes it from the connection (the socket peer, the session), never from a parameter; what a
-# caller says about itself is not believed. `lockedBy` / `by` in answers are set by the server.
-# Place: where a value is kept (profile of the person, or this device); the device is a place, not a layer (ADR 0100).
-#
-# Evolution rules (Cap'n Proto): never renumber or remove fields/methods; only append.
+# Typed, no JSON (ADR 0086): a value is the union `Raw` (flag, whole, text); it needs no `fs-types` type, so this file imports only
+# `common.capnp`. Errors: `Common.Problem` with `type` = "setting-error-<code>" and the parameters as `extensions`
+# (fs-rpc `Problem::with_ext`; codes = fs-settings `SettingCode`). Times are UTC milliseconds (`Common.Timestamp`).
+# Caller identity: the service sets time and OS user, never the caller.
+# Evolution (Cap'n Proto): only append, never renumber or remove.
 # Compiled with common.capnp by capnp-compiler (see crates/regenerate).
 
 @0x962084020d866277;
 
-using C = import "common.capnp";
-using Timestamp = C.Timestamp;
-using Cursor = C.Cursor;
-using Problem = C.Problem;
-using Subscription = C.Subscription;
-using T = import "/types.capnp";
+using Common = import "common.capnp";
 
-# A value, typed by fs-types (no raw text): the basic type says what it is, `canonical` is its canonical text form
-# (`BasicValue::canonical` of fs-types 0.0.3: flag `true`/`false`, whole `0`.., integer, text, choice, language ...). types.capnp has no value
-# struct, only the enum `BasicType`, so kind + canonical text is the typed form on the wire. PROVISIONAL: the storage trait draft decides.
-struct Raw {
-  kind      @0 :T.BasicType;
-  canonical @1 :Text;
-}
-
-# The layer a value comes from, lowest first; the effective value is the highest layer that has one.
-enum Layer { default @0; instance @1; system @2; person @3; program @4; namedPerson @5; namedProgram @6; }
+# ---- values (crate fs-settings) ----
+struct Raw { union { flag @0 :Bool; whole @1 :Int64; text @2 :Text; } }           # `Raw::{Bool, Int, Str}`
+struct Scope { union { general @0 :Void; program @1 :Text; } }                   # `Scope`; program = `ProgramName`
 enum Place { profile @0; device @1; }
-enum Target { thisProgram @0; allPrograms @1; }
+struct Entry { key @0 :Text; value @1 :Raw; }
+struct Lock { reason @0 :Text; lockedBy @1 :Text; lockedAt @2 :Common.Timestamp; }  # UTC ms (R7: was seconds in 0.1)
+struct LockEntry { key @0 :Text; value @1 :Raw; lock @2 :Lock; }
+struct Snapshot { values @0 :List(Entry); problems @1 :List(Common.Problem); }
 
-struct Kind {
-  union {
-    flag     @0 :Void;
-    whole    @1 :Range;
-    choice   @2 :List(Text);
-    language @3 :Void;
-    text     @4 :UInt32;                                  # maximum characters
-  }
-  struct Range { min @0 :Int64; max @1 :Int64; }
+struct Health { union { ok @0 :Void; defaults @1 :List(Common.Problem); } }      # `Health`: emergency mode is visible, never silent
+
+# The person's profile index = `ProfileSet<u64>`: base value = the highest id ever issued (`top`), named = id; `active` "" = base.
+struct Named { id @0 :UInt64; name @1 :Text; }
+struct Index { top @0 :UInt64; named @1 :List(Named); active @2 :Text; }
+
+enum LogAction { set @0; clear @1; lock @2; unlock @3; }
+struct LogEntry {
+  id @0 :Common.Uuid; at @1 :Common.Timestamp; by @2 :Text; osUser @3 :Text;  # osUser "" = unknown
+  action @4 :LogAction; key @5 :Text; reason @6 :Text;
+  old @7 :Raw; hasOld @8 :Bool; new @9 :Raw; hasNew @10 :Bool;
 }
 
-# One declared setting; label and description are message keys derived from `key`, not texts.
-struct Declaration {
-  key     @0 :Text;
-  kind    @1 :Kind;
-  default @2 :Raw;
-  group   @3 :Text;
-  place   @4 :Place;
+# ---- bootstrap of `fs-settings serve` ----
+interface SettingsHub {
+  open   @0 (program :Text) -> (store :Store);
+  # The store for one program (`ProgramName`): writes only `general` and `program(<this one>)`, reads the same two scopes; any other
+  # scope answers `write-failed{kind=not-own}`. Same OS user only (fs-rpc transport); the name is the caller's word: an API promise,
+  # not a security boundary until fs-access (draft O9). "" is refused (`program-invalid`).
+  manage @1 () -> (store :Store);
+  # Every scope (the program fs-settings itself: "all installed settings in one place", ADR 0100 decision 1).
+  admin  @2 (by :Text) -> (admin :Admin);
+  # Only on the instance service (`serve --instance`); the person service answers `Common.Problem` unsupported. `by` = actor IRI (mandatory).
+  instance @3 () -> (values :Snapshot, locks :List(LockEntry));
+  # The instance layer, read only (person service in v1: empty, c0 decision 5).
 }
 
-struct Lock {
-  reason   @0 :Text;                                      # required
-  lockedBy @1 :Text;                                      # IRI of the actor, set by the server
-  lockedAt @2 :Timestamp;
+interface Store {                     # = the port `fs_settings::SettingsStore`, call by call
+  stamp   @0 () -> (stamp :UInt64);                                        # `settings_rev.rev`; equal = nothing to read again
+  health  @1 () -> (health :Health);
+  profile @2 (scope :Scope, place :Place, profile :UInt64) -> (snapshot :Snapshot);
+  write   @3 (scope :Scope, place :Place, profile :UInt64, key :Text, value :Raw, remove :Bool) -> (stamp :UInt64);
+  # One transaction. Refused: `locked{key, reason, by}` (fresh instance state, decision Q5), `read-only{which=person}` in emergency mode.
+  clear   @4 (scope :Scope, profile :UInt64) -> (stamp :UInt64);
+  index   @5 () -> (index :Index, problems :List(Common.Problem));
+  replaceIndex @6 (expected :Index, wanted :Index) -> (index :Index);
+  # Compare-and-set for `update_index` (a closure cannot travel): `expected` differs from the stored index -> `index-changed`
+  # (the client reads again and retries, at most 3 times, then `store-busy`); `wanted` must be a legal successor of `expected`
+  # (`fs_settings::index_step_ok`: ids never reused, base never deleted) else `profile{cause=id-invalid}`.
+  watch   @7 (listener :Listener) -> (subscription :Common.Subscription);
+  interface Listener { changed @0 (stamp :UInt64) -> stream; }
 }
 
-struct Effective {
-  key     @0 :Text;
-  value   @1 :Raw;
-  from    @2 :Layer;
-  lock    @3 :Lock;                                       # meaningful only if `locked`
-  locked  @4 :Bool;
-  canLock @5 :Bool;                                       # the caller may lock (admin right from fs-access)
-}
-
-# Is the store usable? `degraded` = emergency mode: built-in defaults, writes refused with `read-only`; the shell shows it.
-struct Health {
-  degraded @0 :Bool;
-  problems @1 :List(Problem);
-}
-
-struct LogEntry {                                         # instance log, append only
-  id     @0 :Data;                                        # UUIDv7
-  at     @1 :Timestamp;
-  by     @2 :Text;
-  action @3 :Action;
-  key    @4 :Text;
-  reason @5 :Text;
-  oldValue @6 :Raw;
-  newValue @7 :Raw;
-  enum Action { set @0; clear @1; lock @2; unlock @3; }
-}
-
-interface Settings {                                      # one per program and person; rights come from fs-access
-  catalog @0 () -> (all :List(Declaration));
-  get     @1 (keys :List(Text)) -> (values :List(Effective));
-  # An empty `keys` list is not "all": use `list`.
-  list    @2 (group :Text, cursor :Cursor) -> (values :List(Effective), next :Cursor);
-  set     @3 (key :Text, value :Raw, reset :Bool, target :Target) -> ();   # `reset` removes the person's value
-  watch   @4 (listener :Listener) -> (subscription :Subscription);
-  health  @5 () -> (health :Health);
-  # Named profiles: the person's own, never another person's; the active one is per device.
-  profiles      @6 () -> (names :List(Text), active :Text);       # active "" = the base ("Allgemein")
-  createProfile @7 (name :Text) -> ();
-  switchProfile @8 (name :Text) -> ();                            # "" = the base
-  renameProfile @9 (old :Text, new :Text) -> ();
-  deleteProfile @10 (name :Text) -> ();                           # the id is never reused
-  interface Listener { changed @0 (change :Effective) -> stream; }
-}
-
-interface Instance {                                      # the admin's side; every call checks the admin right
-  instanceSet @0 (key :Text, value :Raw, reset :Bool) -> ();      # instance default
-  lock        @1 (key :Text, value :Raw, reason :Text) -> ();     # lockedBy/lockedAt set by the server
-  unlock      @2 (key :Text, reason :Text) -> ();                  # reason required (reason-missing)
-  log         @3 (after :Data, size :UInt32) -> (entries :List(LogEntry));   # read only
+interface Admin {                     # = the port `fs_settings::InstanceStore` for one actor; the service sets time and OS user, never the caller
+  set    @0 (key :Text, value :Raw) -> (changed :Bool);                    # changed = false: same value, no log row (idempotent script)
+  clear  @1 (key :Text) -> (changed :Bool);                                # locked -> `locked`
+  lock   @2 (key :Text, value :Raw, reason :Text) -> (changed :Bool);      # reason empty after trim -> `reason-missing{key}`
+  unlock @3 (key :Text, reason :Text) -> (changed :Bool);                  # reason mandatory too (c0 decision 6)
+  log    @4 (after :Common.Uuid, size :UInt32) -> (entries :List(LogEntry)); # after all-zero = from the start
 }

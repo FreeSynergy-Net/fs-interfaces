@@ -286,8 +286,8 @@ dependencies = [
 
 [[package]]
 name = "fs-types"
-version = "0.0.1"
-source = "git+https://github.com/FreeSynergy/fs-types?tag=v0.0.1#6323518a1a1abba7c241e94d948668eb208649f5"
+version = "0.0.3"
+source = "git+https://github.com/FreeSynergy/fs-types?tag=v0.0.3#e75c1d3902617561682f1c5df20961c3f6daacf7"
 dependencies = [
  "capnp",
  "chrono",

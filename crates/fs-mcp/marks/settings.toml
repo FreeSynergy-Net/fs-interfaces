@@ -1,0 +1,25 @@
+# Risk marks for settings.capnp (stage 1, provisional; they move into the contract as annotations later).
+# A method or union member without an entry counts as `unknown` and is listed by the tests.
+# The settings store is engine business: every program reaches it through one process, an agent never edits settings
+# or instance locks directly (administration, ADR 0056); the whole interfaces are left out.
+
+[SettingsHub]
+"@interface" = { risk = "excluded", reason = "hands out the settings stores and the instance administration: engine only, an agent is never admin (ADR 0056)" }
+
+[Store]
+"@interface" = { risk = "excluded", reason = "settings of a person and a device: engine only, written by the program itself or by the person" }
+
+[Admin]
+"@interface" = { risk = "excluded", reason = "instance defaults and locks: administration (ADR 0056)" }
+
+[Raw]
+flag = "read"
+whole = "read"
+text = "read"
+
+[Scope]
+general = "read"
+program = "read"
+
+[format]
+"Raw.text" = "the text value of one setting (plain text, the declared type decides the form); a program setting, not a secret field"

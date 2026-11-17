@@ -38,3 +38,4 @@ identity.passkeys | Passkeys | planned | Sign-in with WebAuthn passkeys
 gateway.reverse-proxy | Reverse proxy | planned | Reverse proxy in front of programs: TLS termination, routing by host and path (named by fs-zentinel)
 messages.matrix | Matrix | planned | A Matrix homeserver (client-server and federation APIs; named by fs-tuwunel)
 messages.matrix.oidc-server | Matrix sign-in server | planned | The OAuth 2.0 / OpenID Connect server of a Matrix homeserver, for Matrix clients only (named by fs-tuwunel)
+settings | Settings | planned | Settings of a person and instance defaults (fs-settings, ADR 0100)
