@@ -15,7 +15,7 @@ use capnp_compiler::CompileCommand;
 /// File id of `types.capnp` in `fs-types`.
 const TYPES_FILE_ID: u64 = 0x916f_ad50_f1c1_4440;
 
-const SCHEMAS: [&str; 18] = [
+const SCHEMAS: [&str; 20] = [
     "common",
     "tasks",
     "messenger",
@@ -34,6 +34,8 @@ const SCHEMAS: [&str; 18] = [
     "store",
     "comments",
     "settings",
+    "layouts",
+    "bind",
 ];
 
 fn main() {

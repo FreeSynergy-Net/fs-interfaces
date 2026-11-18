@@ -9,7 +9,7 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-const SCHEMAS: [&str; 18] = [
+const SCHEMAS: [&str; 20] = [
     "common",
     "tasks",
     "messenger",
@@ -28,6 +28,8 @@ const SCHEMAS: [&str; 18] = [
     "store",
     "comments",
     "settings",
+    "layouts",
+    "bind",
 ];
 
 /// File id of `types.capnp` in `fs-types`.

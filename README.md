@@ -8,7 +8,7 @@ What is different here: an interface is a target, not something that grows. It i
 
 ## What it can do today
 
-Latest tag: `v0.0.27`.
+Latest tag: `v0.0.28`.
 
 - The basic types (e-mail, phone, person reference, instant, type description ...) are not here: they live in [`fs-types`](https://github.com/FreeSynergy/fs-types) (ADR 0093). Our schemas import `"/types.capnp"` from it; a program that needs these types pins `fs-types` itself. `fs_types::Capabilities` stays in `fs-types` next to `fs_interfaces::provider::Capabilities` (V3 open).
 - Cap'n Proto schemas for: common types, tasks, messenger, hub, people, groups, files, events, places and texts, and, according to the design file, surveys, history, resources, whiteboard and streaming. The README table lists the first ten; the DESIGN file has the full list.
@@ -84,6 +84,8 @@ interface), ADR 0040 (pure-Rust Cap'n Proto compiler, generated code committed).
 | `streaming.capnp` | Streams: receive, forward, record | fs-broadcast | draft |
 | `store.capnp` | The store: sources, available, install, update | fs-packages | draft |
 | `settings.capnp` | Settings: store per program, profile index, instance defaults, locks with reason, log (draft 0.2, since 0.0.28) | fs-settings | draft |
+| `layouts.capnp` | Frontend descriptions, overlays, conflicts, locks, exchange files (draft 0.1, since 0.0.28) | fs-forms | draft |
+| `bind.capnp` | Host side of binding a frontend description to a program: plan, place, choose, check (draft, since 0.0.28; reached from `Layouts.bind`) | fs-forms | draft |
 
 Each schema file starts with a header naming status, owner and consumers.
 
