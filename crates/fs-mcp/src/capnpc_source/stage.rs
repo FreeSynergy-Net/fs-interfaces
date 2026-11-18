@@ -54,7 +54,7 @@ impl Drop for Reachable {
 pub fn drive_of(p: &Path) -> Option<u8> {
     match p.components().next() {
         Some(Component::Prefix(prefix)) => match prefix.kind() {
-            Prefix::Disk(d) | Prefix::VerbatimDisk(d) => Some(d.to_ascii_uppercase()),
+            Prefix::Disk(d) => Some(d.to_ascii_uppercase()),
             _ => None,
         },
         _ => None,
