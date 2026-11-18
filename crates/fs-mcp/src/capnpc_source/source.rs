@@ -48,12 +48,20 @@ fn capnp_files(dir: &Path) -> Result<Vec<PathBuf>, Error> {
 
 impl ContractSource for CapnpcSource {
     fn contracts(&self) -> Result<Vec<Contract>, Error> {
-        let mut files = capnp_files(&self.dir)?;
+        let main = super::stage::reachable(&self.dir).map_err(Error::Compile)?;
+        let mut files = capnp_files(main.path())?;
         let mut cmd = CompileCommand::new();
-        cmd.src_prefix(&self.dir);
+        cmd.src_prefix(main.path());
+        // Kept alive until the compilation is done: a staged copy (another drive on Windows) is removed on drop.
+        let mut staged = Vec::new();
         for extra in &self.extra {
-            cmd.import_path(extra);
-            files.extend(capnp_files(extra)?);
+            let dir = super::stage::reachable(extra).map_err(Error::Compile)?;
+            cmd.import_path(dir.path());
+            if dir.is_staged() {
+                cmd.src_prefix(dir.path());
+            }
+            files.extend(capnp_files(dir.path())?);
+            staged.push(dir);
         }
         for f in &files {
             cmd.file(f);

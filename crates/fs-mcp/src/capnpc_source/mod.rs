@@ -6,6 +6,7 @@
 mod names;
 mod nodes;
 mod source;
+mod stage;
 mod types;
 
 pub use source::CapnpcSource;
