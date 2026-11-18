@@ -84,6 +84,8 @@ interface), ADR 0040 (pure-Rust Cap'n Proto compiler, generated code committed).
 | `streaming.capnp` | Streams: receive, forward, record | fs-broadcast | draft |
 | `store.capnp` | The store: sources, available, install, update | fs-packages | draft |
 | `settings.capnp` | Settings: store per program, profile index, instance defaults, locks with reason, log (draft 0.2, since 0.0.28) | fs-settings | draft |
+| `layouts.capnp` | Frontend descriptions, overlays, conflicts, locks, exchange files (draft 0.1, since 0.0.28) | fs-forms | draft |
+| `bind.capnp` | Host side of binding a frontend description to a program: plan, place, choose, check (draft, since 0.0.28; reached from `Layouts.bind`) | fs-forms | draft |
 
 Each schema file starts with a header naming status, owner and consumers.
 

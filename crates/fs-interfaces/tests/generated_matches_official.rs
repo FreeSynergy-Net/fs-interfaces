@@ -7,9 +7,12 @@
 //! (`CARGO_TARGET_TMPDIR`), never to `/tmp` (memory).
 
 use std::collections::HashMap;
+
+#[path = "../../fs-mcp/src/capnpc_source/stage.rs"]
+mod stage;
 use std::path::{Path, PathBuf};
 
-const SCHEMAS: [&str; 18] = [
+const SCHEMAS: [&str; 20] = [
     "common",
     "tasks",
     "messenger",
@@ -28,6 +31,8 @@ const SCHEMAS: [&str; 18] = [
     "store",
     "comments",
     "settings",
+    "layouts",
+    "bind",
 ];
 
 /// File id of `types.capnp` in `fs-types`.
@@ -75,7 +80,8 @@ fn assert_same(dir: &Path, who: &str) {
 fn official_compiler_output_is_committed() {
     let schema = root().join("schema");
     let mut cmd = capnpc_embedded::CompileCommand::new();
-    cmd.import_path(fs_types::SCHEMA_DIR);
+    let types = stage::reachable(Path::new(fs_types::SCHEMA_DIR)).unwrap();
+    cmd.import_path(types.path());
     for s in SCHEMAS {
         cmd.file(schema.join(format!("{s}.capnp")));
     }
@@ -88,7 +94,8 @@ fn own_compiler_output_is_committed() {
     let schema = root().join("schema");
     let mut cmd = capnp_compiler::CompileCommand::new();
     cmd.src_prefix(&schema);
-    cmd.import_path(fs_types::SCHEMA_DIR);
+    let types = stage::reachable(Path::new(fs_types::SCHEMA_DIR)).unwrap();
+    cmd.import_path(types.path());
     for s in SCHEMAS {
         cmd.file(schema.join(format!("{s}.capnp")));
     }

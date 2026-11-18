@@ -1,0 +1,7 @@
+# Risk marks for bind.capnp (DRAFT, owner fs-forms; stage 1, provisional; they move into the contract as annotations later).
+# A method or union member without an entry counts as `unknown` and is listed by the tests.
+# Bind is the host side of binding a frontend description to a program (plan, place, choose, check); it is reached from
+# `Layouts.bind` and is engine business of fs-forms. Excluded (safe preset); what is allowed is decided per right in fs-access.
+
+[Bind]
+"@interface" = { risk = "excluded", reason = "binding of a frontend description to the live providers: engine only, reached through the one fs-forms process (ADR 0096)" }
