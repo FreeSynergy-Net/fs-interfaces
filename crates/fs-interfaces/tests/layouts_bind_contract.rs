@@ -1,5 +1,5 @@
 //! The contracts `layouts` and `bind` (draft, owner fs-forms, since 0.0.28): final file ids, the modules exist, the capability is
-//! on the list, and every schema file is covered by `generated_matches_official` (no schema without a committed-code check).
+//! on the list, and every schema file is covered by `generated_matches_official` and listed in `regenerate`.
 
 use std::path::{Path, PathBuf};
 
@@ -58,23 +58,24 @@ fn the_capability_layouts_is_planned() {
 }
 
 #[test]
-fn every_schema_file_is_checked_by_generated_matches_official() {
-    let checked = std::fs::read_to_string(
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/generated_matches_official.rs"),
-    )
-    .unwrap();
+fn every_schema_file_is_checked_and_regenerated() {
+    let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let checked =
+        std::fs::read_to_string(manifest.join("tests/generated_matches_official.rs")).unwrap();
+    let regenerate = std::fs::read_to_string(manifest.join("../regenerate/src/main.rs")).unwrap();
     let mut missing = Vec::new();
     for entry in std::fs::read_dir(schema_dir()).unwrap() {
         let path = entry.unwrap().path();
         if path.extension().is_some_and(|e| e == "capnp") {
             let stem = path.file_stem().unwrap().to_str().unwrap().to_owned();
-            if !checked.contains(&format!("    \"{stem}\",")) {
-                missing.push(stem);
+            let line = format!("    \"{stem}\",");
+            if !checked.contains(&line) {
+                missing.push(format!("{stem} (generated_matches_official)"));
+            }
+            if !regenerate.contains(&line) {
+                missing.push(format!("{stem} (regenerate)"));
             }
         }
     }
-    assert!(
-        missing.is_empty(),
-        "schema files not in generated_matches_official: {missing:?}"
-    );
+    assert!(missing.is_empty(), "schema files not covered: {missing:?}");
 }
