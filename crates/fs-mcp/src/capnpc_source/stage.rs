@@ -7,6 +7,8 @@
 //! directory and removes it again when the guard is dropped. On the same drive (and everywhere except Windows) nothing is
 //! copied and the directory is used as it is.
 //!
+//! Pattern: Guard (RAII), the copy lives as long as the value and is removed on drop.
+//!
 //! The file depends on `std` only: `crates/regenerate` and the tests of `fs-interfaces` include it with `#[path]`.
 #![allow(dead_code)]
 
