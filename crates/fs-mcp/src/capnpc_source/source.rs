@@ -57,9 +57,7 @@ impl ContractSource for CapnpcSource {
         for extra in &self.extra {
             let dir = super::stage::reachable(extra).map_err(Error::Compile)?;
             cmd.import_path(dir.path());
-            if dir.is_staged() {
-                cmd.src_prefix(dir.path());
-            }
+
             files.extend(capnp_files(dir.path())?);
             staged.push(dir);
         }
