@@ -102,10 +102,9 @@ impl<R: RiskSource> MarkSource for ProgramMarks<R> {
     /// A parameter whose name looks like a secret and has no written release is secret: no tool for the command.
     /// (The comments of the contract are read by the screen of the catalog, [`crate::Surface`].)
     fn secret(&self, key: &str, path: &str) -> bool {
-        let Some((file, owner, rest)) = split(key) else {
+        let Some((file, owner, method)) = split(key) else {
             return false;
         };
-        let method = rest.split('.').next().unwrap_or("");
         path.split('.')
             .filter(|seg| *seg != "*" && !seg.is_empty())
             .map(camel)

@@ -102,3 +102,48 @@ fn the_block_list_and_interface_exclusions_apply_to_the_keys_of_the_generators()
     assert_eq!(m.tool_name("fx/Notes.named").as_deref(), Some("note.named"));
     assert_eq!(m.tool_name("fx/Notes.get"), None);
 }
+
+fn with(text: &str) -> ProgramMarks<MarkFiles> {
+    ProgramMarks::new(MarkFiles::from_sources(&[("fx", text)]).unwrap())
+}
+
+#[test]
+fn a_released_name_is_matched_in_the_spelling_of_the_contract() {
+    // the generators say `other-key`, the release says `otherKey`
+    let m = with(
+        "[Notes]\nnested = \"change\"\n[release]\n\"Notes.nested.otherKey\" = \"a label, not a key\"\n",
+    );
+    assert!(!m.secret("fx/Notes.nested", "other-key"));
+    assert!(!m.secret("fx/Notes.nested", "box.other-key"));
+    assert!(
+        m.secret("fx/Notes.other", "other-key"),
+        "the release is for one method"
+    );
+}
+
+#[test]
+fn a_field_release_counts_in_its_own_file_and_only_as_a_release() {
+    // a release of a field of a struct (`Reaction.password`) lets a parameter of that name through, in that file only
+    let m = with(
+        "[Reaction]\npassword = \"read\"\n[release]\n\"Hint.password\" = \"a hint text, not a password\"\n",
+    );
+    assert!(!m.secret("fx/Notes.login", "password"));
+    assert!(
+        m.secret("other/Notes.login", "password"),
+        "a release of another file does not count"
+    );
+    // a mark (no release) on a field of that name is no release
+    let m = with("[Reaction]\npassword = \"read\"\n");
+    assert!(
+        m.secret("fx/Notes.login", "password"),
+        "a mark is not a release"
+    );
+}
+
+#[test]
+fn a_type_on_the_block_list_blocks_every_command_of_its_interface() {
+    // `AiGrant` is blocked as a type only (no entry for a target), in any file
+    let m = ProgramMarks::new(FakeMarks::default());
+    assert!(m.excluded("any/AiGrant.grant"));
+    assert!(!m.excluded("any/Grants.grant"));
+}
