@@ -3,6 +3,8 @@
 //! They live in `fs-mcp`, not in `fs-interfaces`: the contract crate stays free of the run time of the generators
 //! (`capnp-compiler`, `capnp-rpc`), and the program that serves the tools is the one that holds the code. The code
 //! names the contracts of `fs-interfaces` and the basic types of `fs-types` by crate (`crates_provide_map`).
+//!
+//! Pattern: Facade — `write` hides the compilation and the two generators behind one call.
 
 use std::collections::HashMap;
 use std::path::Path;

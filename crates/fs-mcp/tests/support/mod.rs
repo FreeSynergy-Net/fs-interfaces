@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 
 pub mod fake;
+pub mod fx;
 pub mod real;
 #[allow(unused_imports)]
 pub use fake::FakeMarks;
