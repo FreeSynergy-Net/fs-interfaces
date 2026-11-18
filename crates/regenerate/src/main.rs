@@ -55,7 +55,7 @@ fn main() {
             "in place"
         }
     );
-    cmd.import_path(types.path());
+    cmd.import_path(fs_types::SCHEMA_DIR);
     for s in SCHEMAS {
         cmd.file(format!("schema/{s}.capnp"));
     }
