@@ -13,7 +13,7 @@ use fs_mcp::{Blocklist, MarkFiles, ProgramMarks, Refusal, RiskSource, Surface, T
 use support::{FakeMarks, contract, field, interface, method, strukt};
 
 /// `secret` is declared here with the id of `capnpc_cli.capnp`: the generator finds the annotation by id.
-const SCHEMA: &str = r#"@0xd1a2b3c4d5e6f701;
+const SCHEMA: &str = r"@0xd1a2b3c4d5e6f701;
 annotation secret @0xefac3d5046acfeb0 (field, param) :Void;
 struct Note { id @0 :UInt32; title @1 :Text; }
 interface Root { notes @0 () -> (notes :Notes); }
@@ -28,7 +28,7 @@ interface Notes {
   loginOk @7 (password :Text) -> ();
   nested  @8 (box :Note, otherKey :Text) -> ();
 }
-"#;
+";
 
 const MARKS: &str = r#"
 [Notes]

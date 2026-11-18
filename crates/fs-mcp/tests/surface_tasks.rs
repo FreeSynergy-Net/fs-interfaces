@@ -24,8 +24,8 @@ fn table() -> &'static [ToolSpec] {
 fn off_and_the_vault_show_nothing() {
     let catalog = real_catalog();
     let surface = Surface::new(&catalog);
-    assert!(tasks_mcp::tools(&Off).is_empty());
-    assert!(tasks_mcp::tools(&Never).is_empty());
+    assert_eq!(tasks_mcp::tools(&Off).len(), 0);
+    assert_eq!(tasks_mcp::tools(&Never).len(), 0);
     for s in [&Off as &dyn Switch, &Never] {
         let a = surface.admit(s, tasks_mcp::TOOLS);
         assert!(
@@ -33,7 +33,7 @@ fn off_and_the_vault_show_nothing() {
             "an off switch lists nothing, not even refusals"
         );
     }
-    assert!(!tasks_mcp::ENABLED_BY_DEFAULT);
+    const { assert!(!tasks_mcp::ENABLED_BY_DEFAULT) };
 }
 
 #[test]
@@ -142,7 +142,7 @@ fn no_offered_tool_takes_or_gives_a_field_that_looks_like_a_secret() {
             );
         }
     }
-    assert!(!names.is_empty());
+    assert_ne!(names.len(), 0);
     for n in names {
         assert!(
             !fs_mcp::name_looks_secret(&n),
