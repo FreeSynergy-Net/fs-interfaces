@@ -2,7 +2,7 @@
 
 Version = tag; all crates of the workspace (`fs-interfaces`, `fs-mcp`, `regenerate`) carry the same version. The Cap'n Proto schema and the capability list only grow (append only). Details: `DESIGN.md`.
 
-## Unreleased (0.0.28)
+## 0.0.28 (2026-11-18)
 
 - `fs-types` is pinned at `v0.0.4` (was `v0.0.1`): `fs-interfaces`, `fs-mcp`, `regenerate`; the generated code is unchanged by v0.0.4. New basic types (from v0.0.3) `integer`, `duration`, `flag`, `whole` (appended); `TypeProblem` is `#[non_exhaustive]`. This repository has no `match` on `BasicType` or `TypeProblem`; consumers with an exhaustive `match` need a `_` arm. The lock must hold one `fs-types`, from that repository only.
 - New contract `schema/settings.capnp` (DRAFT 0.2, owner fs-settings, ADR 0045/0100; the store is served by one process): `SettingsHub`, `Store`, `Admin`, `Raw` (typed union flag/whole/text), `Scope`, `Place`, `Entry`, `Lock`, `LockEntry`, `Snapshot`, `Health`, `Index`, `LogEntry`. Failures are `Problem` with a code and parameters, times are UTC milliseconds, `unlock` needs a reason. Capability `settings` (planned) appended. Generated `src/settings_capnp.rs` and `pub mod settings_capnp;` included.
