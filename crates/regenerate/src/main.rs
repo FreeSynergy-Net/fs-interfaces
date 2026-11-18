@@ -13,10 +13,12 @@ use std::collections::HashMap;
 #[path = "../../fs-mcp/src/capnpc_source/stage.rs"]
 mod stage;
 
+mod commands;
+
 use capnp_compiler::CompileCommand;
 
 /// File id of `types.capnp` in `fs-types`.
-const TYPES_FILE_ID: u64 = 0x916f_ad50_f1c1_4440;
+pub(crate) const TYPES_FILE_ID: u64 = 0x916f_ad50_f1c1_4440;
 
 const SCHEMAS: [&str; 20] = [
     "common",
@@ -56,6 +58,7 @@ fn main() {
         }
     );
     cmd.import_path(types.path());
+    let import_path = types.path().to_path_buf();
     for s in SCHEMAS {
         cmd.file(format!("schema/{s}.capnp"));
     }
@@ -70,4 +73,6 @@ fn main() {
         "regenerated {} files in crates/fs-interfaces/src/",
         SCHEMAS.len()
     );
+    // after the types: the command code reads the same schemas, with the marks of fs-mcp
+    commands::write(&import_path);
 }

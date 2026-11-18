@@ -92,6 +92,7 @@ Strict parsing (unknown class, key or shape is an error). Tests: every method/me
 
 Done: model, traits, schema reader, generator, mark files for all 15 schemas, example `list_tools`. 289 tools (141 with free-format fields), 12 event
 resource templates and 1 blob template from the 15 schemas at this commit.
+Step M3 (unreleased): `ProgramMarks` (Adapter, `MarkSource` of `capnp-compiler`) answers risk, exclusion, capability name and secret-looking parameters from the mark files and the block list; `Surface` (Specification) is the mandatory intersection of the generated table `tasks_mcp::TOOLS` with the catalog (switch on, not `Excluded`, `"actor":"ai"`, in the catalog: the screen also reads result fields and comments, which the generator does not). `regenerate` writes `src/generated/tasks_cli.rs` and `tasks_mcp.rs`. Still no server: the protocol (`serve/`) is step M4.
 Not done (on purpose): any server, bridge, call or handle store; the annotation file `schema/mcp.capnp` and the import of it
 in the other schemas (new contract, needs the consultation rule, other threads are editing `messenger.capnp`); tool grouping
 (problem 12, the messenger alone yields 35 tools, all schemas 289); the output wrapper that keeps hostile message text apart (problem 11).

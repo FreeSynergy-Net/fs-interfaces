@@ -14,7 +14,8 @@ fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
 
 [dev-dependencies]
 # Our own pure-Rust schema compiler (ADR 0040) regenerates the committed code ...
-capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", tag = "v0.0.1" }
+# Pinned by commit of fs-capnpc main (MCP generator M1/M2, no tag yet). After the tag v0.2.0: switch to `tag = "v0.2.0"` (own commit).
+capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", rev = "81425e23d8e9dbef77b895864add55f7c2c46c5c", default-features = false }
 capnpc = "0.27"
 # ... and the official compiler (as WASM) is the oracle in tests/generated_matches_official.rs.
 capnpc-embedded = "0.2"

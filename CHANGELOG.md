@@ -2,6 +2,13 @@
 
 Version = tag; all crates of the workspace (`fs-interfaces`, `fs-mcp`, `regenerate`) carry the same version. The Cap'n Proto schema and the capability list only grow (append only). Details: `DESIGN.md`.
 
+## Unreleased
+
+- `fs-mcp` (MCP generator, step M3; no server yet): `capnp-compiler` is pinned by commit `81425e23d8e9dbef77b895864add55f7c2c46c5c` of fs-capnpc main (generators `cligen` and `mcpgen`, 0.2.0 before its tag; after the tag `v0.2.0` the pin goes to the tag) in `fs-mcp`, `regenerate` and the dev-dependency of `fs-interfaces`.
+- `fs_mcp::ProgramMarks`: the marks of this program (mark files and block list) as a `MarkSource` of the generators (risk, exclusion, capability name, secret-looking parameters without a written release). `fs_mcp::Surface`: the mandatory intersection of the generated tool table with the catalog of this crate (switch, `risk(excluded)`, label `"actor":"ai"`, screen incl. result fields). The vault (`Never`) and the default (`Off`) list nothing.
+- `regenerate` also writes `crates/fs-mcp/src/generated/tasks_cli.rs` (command code) and `tasks_mcp.rs` (20 tools, `LEFT`: the listener) with these marks; `fs-mcp` depends on `fs-interfaces` and `capnp-rpc` for them (lock: `capnp-rpc` 0.27.5). The test `regenerates_committed` also compares these two files.
+- Auf Deutsch: `fs-mcp` bekommt die Marken des Programms als `MarkSource`-Adapter (`ProgramMarks`) und die Pflicht-Schnittmenge `Surface` (Tabelle aus dem Generator, Katalog dieser Crate, Schalter, KI-Kennzeichnung); `regenerate` schreibt zusaetzlich `tasks_cli.rs` und `tasks_mcp.rs` nach `crates/fs-mcp/src/generated/`. `capnp-compiler` ist per Commit gepinnt (nach dem Tag v0.2.0 auf den Tag). Noch kein Server (M4).
+
 ## 0.0.28 (2026-11-18)
 
 - `fs-types` is pinned at `v0.0.4` (was `v0.0.1`): `fs-interfaces`, `fs-mcp`, `regenerate`; the generated code is unchanged by v0.0.4. New basic types (from v0.0.3) `integer`, `duration`, `flag`, `whole` (appended); `TypeProblem` is `#[non_exhaustive]`. This repository has no `match` on `BasicType` or `TypeProblem`; consumers with an exhaustive `match` need a `_` arm. The lock must hold one `fs-types`, from that repository only.

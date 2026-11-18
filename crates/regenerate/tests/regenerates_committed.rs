@@ -69,5 +69,25 @@ fn the_binary_writes_exactly_the_committed_generated_files() {
             "{name} differs from the committed file"
         );
     }
+    // the command code and the tool table of tasks.capnp, written into fs-mcp with its marks
+    let fresh = work.join("crates/fs-mcp/src/generated");
+    let committed = root().join("crates/fs-mcp/src/generated");
+    assert_eq!(
+        names(&fresh, ".rs"),
+        ["tasks_cli.rs", "tasks_mcp.rs"],
+        "regenerate writes the command code and the tool table of tasks.capnp, nothing else"
+    );
+    assert_eq!(
+        names(&committed, ".rs"),
+        names(&fresh, ".rs"),
+        "no committed generated file that regenerate does not write"
+    );
+    for name in names(&fresh, ".rs") {
+        assert_eq!(
+            std::fs::read_to_string(fresh.join(&name)).unwrap(),
+            std::fs::read_to_string(committed.join(&name)).unwrap(),
+            "{name} differs from the committed file (run `cargo run -p regenerate`)"
+        );
+    }
     let _ = std::fs::remove_dir_all(&work);
 }

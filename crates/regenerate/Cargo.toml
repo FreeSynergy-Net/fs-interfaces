@@ -8,6 +8,9 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
-capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", tag = "v0.0.1" }
+# Pinned by commit of fs-capnpc main (MCP generator M1/M2, no tag yet). After the tag v0.2.0: switch to `tag = "v0.2.0"` (own commit).
+capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", rev = "81425e23d8e9dbef77b895864add55f7c2c46c5c", default-features = false }
 capnpc = "0.27"
 fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
+# The marks of the program (an adapter of `MarkSource`) for the command code and the tool tables.
+fs-mcp = { path = "../fs-mcp" }
