@@ -7,8 +7,5 @@
 [Layouts]
 "@interface" = { risk = "excluded", reason = "frontend descriptions, overlays, conflicts and the repair of the store: engine only, written through the one fs-forms process (ADR 0096)" }
 
-[Listener]
-"@interface" = { risk = "excluded", reason = "callback of the change feed of Layouts: engine only" }
-
 [LayoutAdmin]
 "@interface" = { risk = "excluded", reason = "locks on frontend descriptions and instance overlays: administration (ADR 0056)" }
