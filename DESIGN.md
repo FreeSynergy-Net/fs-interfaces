@@ -181,9 +181,12 @@ The remedy is `chmod g-w` on the directory the message names, or another `--data
 - `tests/generated_matches_official.rs` compares 17 schemas against both compilers and writes into the test target (`CARGO_TARGET_TMPDIR`), not `/tmp`. `fs-mcp` reads the contracts of `fs-types` too (`CapnpcSource::with_schemas`), so its tool list is unchanged.
 - All crates of the workspace carry 0.0.27.
 
-## v0.0.28 (Unreleased): `fs-types` v0.0.3 and the contract `settings` (draft)
-- `fs-types` pin from `v0.0.1` to `v0.0.3` (three `Cargo.toml`: `fs-interfaces`, `fs-mcp`, `regenerate`). `BasicType` gets `integer`, `duration`, `flag`, `whole` and `TypeProblem` is `#[non_exhaustive]`; no code of this repository matches on either type, and no generated file here embeds `BasicType` (it lives in `fs-types`), so nothing is regenerated for the pin.
+## v0.0.28 (Unreleased): `fs-types` v0.0.4, the contracts `settings`, `layouts` and `bind` (drafts)
+- `fs-types` pin from `v0.0.1` to `v0.0.4` (three `Cargo.toml`: `fs-interfaces`, `fs-mcp`, `regenerate`). `BasicType` gets `integer`, `duration`, `flag`, `whole` and `TypeProblem` is `#[non_exhaustive]`; no code of this repository matches on either type, and no generated file here embeds `BasicType` (it lives in `fs-types`), so nothing is regenerated for the pin.
 - New `schema/settings.capnp` (draft 0.2, owner fs-settings, ADR 0045/0100; replaces draft 0.1): the store lives in one process (`fs-settings serve`). `SettingsHub` (open(program), manage, admin(by), instance), `Store` (the port `SettingsStore` call by call: stamp, health, profile, write, clear, index, replaceIndex as compare-and-set, watch), `Admin` (set, clear, lock, unlock with mandatory reason, log). Values are the typed union `Raw` (flag, whole, text; no JSON, no `fs-types` type needed, so v0.0.3 suffices); errors are `Common.Problem` with `type` = `setting-error-<code>` and the parameters as extensions; times are `Timestamp` (UTC ms); the service sets time and OS user. File id unchanged (`0x962084020d866277`). Capability `settings` appended to `capabilities.txt`.
+
+- New `schema/layouts.capnp` (draft 0.1, owner fs-forms, ADR 0096) and `schema/bind.capnp` (draft, owner fs-forms): byte-equal copies of the files in `fs-rpc` (`crates/fs-layouts-rpc/schema/`) except the file id line, which is final here (`layouts` `0x92216eab3844e15f`, `bind` `0xf8c4a79309b02c91`; the copies carried provisional ids). `Layouts` (31 methods: list, resolve, create, save, install, overlays, conflicts, log, watch, exchange files, `repair`, `bind`), `LayoutAdmin`, `Listener`; `Bind` (plan, place, choose, check). Failures are `Problem` (`layout-error-*`, `bind-error-*`). Capability `layouts` (planned) appended; fs-mcp marks: all interfaces excluded. Evolution: append only.
+- `tests/generated_matches_official.rs` and `regenerate` cover 20 schemas.
 
 ## fs-mcp
 

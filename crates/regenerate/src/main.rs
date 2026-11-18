@@ -10,12 +10,15 @@
 
 use std::collections::HashMap;
 
+#[path = "../../fs-mcp/src/capnpc_source/stage.rs"]
+mod stage;
+
 use capnp_compiler::CompileCommand;
 
 /// File id of `types.capnp` in `fs-types`.
 const TYPES_FILE_ID: u64 = 0x916f_ad50_f1c1_4440;
 
-const SCHEMAS: [&str; 18] = [
+const SCHEMAS: [&str; 20] = [
     "common",
     "tasks",
     "messenger",
@@ -34,12 +37,17 @@ const SCHEMAS: [&str; 18] = [
     "store",
     "comments",
     "settings",
+    "layouts",
+    "bind",
 ];
 
 fn main() {
     let mut cmd = CompileCommand::new();
     cmd.src_prefix("schema");
-    cmd.import_path(fs_types::SCHEMA_DIR);
+    // On Windows the Cargo checkout can be on another drive than the repository; the compiler reaches one drive only.
+    let types = stage::reachable(std::path::Path::new(fs_types::SCHEMA_DIR))
+        .expect("schema directory of fs-types");
+    cmd.import_path(types.path());
     for s in SCHEMAS {
         cmd.file(format!("schema/{s}.capnp"));
     }
