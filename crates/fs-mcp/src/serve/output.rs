@@ -73,16 +73,28 @@ impl<'s> JsonOutput<'s> {
         }
     }
 
-    /// Is `name` a field the contract does not declare? (The parent is an object of the output schema and has no such property.)
-    /// A program that gives more than its contract says is a leak waiting to happen, so the whole result is refused.
+    /// Is `name` not declared by the contract at this place? FAIL CLOSED: where the schema of the enclosing object or list is
+    /// not known, or is not an object or a list, nothing is declared. A program that gives more than its contract says is a
+    /// leak waiting to happen, so the whole result is refused.
     fn undeclared(&self, name: &str) -> bool {
+        let Some(frame) = self.stack.last() else {
+            return false; // the root of the result has no parent
+        };
         let Some(Some(parent)) = self.schemas.last() else {
-            return false;
+            return true; // a place whose schema is not known declares nothing
         };
         let parent = schema::resolve(self.root_schema, parent);
-        matches!(self.stack.last(), Some(Frame::Object(_)))
-            && parent.get("type").and_then(Value::as_str) == Some("object")
-            && parent.get("properties").and_then(|p| p.get(name)).is_none()
+        let kind = parent.get("type").and_then(Value::as_str);
+        match frame {
+            Frame::Object(_) => {
+                !(kind == Some("object") || (kind.is_none() && parent.get("properties").is_some()))
+                    || parent.get("properties").and_then(|p| p.get(name)).is_none()
+            }
+            Frame::List(_) => {
+                !(kind == Some("array") || (kind.is_none() && parent.get("items").is_some()))
+                    || parent.get("items").is_none()
+            }
+        }
     }
 
     /// The name of an enumerant as the schema writes it: the one in its `enum` list whose kebab form is `kebab_name`, else

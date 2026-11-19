@@ -71,6 +71,8 @@ fn child_logs_run() {
             .unwrap_or_default();
         println!("out: connected with {marker}");
         eprintln!("log: failed for {marker}");
+        // a panic with the secret in its message: the default hook writes it to stderr
+        let _ = std::panic::catch_unwind(|| panic!("failed for {marker}"));
     }
 }
 
@@ -137,6 +139,8 @@ fn canary_everything() {
     }
     // not empty-handed: the stand-in vault has places for four secrets, and the tasks tools have none that is not released
     for place in [
+        "vault.tokens.tokens",
+        "vault.credentials.credentials",
         "vault.get.value",
         "vault.export.blob",
         "vault.rotate.key",
@@ -261,6 +265,8 @@ fn canary_the_driver_finds_a_leak_that_is_there() {
     assert_ne!(progs[0].catalog.tools.len(), 0);
     let paths: std::collections::BTreeSet<&str> = f.list.iter().map(|x| x.path.as_str()).collect();
     for place in [
+        "vault.tokens.tokens",
+        "vault.credentials.credentials",
         "vault.get.value",
         "vault.export.blob",
         "vault.rotate.key",
@@ -295,4 +301,14 @@ fn canary_the_logs_of_a_child_are_searched_stdout_and_stderr() {
         "{places:?}"
     );
     assert!(f.list.iter().all(|x| x.path == "(program error text)"));
+    // the panic message is found too (its text says `panicked at`)
+    assert!(
+        f.list
+            .iter()
+            .any(|x| x.place.contains("stderr") && x.found_in == "text"),
+        "{:?}",
+        f.list
+    );
+    let stderr_hits = f.list.iter().filter(|x| x.place.contains("stderr")).count();
+    assert!(stderr_hits >= 1);
 }

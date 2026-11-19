@@ -180,3 +180,72 @@ fn a_field_the_contract_does_not_declare_is_refused_with_the_whole_result() {
     o.end();
     assert!(o.finish().is_err());
 }
+
+#[test]
+fn where_the_schema_is_not_known_nothing_is_declared() {
+    // an object whose schema says nothing, a reference that does not resolve, a list without `items`, a place that is no object
+    let schema = json!({"type":"object","properties":{
+        "blank": {},
+        "gone": {"$ref": "#/$defs/Nowhere"},
+        "list": {"type": "array"},
+        "text": {"type": "string"},
+        "ok": {"type": "object", "properties": {"a": {"type": "string"}}},
+        "untyped": {"properties": {"a": {"type": "string"}}},
+        "items": {"type": "array", "items": {"type": "string"}}
+    }});
+    let run = |f: &dyn Fn(&mut JsonOutput<'_>)| {
+        let mut o = JsonOutput::new(&schema);
+        o.begin_struct("", "");
+        f(&mut o);
+        o.end();
+        o.finish()
+    };
+    for name in ["blank", "gone", "text"] {
+        let r = run(&|o| {
+            o.begin_struct(name, "");
+            o.field("a", V::Text("x"));
+            o.end();
+        });
+        assert!(r.is_err(), "{name}: {r:?}");
+    }
+    let r = run(&|o| {
+        o.begin_list("list", "");
+        o.field("", V::Text("x"));
+        o.end();
+    });
+    assert!(r.is_err(), "a list without `items`: {r:?}");
+    // what is declared still goes through, also an object without `type` that has `properties`
+    assert!(
+        run(&|o| {
+            o.begin_struct("ok", "");
+            o.field("a", V::Text("x"));
+            o.end();
+        })
+        .is_ok()
+    );
+    assert!(
+        run(&|o| {
+            o.begin_struct("untyped", "");
+            o.field("a", V::Text("x"));
+            o.end();
+        })
+        .is_ok()
+    );
+    assert!(
+        run(&|o| {
+            o.begin_list("items", "");
+            o.field("", V::Text("x"));
+            o.end();
+        })
+        .is_ok()
+    );
+    // and below a place that was refused, everything is refused too (no schema, nothing declared)
+    let r = run(&|o| {
+        o.begin_struct("nowhere", "");
+        o.begin_struct("deeper", "");
+        o.field("a", V::Text("x"));
+        o.end();
+        o.end();
+    });
+    assert!(r.is_err());
+}

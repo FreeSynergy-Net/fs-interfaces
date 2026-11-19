@@ -5,7 +5,6 @@
 pub mod calls;
 pub mod drive;
 pub mod find;
-pub mod inputs;
 pub mod vault;
 
 use std::cell::RefCell;
@@ -13,6 +12,7 @@ use std::rc::Rc;
 
 use fs_mcp::canary::CanaryTable;
 
+pub use crate::support::inputs;
 pub use drive::{Prog, drive, plant, tasks, vault_prog};
 pub use find::Findings;
 

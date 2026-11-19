@@ -78,6 +78,7 @@ impl StoreCalls {
             tool.name,
             &mut capnp_compiler::cligen::rt::Discard,
             0,
+            None,
         );
     }
 
@@ -87,7 +88,17 @@ impl StoreCalls {
         self.released.contains(&place)
     }
 
-    fn object(&self, root: &Value, schema: &Value, def: &str, out: &mut dyn Output, depth: u32) {
+    /// Write the properties of an object schema. `inherited` is the path of a canary that an enclosing secret place planted: every
+    /// string below it carries that marker (a secret `tokens: List(Text)` or `credentials: Struct` holds the secret in its parts).
+    fn object(
+        &self,
+        root: &Value,
+        schema: &Value,
+        def: &str,
+        out: &mut dyn Output,
+        depth: u32,
+        inherited: Option<&str>,
+    ) {
         let s = resolve(root, schema);
         let Some(props) = s.get("properties").and_then(Value::as_object) else {
             return;
@@ -101,9 +112,18 @@ impl StoreCalls {
                 .and_then(Value::as_str)
                 .and_then(|r| r.strip_prefix("#/$defs/"));
             let pr = resolve(root, ps);
+            // the comment of a referenced struct is the struct's own: not a place if a human released the struct in writing
+            let struct_released =
+                own.is_some_and(|d| self.released.contains(&d.replacen('.', "/", 1)));
             let desc = ps
                 .get("description")
-                .or_else(|| pr.get("description"))
+                .or_else(|| {
+                    if struct_released {
+                        None
+                    } else {
+                        pr.get("description")
+                    }
+                })
                 .and_then(Value::as_str)
                 .unwrap_or("");
             let path = format!("{def}.{k}");
@@ -116,13 +136,28 @@ impl StoreCalls {
                     .any(|w| lower.contains(w));
             let secret_place = (name_looks_secret(k) || doc_looks_secret(desc) || free)
                 && !self.released_here(def, k);
-            let leaf = pr.get("type").and_then(Value::as_str) == Some("string")
+            let kind = pr.get("type").and_then(Value::as_str);
+            // a leaf holds the marker itself, a list or a struct hands it to its parts
+            let holds = (kind == Some("string")
                 && pr.get("enum").is_none()
-                && pr.get("x-fs-int").is_none();
-            if secret_place && leaf && self.plant {
+                && pr.get("x-fs-int").is_none())
+                || kind == Some("array")
+                || kind == Some("object");
+            if secret_place && holds && inherited.is_none() && self.plant {
                 self.table.borrow_mut().plant(&path);
             }
-            self.value(root, pr, k, own.unwrap_or(&path), secret_place, out, depth);
+            let tag = inherited
+                .map(str::to_owned)
+                .or_else(|| (secret_place && holds).then(|| path.clone()));
+            self.value(
+                root,
+                pr,
+                k,
+                own.unwrap_or(&path),
+                tag.as_deref(),
+                out,
+                depth,
+            );
         }
     }
 
@@ -133,15 +168,11 @@ impl StoreCalls {
         pr: &Value,
         name: &str,
         path: &str,
-        secret: bool,
+        tag: Option<&str>,
         out: &mut dyn Output,
         depth: u32,
     ) {
-        let marker = if secret {
-            self.table.borrow().marker(path).map(str::to_owned)
-        } else {
-            None
-        };
+        let marker = tag.and_then(|t| self.table.borrow().marker(t).map(str::to_owned));
         let text = marker
             .clone()
             .or_else(|| self.text.clone())
@@ -163,7 +194,7 @@ impl StoreCalls {
         match pr.get("type").and_then(Value::as_str) {
             Some("object") => {
                 out.begin_struct(name, "");
-                self.object(root, pr, path, out, depth + 1);
+                self.object(root, pr, path, out, depth + 1, tag);
                 out.end();
             }
             Some("array") => {
@@ -177,10 +208,10 @@ impl StoreCalls {
                             .and_then(|r| r.strip_prefix("#/$defs/"))
                             .unwrap_or(path);
                         out.begin_struct("", "");
-                        self.object(root, ir, idef, out, depth + 1);
+                        self.object(root, ir, idef, out, depth + 1, tag);
                         out.end();
                     } else {
-                        self.value(root, ir, "", path, secret, out, depth + 1);
+                        self.value(root, ir, "", path, tag, out, depth + 1);
                     }
                 }
                 out.end();
@@ -236,7 +267,7 @@ impl Calls for StoreCalls {
                 ..self.clone()
             };
             output.begin_struct("", "");
-            me.object(&root, &root, name, output, 0);
+            me.object(&root, &root, name, output, 0, None);
             if self.mode == Mode::Extra {
                 output.field("zzExtra", V::Text(&canary));
             }

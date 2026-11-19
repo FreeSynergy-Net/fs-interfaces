@@ -9,7 +9,7 @@ use capnp_compiler::mcpgen::rt::{Danger, Never, ToolSpec};
 use fs_mcp::serve::{Server, ServerInfo, StartError, Started};
 use fs_mcp::{
     Blocklist, Catalog, Contract, Field, Generator, Interface, Mark, Method, RiskClass, RiskSource,
-    Target, ToolGenerator, TypeRef,
+    StructDef, Target, ToolGenerator, TypeName, TypeRef,
 };
 
 use super::calls::StoreCalls;
@@ -97,6 +97,23 @@ pub fn contract() -> Vec<Contract> {
                     vec![field("token", "an access token", text())],
                 ),
                 method(
+                    "tokens",
+                    vec![],
+                    vec![field("tokens", "", TypeRef::List(Box::new(text())))],
+                ),
+                method(
+                    "credentials",
+                    vec![],
+                    vec![field(
+                        "credentials",
+                        "",
+                        TypeRef::Struct(TypeName {
+                            file: FILE.into(),
+                            name: "Credentials".into(),
+                        }),
+                    )],
+                ),
+                method(
                     "describe",
                     vec![field("name", "", text())],
                     vec![
@@ -113,7 +130,11 @@ pub fn contract() -> Vec<Contract> {
                 ),
             ],
         }],
-        structs: vec![],
+        structs: vec![StructDef {
+            name: "Credentials".into(),
+            doc: String::new(),
+            fields: vec![field("user", "", text()), field("value", "", text())],
+        }],
         enums: vec![],
     }]
 }
@@ -215,6 +236,20 @@ pub fn table() -> &'static [ToolSpec] {
             "token",
             NONE_IN,
             &obj(r#""token":{"type":"string","description":"an access token"}"#),
+        ),
+        spec(
+            "vault.tokens",
+            "tokens",
+            NONE_IN,
+            &obj(r#""tokens":{"type":"array","items":{"type":"string"}}"#),
+        ),
+        spec(
+            "vault.credentials",
+            "credentials",
+            NONE_IN,
+            &obj(
+                r#""credentials":{"type":"object","properties":{"user":{"type":"string"},"value":{"type":"string"}}}"#,
+            ),
         ),
         spec(
             "vault.describe",

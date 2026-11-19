@@ -5,7 +5,9 @@
 #[cfg(feature = "conformance")]
 pub mod canary;
 pub mod fake;
+pub mod fakeall;
 pub mod fx;
+pub mod inputs;
 pub mod real;
 pub mod serve;
 #[allow(unused_imports)]
