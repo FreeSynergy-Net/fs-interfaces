@@ -196,6 +196,10 @@ fn the_check_fails_closed_on_what_it_cannot_read() {
     assert!(fits(&root, &root, &json!({"a": 1})).is_err());
     let root = json!({"type":"object","properties":{"a":{"$ref":5}}});
     assert!(fits(&root, &root, &json!({"a": 1})).is_err());
+    // a reference that does not resolve is an error even if the schema next to it names a type
+    let root =
+        json!({"type":"object","properties":{"a":{"$ref":"#/$defs/Nowhere","type":"string"}}});
+    assert!(fits(&root, &root, &json!({"a": "x"})).is_err());
     // a schema that names no type
     let root = json!({"type":"object","properties":{"a":{"description":"anything?"}}});
     assert!(fits(&root, &root, &json!({"a": 1})).is_err());
