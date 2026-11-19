@@ -202,7 +202,7 @@ fn look(
 /// [`WINDOW`] characters of a marker must be there; a shorter piece is no hit. One hit per canary and form.
 #[must_use]
 pub fn scan(haystack: &str, canaries: &[Canary]) -> Vec<Hit> {
-    if haystack.len() < WINDOW || canaries.is_empty() {
+    if canaries.is_empty() {
         return Vec::new();
     }
     let t = tables(canaries);

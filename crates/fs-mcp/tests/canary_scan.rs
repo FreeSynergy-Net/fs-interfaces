@@ -241,3 +241,30 @@ fn other_case_and_separators_between_the_characters() {
         );
     }
 }
+
+#[test]
+fn a_base64_character_that_only_partly_belongs_to_the_marker_does_not_count() {
+    // the characters at the edge also hold bits of the bytes around the marker: only the fully determined ones are searched.
+    // Seven fully determined characters and one partial one are 7 characters of the marker, so no hit.
+    let (c, cs) = one();
+    for before in 0..3_usize {
+        let mut bytes = vec![0_u8; before];
+        bytes.extend_from_slice(c.marker.as_bytes());
+        let text = base64::encode(&bytes).trim_end_matches('=').to_owned();
+        let first_full = (8 * before).div_ceil(6);
+        let full_end = 8 * bytes.len() / 6;
+        // the partial character in front (if any) and the seven that follow
+        if first_full > 0 {
+            let piece = &text[first_full - 1..first_full + 7];
+            assert_eq!(scan(piece, &cs), vec![], "before {before}: {piece}");
+        }
+        // the seven before the partial character at the end, and that character
+        if full_end < text.len() {
+            let piece = &text[full_end - 7..=full_end];
+            assert_eq!(scan(piece, &cs), vec![], "before {before}: {piece}");
+        }
+        // eight fully determined characters are a hit
+        let piece = &text[first_full..first_full + 8];
+        assert!(!scan(piece, &cs).is_empty(), "before {before}: {piece}");
+    }
+}

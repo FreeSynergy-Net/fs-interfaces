@@ -62,10 +62,24 @@ fn child_logs_run() {
     for p in &programs() {
         drive(&mut f, p, &table);
     }
+    // the self-test of the log search: a program that writes a secret into its log
+    if std::env::var_os("FSCANARY_LEAK").is_some() {
+        let marker = table
+            .borrow()
+            .marker("(program error text)")
+            .map(str::to_owned)
+            .unwrap_or_default();
+        println!("out: connected with {marker}");
+        eprintln!("log: failed for {marker}");
+    }
 }
 
-fn logs_of_a_child(table: &CanaryTable, f: &mut Findings) {
-    let out = Command::new(std::env::current_exe().expect("the test binary"))
+fn logs_of_a_child(table: &CanaryTable, f: &mut Findings, leak: bool) {
+    let mut cmd = Command::new(std::env::current_exe().expect("the test binary"));
+    if leak {
+        cmd.env("FSCANARY_LEAK", "1");
+    }
+    let out = cmd
         .args([
             "--exact",
             "child_logs_run",
@@ -103,7 +117,7 @@ fn canary_everything() {
         drive(&mut f, p, &table);
     }
     let canaries = CanaryTable::from_canaries(table.borrow().all().to_vec());
-    logs_of_a_child(&canaries, &mut f);
+    logs_of_a_child(&canaries, &mut f, false);
     // not empty-handed: the stand-in vault has places for four secrets, and the tasks tools have none that is not released
     for place in [
         "vault.get.value",
@@ -248,4 +262,20 @@ fn canary_the_driver_finds_a_leak_that_is_there() {
         "{forms:?}"
     );
     assert!(f.list.iter().all(|x| x.class == Class::Secret));
+}
+
+#[test]
+fn canary_the_logs_of_a_child_are_searched_stdout_and_stderr() {
+    let progs = programs();
+    let table = setup(&progs);
+    let canaries = CanaryTable::from_canaries(table.borrow().all().to_vec());
+    let mut f = Findings::default();
+    logs_of_a_child(&canaries, &mut f, true);
+    let places: std::collections::BTreeSet<&str> =
+        f.list.iter().map(|x| x.place.as_str()).collect();
+    assert!(
+        places.iter().any(|p| p.contains("stdout")) && places.iter().any(|p| p.contains("stderr")),
+        "{places:?}"
+    );
+    assert!(f.list.iter().all(|x| x.path == "(program error text)"));
 }
