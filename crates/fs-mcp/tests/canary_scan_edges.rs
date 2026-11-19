@@ -123,10 +123,7 @@ fn text_that_merely_looks_alike_is_no_hit() {
     // windows that do not cross a broken position are still real pieces of the marker: they are hits by design
     assert!(hits.iter().all(|h| h.path == c.path));
     // text about canaries, without a marker
-    assert_eq!(
-        scan("the canary test plants canaries; FSCAN is not enough", &cs),
-        vec![]
-    );
+    assert_eq!(scan("<FSCAN>: not enough!", &cs), vec![]);
 }
 
 #[test]
