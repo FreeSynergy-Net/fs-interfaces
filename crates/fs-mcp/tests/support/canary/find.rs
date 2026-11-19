@@ -23,6 +23,8 @@ pub struct Findings {
     pub list: Vec<Finding>,
     pub calls: usize,
     pub covered: Vec<String>,
+    /// The failure modes of the program that were run (so a test can say that none was left out).
+    pub modes: std::collections::BTreeSet<String>,
 }
 
 impl Findings {

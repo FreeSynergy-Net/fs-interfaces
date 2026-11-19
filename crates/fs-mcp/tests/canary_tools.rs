@@ -118,6 +118,23 @@ fn canary_everything() {
     }
     let canaries = CanaryTable::from_canaries(table.borrow().all().to_vec());
     logs_of_a_child(&canaries, &mut f, false);
+    // no failure mode of the program was left out
+    let want = [
+        "rpc-error-with-a-canary-in-its-text",
+        "rpc-error",
+        "unreadable",
+        "extra",
+        "empty",
+    ];
+    assert_eq!(
+        f.modes.iter().map(String::as_str).collect::<Vec<_>>().len(),
+        want.len(),
+        "{:?}",
+        f.modes
+    );
+    for m in want {
+        assert!(f.modes.contains(m), "{m} was run");
+    }
     // not empty-handed: the stand-in vault has places for four secrets, and the tasks tools have none that is not released
     for place in [
         "vault.get.value",

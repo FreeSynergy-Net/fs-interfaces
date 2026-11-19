@@ -193,6 +193,20 @@ pub fn drive(f: &mut Findings, p: &Prog, table: &Rc<RefCell<CanaryTable>>) {
             Mode::Empty,
         ];
         for mode in failing {
+            let kind = match &mode {
+                Mode::RpcError(text)
+                    if table
+                        .borrow()
+                        .all()
+                        .iter()
+                        .any(|c| text.contains(&c.marker)) =>
+                {
+                    "rpc-error-with-a-canary-in-its-text".to_owned()
+                }
+                Mode::RpcError(_) => "rpc-error".to_owned(),
+                other => format!("{other:?}").to_lowercase(),
+            };
+            f.modes.insert(kind);
             let s = server(p, calls.with_mode(mode.clone()));
             check(
                 f,
