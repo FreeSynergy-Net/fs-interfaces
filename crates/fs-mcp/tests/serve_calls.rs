@@ -122,3 +122,54 @@ fn an_error_of_the_program_is_a_tool_error_and_its_text_is_not_passed_on() {
 fn uuid_back() -> Value {
     json!({"hi": "81985529216486895", "lo": "18446744073709551614"})
 }
+
+/// A program whose calls end in the way the real tasks table cannot show: a watch with unreadable calls, and a call that
+/// writes no result.
+struct Odd(bool);
+
+impl fs_mcp::serve::Calls for Odd {
+    fn call<'a>(
+        &'a self,
+        _: &capnp_compiler::mcpgen::rt::ToolSpec,
+        _: &'a mut dyn capnp_compiler::cligen::rt::Input,
+        _: &'a mut dyn capnp_compiler::cligen::rt::Output,
+    ) -> Option<fs_mcp::serve::calls::Call<'a>> {
+        let counted = self.0;
+        Some(Box::pin(async move {
+            let errors = if counted {
+                vec![std::rc::Rc::new(std::cell::Cell::new(2))]
+            } else {
+                vec![]
+            };
+            Ok(capnp_compiler::cligen::rt::Outcome::new(
+                capnp_compiler::cligen::rt::Held::none(),
+                errors,
+            ))
+        }))
+    }
+}
+
+#[test]
+fn unreadable_calls_of_a_watch_and_an_empty_result_are_tool_errors() {
+    for counted in [true, false] {
+        let s = fs_mcp::serve::Server::new(
+            Odd(counted),
+            fs_mcp::tasks_mcp::TOOLS,
+            &support::serve::catalog(),
+            &fs_mcp::serve::Started,
+            support::serve::info(),
+        )
+        .unwrap();
+        let line = request(
+            1,
+            "tools/call",
+            json!({"_meta": meta(None), "name": "tasks.capabilities", "arguments": {}}),
+        );
+        let r = futures::executor::LocalPool::new()
+            .run_until(s.handle_line(&line))
+            .unwrap();
+        let r: Value = serde_json::from_str(&r).unwrap();
+        assert_eq!(r["result"]["isError"], true, "counted {counted}");
+        assert!(r["result"].get("structuredContent").is_none());
+    }
+}

@@ -244,3 +244,23 @@ fn serve_writes_one_line_per_request_and_only_protocol_on_the_output() {
         assert_eq!(v["id"], i as u64 + 1);
     }
 }
+
+#[test]
+fn the_capabilities_must_be_an_object_and_params_must_be_an_object() {
+    let (s, _) = server();
+    let mut m = meta(None);
+    m["io.modelcontextprotocol/clientCapabilities"] = json!(3);
+    let a = ask(&s, &request(1, "ping", json!({"_meta": m})));
+    assert_eq!(code(&a), -32602);
+    assert_eq!(
+        a["error"]["data"]["missing"],
+        json!(["io.modelcontextprotocol/clientCapabilities"])
+    );
+    // `params` that is no object is named as such (not just "no `_meta`")
+    let a = ask(
+        &s,
+        r#"{"jsonrpc":"2.0","id":1,"method":"ping","params":[1]}"#,
+    );
+    assert_eq!(code(&a), -32602);
+    assert!(a["error"]["message"].as_str().unwrap().contains("params"));
+}
