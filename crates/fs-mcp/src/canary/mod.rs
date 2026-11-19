@@ -6,6 +6,7 @@
 
 mod marker;
 mod scan;
+mod views;
 
 pub use marker::{
     Canary, CanaryTable, Class, PREFIX, PREFIX_SENSITIVE, RANDOM_LEN, class_of, fresh_marker,
