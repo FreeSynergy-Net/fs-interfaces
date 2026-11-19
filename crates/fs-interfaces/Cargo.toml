@@ -13,8 +13,8 @@ capnp = "0.27"
 fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
 
 [dev-dependencies]
-# Our own pure-Rust schema compiler (ADR 0040), by the Git tag v0.2.1 of fs-capnpc (the tag is the one reviewed state; crates.io is the owner's upload).
-capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", tag = "v0.2.1", default-features = false }
+# Our own pure-Rust schema compiler (ADR 0040), by the Git tag v0.2.2 of fs-capnpc (the tag is the one reviewed state; crates.io is the owner's upload).
+capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", tag = "v0.2.2", default-features = false }
 capnpc = "0.27"
 # ... and the official compiler (as WASM) is the oracle in tests/generated_matches_official.rs.
 capnpc-embedded = "0.2"
