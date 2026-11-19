@@ -87,7 +87,11 @@ fn grams(table: &mut Table, canary: usize, enc: Encoding, form: &str) {
 }
 
 fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
+    use std::fmt::Write;
+    bytes.iter().fold(String::new(), |mut s, b| {
+        let _ = write!(s, "{b:02x}");
+        s
+    })
 }
 
 /// The part of the base64 text of `marker` that does not depend on the bytes around it, for the marker at byte offset
