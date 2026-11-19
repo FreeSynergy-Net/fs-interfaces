@@ -109,6 +109,7 @@ fn snapshot(table: &Rc<RefCell<CanaryTable>>) -> CanaryTable {
 }
 
 /// Everything a client can do against one program.
+#[allow(clippy::too_many_lines)] // one driver: the list of what a client can do reads best in one place
 pub fn drive(f: &mut Findings, p: &Prog, table: &Rc<RefCell<CanaryTable>>) {
     let calls = StoreCalls::new(table.clone(), p.released.clone());
     let normal = server(p, calls.clone());
