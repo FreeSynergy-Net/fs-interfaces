@@ -9,6 +9,8 @@ Version = tag; all crates of the workspace (`fs-interfaces`, `fs-mcp`, `regenera
 - `regenerate` also writes `crates/fs-mcp/src/generated/tasks_cli.rs` (command code) and `tasks_mcp.rs` (20 tools, `LEFT`: the listener) with these marks; `fs-mcp` depends on `fs-interfaces` and `capnp-rpc` for them (lock: `capnp-rpc` 0.27.5). The test `regenerates_committed` also compares these two files.
 - Auf Deutsch: `fs-mcp` bekommt die Marken des Programms als `MarkSource`-Adapter (`ProgramMarks`) und die Pflicht-Schnittmenge `Surface` (Tabelle aus dem Generator, Katalog dieser Crate, Schalter, KI-Kennzeichnung); `regenerate` schreibt zusaetzlich `tasks_cli.rs` und `tasks_mcp.rs` nach `crates/fs-mcp/src/generated/`. `capnp-compiler` ist per Commit gepinnt (nach dem Tag v0.2.0 auf den Tag). Noch kein Server (M4).
 
+- OPEN (for the review): the catalog of this crate refuses `tasks.support-report` (SecretSuspect `common/SupportReport.entries`) and `tasks.types.describe` (reason not determined), so `Surface` does not offer them; behaviour stays until the verdict. Marks live in `crates/fs-mcp/marks/*.toml`; the generated code sits in `crates/fs-mcp/src/generated/` (names `::fs_interfaces`/`::fs_types` by `crates_provide_map`).
+
 ## 0.0.28 (2026-11-18)
 
 - `fs-types` is pinned at `v0.0.4` (was `v0.0.1`): `fs-interfaces`, `fs-mcp`, `regenerate`; the generated code is unchanged by v0.0.4. New basic types (from v0.0.3) `integer`, `duration`, `flag`, `whole` (appended); `TypeProblem` is `#[non_exhaustive]`. This repository has no `match` on `BasicType` or `TypeProblem`; consumers with an exhaustive `match` need a `_` arm. The lock must hold one `fs-types`, from that repository only.
