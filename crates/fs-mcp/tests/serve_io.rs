@@ -141,3 +141,42 @@ fn what_cannot_be_shown_makes_the_result_a_problem_never_a_number_or_a_hole() {
     // an empty walk is no result
     assert!(JsonOutput::new(&s).finish().is_err());
 }
+
+#[test]
+fn a_field_the_contract_does_not_declare_is_refused_with_the_whole_result() {
+    let schema = json!({"type":"object","properties":{"a":{"type":"string"},"inner":{"type":"object","properties":{"b":{"type":"string"}}}}});
+    let try_with = |f: &dyn Fn(&mut fs_mcp::serve::output::JsonOutput<'_>)| {
+        let mut o = fs_mcp::serve::output::JsonOutput::new(&schema);
+        o.begin_struct("", "");
+        f(&mut o);
+        o.end();
+        o.finish()
+    };
+    assert!(try_with(&|o| o.field("a", V::Text("x"))).is_ok());
+    for bad in [
+        try_with(&|o| o.field("extra", V::Text("x"))),
+        try_with(&|o| {
+            o.begin_struct("extra", "");
+            o.end();
+        }),
+        try_with(&|o| {
+            o.begin_list("extra", "");
+            o.end();
+        }),
+        try_with(&|o| {
+            o.begin_struct("inner", "");
+            o.field("b", V::Text("x"));
+            o.field("c", V::Text("y"));
+            o.end();
+        }),
+    ] {
+        assert!(bad.is_err(), "{bad:?}");
+    }
+    // a result that declares nothing takes nothing
+    let empty = json!({"type":"object","additionalProperties":false});
+    let mut o = fs_mcp::serve::output::JsonOutput::new(&empty);
+    o.begin_struct("", "");
+    o.field("x", V::Bool(true));
+    o.end();
+    assert!(o.finish().is_err());
+}
