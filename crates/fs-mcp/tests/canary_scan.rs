@@ -286,6 +286,31 @@ fn windows_that_are_mostly_the_constant_start_are_no_hit() {
         let piece = format!("<{}{}>", &prefix[k..], &c.marker[8..8 + k]);
         assert_eq!(scan(&piece, &cs), vec![], "{piece}");
     }
+    // the same in hex: sixteen digits that are mostly the start of the marker are no hit, twelve random digits of sixteen are
+    let h: String = c.marker.bytes().map(|b| format!("{b:02x}")).collect();
+    for k in 1..=10 {
+        let piece = &h[16 - (16 - k)..16 + k]; // (16 - k) digits of the constant start, then k random ones
+        assert_eq!(scan(piece, &cs), vec![], "{k} random digits: {piece}");
+    }
+    assert!(
+        !scan(&h[16 - 4..16 + 12], &cs).is_empty(),
+        "12 random digits of 16"
+    );
+    // the same in base64, at every offset: the first windows of the encoded marker are mostly its constant start
+    for before in 0..3_usize {
+        let mut bytes = vec![0_u8; before];
+        bytes.extend_from_slice(c.marker.as_bytes());
+        let text = base64::encode(&bytes);
+        let from = (8 * before).div_ceil(6);
+        for s in 0..=6 {
+            let piece = &text[from + s..from + s + 8];
+            assert_eq!(
+                scan(piece, &cs),
+                vec![],
+                "before {before}, window {s}: {piece}"
+            );
+        }
+    }
     // six random characters in a window of eight are a hit
     let piece = format!("<{}{}>", &prefix[6..], &c.marker[8..14]);
     assert!(!scan(&piece, &cs).is_empty(), "{piece}");
