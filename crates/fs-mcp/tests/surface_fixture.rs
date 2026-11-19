@@ -49,7 +49,7 @@ fn the_screen_refuses_a_tool_without_the_ai_label_and_an_excluded_one() {
 }
 
 #[test]
-fn a_union_member_is_matched_at_the_union_in_its_file() {
+fn a_union_member_tool_is_refused_until_both_sides_split_unions_alike() {
     use support::{has_tool, member, run, st};
     let c = contract(
         vec![interface(
@@ -67,23 +67,62 @@ fn a_union_member_is_matched_at_the_union_in_its_file() {
     let mut marks = FakeMarks::default();
     marks.put("Act", "flag", fs_mcp::RiskClass::Change);
     let cat = run(&c, &marks);
-    assert!(
-        has_tool(&cat, "Act", "flag") && has_tool(&cat, "Act", "mute"),
-        "both members are tools (mute is unmarked)"
-    );
+    assert!(has_tool(&cat, "Act", "flag"));
     let t = table(self::marks());
     let mut spec = spec_of(&t, "fx/Notes.get");
     spec.key = "messenger/Conversation.act";
-    spec.member = Some("flag");
     let surface = Surface::new(&cat);
-    assert_eq!(surface.refusal(&spec), None);
-    spec.member = Some("nothing");
-    assert_eq!(surface.refusal(&spec), Some(Refusal::NotInCatalog));
-    spec.member = Some("flag");
-    spec.key = "other/Conversation.act";
-    assert_eq!(
-        surface.refusal(&spec),
-        Some(Refusal::NotInCatalog),
-        "another schema file is another contract"
+    for m in [Some("flag"), Some("nothing"), Some("Act.flag")] {
+        spec.member = m;
+        assert_eq!(surface.refusal(&spec), Some(Refusal::NotInCatalog), "{m:?}");
+    }
+}
+
+#[test]
+fn a_method_is_matched_by_its_whole_key_not_by_a_prefix() {
+    use support::{has_tool, run};
+    let c = contract(
+        vec![interface(
+            "Items",
+            vec![
+                method("get", vec![], vec![]),
+                method("getByUid", vec![], vec![]),
+            ],
+        )],
+        vec![],
     );
+    let mut marks = FakeMarks::default();
+    marks.put("Items", "getByUid", fs_mcp::RiskClass::Read);
+    let mut cat = run(&c, &marks);
+    cat.tools
+        .retain(|t| t.source.as_str() == "messenger/Items.getByUid");
+    assert_eq!(cat.tools.len(), 1);
+    assert!(!has_tool(&cat, "Items", "get"));
+    let t = table(self::marks());
+    let mut spec = spec_of(&t, "fx/Notes.get");
+    spec.key = "messenger/Items.get";
+    let surface = Surface::new(&cat);
+    assert_eq!(surface.refusal(&spec), Some(Refusal::NotInCatalog));
+    spec.key = "messenger/Items.getByUid";
+    assert_eq!(surface.refusal(&spec), None);
+    spec.key = "messenger/Items.getBy";
+    assert_eq!(surface.refusal(&spec), Some(Refusal::NotInCatalog));
+}
+
+#[test]
+fn only_the_exact_value_ai_is_the_label_and_the_label_is_checked_before_the_catalog() {
+    let cat = catalog();
+    let t = table(marks());
+    let surface = Surface::new(&cat);
+    for actor in ["aix", "ai:x", "AI", " ai", "", "human"] {
+        let mut s = spec_of(&t, "fx/Notes.get");
+        s.meta = Box::leak(
+            format!("{{\"net.freesynergy/mcp\":{{\"actor\":\"{actor}\"}}}}").into_boxed_str(),
+        );
+        assert_eq!(surface.refusal(&s), Some(Refusal::NoAiLabel), "{actor:?}");
+    }
+    // no label and not in the catalog: the label is the first reason
+    let mut s = spec_of(&t, "fx/Notes.peek");
+    s.meta = "{}";
+    assert_eq!(surface.refusal(&s), Some(Refusal::NoAiLabel));
 }

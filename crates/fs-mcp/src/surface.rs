@@ -49,20 +49,18 @@ impl<'c> Surface<'c> {
         Self { catalog }
     }
 
-    /// Is the table's tool also a tool of the catalog? A method is matched by its key; a union member by the
-    /// schema file and the member (the catalog marks a member at the union, not at the method).
+    /// Is the table's tool also a tool of the catalog? A method is matched by its key, exactly. A union member
+    /// is never matched for now: the generator and the catalog split unions by different rules (the generator when
+    /// the parameter struct is a union, the catalog when one parameter is a pure union), so a member tool has no
+    /// key both sides agree on. It stays out until they share one rule or a key (method plus member). The table of
+    /// `tasks.capnp` has no member tool today.
     fn in_catalog(&self, spec: &ToolSpec) -> bool {
-        let file = spec.key.split_once('/').map_or("", |(f, _)| f);
-        self.catalog.tools.iter().any(|t| {
-            let source = t.source.as_str();
-            match spec.member {
-                None => source == spec.key,
-                Some(m) => {
-                    source.split_once('/').is_some_and(|(f, _)| f == file)
-                        && source.ends_with(&format!(".{m}"))
-                }
-            }
-        })
+        spec.member.is_none()
+            && self
+                .catalog
+                .tools
+                .iter()
+                .any(|t| t.source.as_str() == spec.key)
     }
 
     /// The first reason to keep `spec` out, if there is one.

@@ -46,7 +46,7 @@ pub use marks::MarkFiles;
 pub use model::{Contract, EnumDef, Field, Index, Interface, Method, StructDef, TypeName, TypeRef};
 pub use program_marks::ProgramMarks;
 pub use resource::{ResourceKind, ResourceTemplate};
-pub use risk::{Mark, RiskClass, RiskSource};
+pub use risk::{Mark, RiskClass, RiskSource, ToolRelease};
 pub use secrets::{doc_looks_secret, name_looks_secret};
 pub use source::ContractSource;
 pub use surface::{Admission, Refusal, Surface};

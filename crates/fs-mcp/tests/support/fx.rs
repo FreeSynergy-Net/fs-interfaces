@@ -139,3 +139,8 @@ pub fn catalog() -> fs_mcp::Catalog {
     let _ = std::fs::remove_dir_all(&dir);
     c
 }
+
+/// A fresh folder for a test that needs files (see `workdir`).
+pub fn workdir_for_tests(tag: &str) -> PathBuf {
+    workdir(tag)
+}

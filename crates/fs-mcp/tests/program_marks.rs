@@ -147,3 +147,31 @@ fn a_type_on_the_block_list_blocks_every_command_of_its_interface() {
     assert!(m.excluded("any/AiGrant.grant"));
     assert!(!m.excluded("any/Grants.grant"));
 }
+
+#[test]
+fn the_marks_reach_the_command_code_too() {
+    // `cligen` reads `secret` from the same marks: a secret parameter is marked so in the table of the command
+    use capnp_compiler::{CompileCommand, cligen};
+    let dir = support::fx::workdir_for_tests("cli");
+    std::fs::write(dir.join("fx.capnp"), support::fx::SCHEMA).unwrap();
+    let mut cmd = CompileCommand::new();
+    cmd.src_prefix(&dir);
+    cmd.file(dir.join("fx.capnp"));
+    let request = cmd.run_bytes().unwrap();
+    let text = |g: &mut cligen::GenerationCommand| g.generate(&request).unwrap().remove(0).content;
+    let with = text(cligen::GenerationCommand::new().marks(Box::new(marks())));
+    let without = text(&mut cligen::GenerationCommand::new());
+    let _ = std::fs::remove_dir_all(&dir);
+    let pw = |s: &str| {
+        s.lines()
+            .filter(|l| l.contains("path: \"password\""))
+            .map(str::to_owned)
+            .collect::<Vec<_>>()
+    };
+    assert!(
+        pw(&with).iter().any(|l| l.contains("secret: true")),
+        "{:?}",
+        pw(&with)
+    );
+    assert!(pw(&without).iter().all(|l| l.contains("secret: false")));
+}

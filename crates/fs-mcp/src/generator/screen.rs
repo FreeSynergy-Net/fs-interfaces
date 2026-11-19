@@ -6,6 +6,7 @@
 //! Fail-closed: what is unknown, unclear, free-form or secret-looking is out until somebody releases it in
 //! writing; a structure the index does not hold is a problem, never "no problem".
 
+use std::cell::Cell;
 use std::collections::HashSet;
 
 use crate::free_format::looks_free_format;
@@ -17,9 +18,28 @@ pub(super) struct Screen<'a> {
     pub risk: &'a dyn RiskSource,
     pub blocklist: &'a Blocklist,
     pub index: &'a Index<'a>,
+    /// The candidate has a written release for comment-word hits ([`crate::ToolRelease`]).
+    pub doc_release: bool,
+    /// Set when that release lifted a hit.
+    pub used: &'a Cell<bool>,
 }
 
 impl Screen<'_> {
+    /// Does a name or comment look like a secret? A comment-word hit alone is lifted by a tool release.
+    fn suspect(&self, name: &str, doc: &str) -> bool {
+        if name_looks_secret(name) {
+            return true;
+        }
+        if doc_looks_secret(doc) {
+            if self.doc_release {
+                self.used.set(true);
+                return false;
+            }
+            return true;
+        }
+        false
+    }
+
     /// First problem in `fields` (parameters or results of `iface.method`) or in anything they reach.
     pub(super) fn fields(
         &self,
@@ -57,7 +77,7 @@ impl Screen<'_> {
         }
         let def = self.index.struct_def(n)?;
         let own = Target::owner(&n.file, &def.name);
-        let looks = name_looks_secret(&def.name) || doc_looks_secret(&def.doc);
+        let looks = self.suspect(&def.name, &def.doc);
         (looks && self.risk.release(&own).is_none()).then(|| Why::SecretSuspect {
             path: own.to_string(),
         })
@@ -76,7 +96,7 @@ impl Screen<'_> {
         }
         let path = || target.to_string();
         let released = || self.risk.release(target).is_some();
-        if (name_looks_secret(name) || doc_looks_secret(doc)) && !released() {
+        if self.suspect(name, doc) && !released() {
             return Some(Why::SecretSuspect { path: path() });
         }
         if looks_free_form(name, ty) && !released() {
@@ -104,7 +124,7 @@ impl Screen<'_> {
                     .unwrap_or_else(|| "interface marked excluded".to_owned()),
             ));
         }
-        let looks = name_looks_secret(&def.name) || doc_looks_secret(&def.doc);
+        let looks = self.suspect(&def.name, &def.doc);
         (looks && self.risk.release(&own).is_none()).then(|| Why::SecretSuspect {
             path: own.to_string(),
         })
@@ -132,9 +152,7 @@ impl Screen<'_> {
                     });
                 };
                 let own = Target::owner(&n.file, &def.name);
-                if (name_looks_secret(&def.name) || doc_looks_secret(&def.doc))
-                    && self.risk.release(&own).is_none()
-                {
+                if self.suspect(&def.name, &def.doc) && self.risk.release(&own).is_none() {
                     return Some(Why::SecretSuspect {
                         path: own.to_string(),
                     });

@@ -8,3 +8,9 @@ describe = "read"
 [format]
 "NameComponent.value" = "one part of a person's name (given name, surname ...); display text of the kind in `kind`, not a secret field"
 "AddressComponent.value" = "one part of a postal address (street, locality, postcode ...); display text of the kind in `kind`, not a secret field"
+
+# Written release (rule: safe first, a human releases one tool at a time; delete the entry to revoke).
+[[tool_release]]
+tool = "TypeCatalog.describe"
+reason = "false alarm: the comment of `TypeDescription.label` says 'translation key of the type', a label key and no key material"
+source = "fs-types types.capnp:139 (TypeDescription.label)"

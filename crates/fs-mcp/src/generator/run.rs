@@ -5,6 +5,7 @@
 //! candidate must pass `vet` (marks) and the screen (types) before it becomes a tool or resource.
 //! Trait: [`ToolGenerator`].
 
+use std::cell::Cell;
 use std::collections::HashSet;
 
 use super::api::ToolGenerator;
@@ -33,14 +34,25 @@ pub(crate) struct Run<'a> {
     pub(crate) facts: Facts,
     pub(crate) out: Catalog,
     pub(crate) errors: Vec<Error>,
+    /// Set by the screen when a tool release lifted a hit.
+    pub(crate) lifted: Cell<bool>,
+    /// Tools whose release lifted something.
+    pub(crate) used_releases: HashSet<Target>,
 }
 
 impl Run<'_> {
     pub(super) fn screen(&self) -> Screen<'_> {
+        self.screen_with(false)
+    }
+
+    /// The screen of one candidate; `doc_release` says it has a written tool release for comment-word hits.
+    pub(super) fn screen_with(&self, doc_release: bool) -> Screen<'_> {
         Screen {
             risk: self.g.risk,
             blocklist: &self.g.blocklist,
             index: &self.index,
+            doc_release,
+            used: &self.lifted,
         }
     }
 
@@ -77,6 +89,8 @@ impl ToolGenerator for Generator<'_> {
             facts: Facts::collect(contracts),
             out: Catalog::default(),
             errors: Vec::new(),
+            lifted: Cell::new(false),
+            used_releases: HashSet::new(),
         };
         for c in contracts {
             for i in &c.interfaces {
@@ -87,6 +101,7 @@ impl ToolGenerator for Generator<'_> {
             return Err(e);
         }
         let mut out = run.out;
+        let used = run.used_releases;
         let mut seen = HashSet::new();
         for t in &out.tools {
             if !seen.insert(t.name.clone()) {
@@ -106,6 +121,14 @@ impl ToolGenerator for Generator<'_> {
         out.unmarked.sort();
         out.unmarked.dedup();
         out.stale = facts::stale(contracts, self.risk);
+        out.unused_releases = self
+            .risk
+            .targets()
+            .into_iter()
+            .filter(|t| self.risk.tool_release(t).is_some() && !used.contains(t))
+            .collect();
+        out.unused_releases.sort();
+        out.unused_releases.dedup();
         Ok(out)
     }
 }

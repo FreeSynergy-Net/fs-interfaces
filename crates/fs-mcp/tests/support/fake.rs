@@ -3,7 +3,7 @@
 
 use std::collections::HashMap;
 
-use fs_mcp::{Mark, RiskClass, RiskSource, Target};
+use fs_mcp::{Mark, RiskClass, RiskSource, Target, ToolRelease};
 
 use super::FILE;
 
@@ -13,6 +13,7 @@ pub struct FakeMarks {
     pub marks: HashMap<Target, Mark>,
     pub releases: HashMap<Target, String>,
     pub formats: HashMap<Target, String>,
+    pub tool_releases: HashMap<Target, ToolRelease>,
 }
 
 impl FakeMarks {
@@ -62,7 +63,24 @@ impl FakeMarks {
     }
 }
 
+impl FakeMarks {
+    /// A written tool release for `owner.method`.
+    pub fn release_tool(&mut self, owner: &str, method: &str) -> &mut Self {
+        self.tool_releases.insert(
+            Target::item(FILE, owner, method),
+            ToolRelease {
+                reason: "false alarm".into(),
+                source: "test".into(),
+            },
+        );
+        self
+    }
+}
+
 impl RiskSource for FakeMarks {
+    fn tool_release(&self, t: &Target) -> Option<ToolRelease> {
+        self.tool_releases.get(t).cloned()
+    }
     fn mark(&self, t: &Target) -> Option<Mark> {
         self.marks.get(t).cloned()
     }
@@ -76,6 +94,7 @@ impl RiskSource for FakeMarks {
         self.marks
             .keys()
             .chain(self.releases.keys())
+            .chain(self.tool_releases.keys())
             .cloned()
             .collect()
     }

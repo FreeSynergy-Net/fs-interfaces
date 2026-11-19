@@ -78,6 +78,18 @@ pub struct Mark {
     pub reason: Option<String>,
 }
 
+/// A written release for ONE tool: the words of a comment (`secret`, `key`, ...) that made the screen keep the tool
+/// out are no secret here. It is visible (it is in the mark file) and revocable (delete the entry), and it lifts
+/// comment-word hits only: a name that looks like a secret, an explicit `secret` annotation, a mark `excluded`
+/// and the block list stay in force.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ToolRelease {
+    /// Why the hit is a false alarm.
+    pub reason: String,
+    /// Where the false alarm sits, such as `common.capnp:122-124`.
+    pub source: String,
+}
+
 /// Where marks and releases come from.
 pub trait RiskSource {
     /// The mark of a method or union member; `None` = no mark, which the generator treats as `unknown`
@@ -91,6 +103,11 @@ pub trait RiskSource {
     /// The specialist format of a free-format field ("jscontact", "markdown", ...), written down by a person:
     /// "a format, not a secret field". Without it the generator keeps the tool out.
     fn format(&self, target: &Target) -> Option<String>;
+
+    /// The release of a tool for comment-word hits; `None` = none (the default: nobody released anything).
+    fn tool_release(&self, _target: &Target) -> Option<ToolRelease> {
+        None
+    }
 
     /// Every target that carries a mark or release, to find marks that point at nothing.
     fn targets(&self) -> Vec<Target>;

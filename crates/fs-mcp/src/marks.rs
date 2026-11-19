@@ -21,7 +21,7 @@ use std::path::Path;
 use toml::{Table, Value};
 
 use crate::mark_parse::parse_mark;
-use crate::{Error, Mark, RiskClass, RiskSource, Target};
+use crate::{Error, Mark, RiskClass, RiskSource, Target, ToolRelease};
 
 /// Marks and releases loaded from files.
 #[derive(Debug, Default)]
@@ -29,6 +29,7 @@ pub struct MarkFiles {
     marks: HashMap<Target, Mark>,
     releases: HashMap<Target, String>,
     formats: HashMap<Target, String>,
+    tool_releases: HashMap<Target, ToolRelease>,
 }
 
 impl MarkFiles {
@@ -79,6 +80,10 @@ impl MarkFiles {
                 .parse()
                 .map_err(|e: toml::de::Error| bad(e.to_string()))?;
             for (owner, body) in table {
+                if owner == "tool_release" {
+                    me.add_tool_releases(file, &body).map_err(bad)?;
+                    continue;
+                }
                 let Value::Table(body) = body else {
                     return Err(bad(format!("{owner}: a table is expected")));
                 };
@@ -132,7 +137,48 @@ impl MarkFiles {
     }
 }
 
+impl MarkFiles {
+    /// `[[tool_release]]` entries: `tool = "Owner.method"`, `reason`, `source`, all three non-empty.
+    fn add_tool_releases(&mut self, file: &str, body: &Value) -> Result<(), String> {
+        let Value::Array(entries) = body else {
+            return Err(
+                "tool_release: an array of tables ([[tool_release]]) is expected".to_owned(),
+            );
+        };
+        for e in entries {
+            let Value::Table(e) = e else {
+                return Err("tool_release: a table is expected".to_owned());
+            };
+            if let Some(k) = e
+                .keys()
+                .find(|k| !["tool", "reason", "source"].contains(&k.as_str()))
+            {
+                return Err(format!("tool_release: unknown key {k:?}"));
+            }
+            let text = |k: &str| match e.get(k) {
+                Some(Value::String(s)) if !s.trim().is_empty() => Ok(s.clone()),
+                _ => Err(format!("tool_release: {k} must be a non-empty text")),
+            };
+            let tool = text("tool")?;
+            let Some((owner, name)) = tool.split_once('.') else {
+                return Err(format!("tool_release {tool}: Owner.method expected"));
+            };
+            self.tool_releases.insert(
+                Target::item(file, owner, name),
+                ToolRelease {
+                    reason: text("reason")?,
+                    source: text("source")?,
+                },
+            );
+        }
+        Ok(())
+    }
+}
+
 impl RiskSource for MarkFiles {
+    fn tool_release(&self, target: &Target) -> Option<ToolRelease> {
+        self.tool_releases.get(target).cloned()
+    }
     fn mark(&self, target: &Target) -> Option<Mark> {
         self.marks.get(target).cloned()
     }
@@ -147,6 +193,7 @@ impl RiskSource for MarkFiles {
             .keys()
             .chain(self.releases.keys())
             .chain(self.formats.keys())
+            .chain(self.tool_releases.keys())
             .cloned()
             .collect()
     }

@@ -4,7 +4,7 @@
 mod support;
 
 use capnp_compiler::mcpgen::rt::{Danger, META_KEY, Never, Off, Switch, ToolSpec};
-use fs_mcp::{Refusal, RiskClass, Surface, Target, tasks_cli, tasks_mcp};
+use fs_mcp::{Refusal, RiskClass, Surface, Target, Why, tasks_cli, tasks_mcp};
 use serde_json::Value;
 use support::real::{marks, real_catalog};
 
@@ -41,24 +41,15 @@ fn every_tool_is_offered_or_refused_with_a_reason_and_the_table_is_complete() {
     let catalog = real_catalog();
     let a = Surface::new(&catalog).admit(&On, tasks_mcp::TOOLS);
     assert_eq!(a.offered.len() + a.refused.len(), tasks_mcp::TOOLS.len());
-    assert!(
-        !a.offered.is_empty(),
-        "the screen must not swallow everything"
-    );
+    // with the two written releases of the mark files: all 20 (see tests/tool_release.rs)
+    assert_eq!(a.offered.len(), 20);
+    assert_eq!(a.refused.len(), 0);
     // the table is in walk order and unique
     let mut names: Vec<&str> = tasks_mcp::TOOLS.iter().map(|t| t.name).collect();
     let n = names.len();
     names.sort_unstable();
     names.dedup();
     assert_eq!(names.len(), n, "tool names are unique");
-    println!(
-        "offered {} refused {:?}",
-        a.offered.len(),
-        a.refused
-            .iter()
-            .map(|(t, r)| (t.name, *r))
-            .collect::<Vec<_>>()
-    );
 }
 
 #[test]
@@ -182,4 +173,60 @@ fn the_left_list_explains_what_is_no_tool() {
             "{k} ({why}) is in both lists"
         );
     }
+}
+
+/// The marks without their tool releases: the state the screen alone gives.
+struct NoReleases(fs_mcp::MarkFiles);
+impl fs_mcp::RiskSource for NoReleases {
+    fn mark(&self, t: &Target) -> Option<fs_mcp::Mark> {
+        self.0.mark(t)
+    }
+    fn release(&self, t: &Target) -> Option<String> {
+        self.0.release(t)
+    }
+    fn format(&self, t: &Target) -> Option<String> {
+        self.0.format(t)
+    }
+    fn targets(&self) -> Vec<Target> {
+        self.0.targets()
+    }
+}
+
+#[test]
+fn without_the_releases_exactly_two_tools_are_refused_each_with_its_reason() {
+    use fs_mcp::{Blocklist, ToolGenerator};
+    let no = NoReleases(marks());
+    let g = fs_mcp::Generator::new(&no, Blocklist::standard());
+    let catalog = g.generate(&support::real::contracts()).unwrap();
+    let a = Surface::new(&catalog).admit(&On, tasks_mcp::TOOLS);
+    assert_eq!(a.offered.len(), 18);
+    let refused: Vec<_> = a.refused.iter().map(|(t, r)| (t.name, *r)).collect();
+    assert_eq!(
+        refused,
+        [
+            ("tasks.support-report", Refusal::NotInCatalog),
+            ("tasks.types.describe", Refusal::NotInCatalog)
+        ]
+    );
+    let why = |target: &str| {
+        catalog
+            .left_out
+            .iter()
+            .find(|l| l.target.as_str() == target)
+            .map(|l| l.why.clone())
+    };
+    // the comment on `instance` (common.capnp:122-124) hangs on `entries` and says "secret"
+    assert_eq!(
+        why("tasks/Tasks.supportReport"),
+        Some(Why::SecretSuspect {
+            path: "common/SupportReport.entries".to_owned()
+        })
+    );
+    // "translation key" in the comment of `TypeDescription.label` (fs-types)
+    assert_eq!(
+        why("types/TypeCatalog.describe"),
+        Some(Why::SecretSuspect {
+            path: "types/TypeDescription.label".to_owned()
+        })
+    );
 }

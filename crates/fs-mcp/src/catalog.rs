@@ -55,6 +55,8 @@ pub struct Catalog {
     pub unmarked: Vec<Target>,
     /// Marks or releases whose target does not exist in the contracts (a rename leaves these behind).
     pub stale: Vec<Target>,
+    /// WARNING: tool releases that lifted nothing (the contract was fixed, or the tool never hit the screen): delete them.
+    pub unused_releases: Vec<Target>,
 }
 
 impl Catalog {

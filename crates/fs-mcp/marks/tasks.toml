@@ -36,3 +36,10 @@ types = "read"
 "Task.jscalendar" = "JSCalendar (a specialist format, not a secret field; it can still hold what a person wrote)"
 "Items.exportIcs.text" = "whole exported document (vCard, iCalendar or similar, with notes); a specialist or display format, not a secret field; it can still hold what a person wrote"
 "Items.importIcs.text" = "imported document text (format by media type); a specialist or display format, not a secret field; it can still hold what a person wrote"
+
+# Written release (rule: safe first, a human releases one tool at a time; delete the entry to revoke).
+# `tasks.support-report`: the screen reads the comment on `SupportReport.instance` as the comment of `entries`.
+[[tool_release]]
+tool = "Tasks.supportReport"
+reason = "false alarm: the comment on `instance` (\"The id is no secret ...\") hangs on the field `entries` and says 'secret'; the report holds capability names and counts, no secret"
+source = "common.capnp:122-124 (comment after `entries @2`); delete this entry when the comment sits behind `instance`"
