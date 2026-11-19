@@ -151,3 +151,58 @@ fn the_two_real_releases_make_it_twenty_of_twenty_and_none_is_unused() {
     assert_eq!(catalog.unused_releases, Vec::<Target>::new());
     assert_eq!(tasks_mcp::tools(&Off).len(), 0);
 }
+
+#[test]
+fn a_release_that_lifted_a_hit_is_used_even_if_another_hit_still_refuses_the_tool() {
+    // first field: a comment word (lifted), second: a secret name (not lifted)
+    let mut plain = field("plain", TypeRef::Text);
+    plain.doc = "The id is no secret, only a label".into();
+    let c = contract(
+        vec![interface(
+            "Items",
+            vec![method(
+                "report",
+                vec![],
+                vec![field("r", support::st("Report"))],
+            )],
+        )],
+        vec![strukt(
+            "Report",
+            vec![plain, field("apiToken", TypeRef::Text)],
+        )],
+    );
+    let mut m = FakeMarks::default();
+    m.put("Items", "report", RiskClass::Read)
+        .release_tool("Items", "report");
+    let cat = run(&c, &m);
+    assert!(!has_tool(&cat, "Items", "report"));
+    assert_eq!(
+        cat.unused_releases.len(),
+        0,
+        "the release did lift the comment hit"
+    );
+}
+
+#[test]
+fn a_release_of_a_missing_tool_in_the_mark_files_is_a_stale_target() {
+    let text = "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\nsource = \"s\"\n";
+    let m = MarkFiles::from_sources(&[("f", text)]).unwrap();
+    assert_eq!(
+        fs_mcp::RiskSource::targets(&m),
+        [Target::item("f", "A", "b")]
+    );
+}
+
+#[test]
+fn a_member_tool_is_refused_even_when_its_key_is_in_the_catalog() {
+    use support::fx::{catalog, marks as fx_marks, spec_of, table};
+    let cat = catalog();
+    let t = table(fx_marks());
+    let mut s = spec_of(&t, "fx/Notes.get");
+    assert_eq!(Surface::new(&cat).refusal(&s), None);
+    s.member = Some("any");
+    assert_eq!(
+        Surface::new(&cat).refusal(&s),
+        Some(fs_mcp::Refusal::NotInCatalog)
+    );
+}
