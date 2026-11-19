@@ -177,7 +177,7 @@ fn the_class_of_a_marker_is_in_the_hit_and_both_classes_are_found() {
         vec![],
         "8 characters, but the random part differs"
     );
-    let hits = scan("<FSSENSQQ>", &two);
+    let hits = scan("<FSSENSQQQQQQ>", &two);
     assert!(
         !hits.is_empty()
             && hits

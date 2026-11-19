@@ -77,8 +77,37 @@ pub const ANY: &str = "(any marker)";
 
 type Table = HashMap<Vec<u8>, Vec<(usize, Encoding)>>;
 
-fn grams(table: &mut Table, canary: usize, enc: Encoding, form: &str) {
-    for w in form.as_bytes().windows(window(enc)) {
+/// How many characters of a window must depend on the random part of the marker. A window that mostly holds the constant start
+/// (`FSCANARY`, in any encoding) would match innocent text by chance ("canary-tasks" holds `canaryta`); the random part is
+/// what makes a hit mean something. 6 of 8 characters of base32/base64 are 30 bits and more; 12 of 16 hex digits are 48 bits.
+fn need(enc: Encoding) -> usize {
+    if enc == Encoding::Hex { 12 } else { 6 }
+}
+
+/// Put the windows of `form` into the table. `random[i]` says whether character `i` depends on the random part of the marker.
+/// The one window that holds nothing random and is allowed is the whole constant start in the plain forms (a leak of just
+/// `FSCANARY` is said once as "(any marker)").
+fn grams(
+    table: &mut Table,
+    canary: usize,
+    enc: Encoding,
+    form: &str,
+    random: &[bool],
+    prefix_len: usize,
+) {
+    let len = window(enc);
+    for (s, w) in form.as_bytes().windows(len).enumerate() {
+        let n = random[s..s + len].iter().filter(|r| **r).count();
+        let whole_prefix = n == 0
+            && s == 0
+            && len == prefix_len
+            && matches!(
+                enc,
+                Encoding::Raw | Encoding::CaseFolded | Encoding::Separated
+            );
+        if n < need(enc) && !whole_prefix {
+            continue;
+        }
         let list = table.entry(w.to_vec()).or_default();
         if !list.contains(&(canary, enc)) {
             list.push((canary, enc));
@@ -96,19 +125,24 @@ fn hex(bytes: &[u8]) -> String {
 
 /// The part of the base64 text of `marker` that does not depend on the bytes around it, for the marker at byte offset
 /// `o` (0, 1 or 2) of what was encoded: leading characters that mix in bytes before it and trailing ones that mix in bytes
-/// after it are cut off. No padding.
-fn base64_core(marker: &str, o: usize, url: bool) -> String {
+/// after it are cut off. No padding. With it, which of its characters depend on the random part (after `prefix_len` bytes).
+fn base64_core(marker: &str, o: usize, url: bool, prefix_len: usize) -> (String, Vec<bool>) {
     let mut bytes = vec![0_u8; o];
     bytes.extend_from_slice(marker.as_bytes());
     let text = base64::encode(&bytes);
     let from = (8 * o).div_ceil(6);
     let to = 8 * bytes.len() / 6;
     let core = &text[from..to];
-    if url {
+    // character j of the text covers bits 6j..6j+6; the random bytes cover 8(o+prefix_len)..8(o+len)
+    let random = (from..to)
+        .map(|j| 6 * j + 6 > 8 * (o + prefix_len) && 6 * j < 8 * bytes.len())
+        .collect();
+    let core = if url {
         core.replace('+', "-").replace('/', "_")
     } else {
         core.to_owned()
-    }
+    };
+    (core, random)
 }
 
 /// The tables of one run, one per view of the text and window length. Hex is searched in lower case only (the text is
@@ -129,22 +163,33 @@ fn tables(canaries: &[Canary]) -> Tables {
     };
     for (i, c) in canaries.iter().enumerate() {
         let m = c.marker.as_str();
-        grams(&mut t.exact, i, Encoding::Raw, m);
-        grams(&mut t.folded, i, Encoding::CaseFolded, &m.to_lowercase());
-        grams(&mut t.alnum, i, Encoding::Separated, &m.to_lowercase());
-        grams(&mut t.folded_hex, i, Encoding::Hex, &hex(m.as_bytes()));
+        let p = c.class.prefix().len();
+        let lower = m.to_lowercase();
+        let plain: Vec<bool> = (0..m.len()).map(|k| k >= p).collect();
+        grams(&mut t.exact, i, Encoding::Raw, m, &plain, p);
+        grams(&mut t.folded, i, Encoding::CaseFolded, &lower, &plain, p);
+        grams(&mut t.alnum, i, Encoding::Separated, &lower, &plain, p);
+        let hex_text = hex(m.as_bytes());
+        let hex_random: Vec<bool> = (0..hex_text.len()).map(|k| k / 2 >= p).collect();
+        grams(
+            &mut t.folded_hex,
+            i,
+            Encoding::Hex,
+            &hex_text,
+            &hex_random,
+            p,
+        );
         for o in 0..3_u8 {
-            grams(
-                &mut t.exact,
-                i,
-                Encoding::Base64(o),
-                &base64_core(m, usize::from(o), false),
-            );
+            let (std, std_random) = base64_core(m, usize::from(o), false, p);
+            grams(&mut t.exact, i, Encoding::Base64(o), &std, &std_random, p);
+            let (url, url_random) = base64_core(m, usize::from(o), true, p);
             grams(
                 &mut t.exact,
                 i,
                 Encoding::Base64Url(o),
-                &base64_core(m, usize::from(o), true),
+                &url,
+                &url_random,
+                p,
             );
         }
     }
