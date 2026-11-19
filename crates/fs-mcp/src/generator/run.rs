@@ -5,7 +5,7 @@
 //! candidate must pass `vet` (marks) and the screen (types) before it becomes a tool or resource.
 //! Trait: [`ToolGenerator`].
 
-use std::cell::Cell;
+use std::cell::RefCell;
 use std::collections::HashSet;
 
 use super::api::ToolGenerator;
@@ -34,19 +34,22 @@ pub(crate) struct Run<'a> {
     pub(crate) facts: Facts,
     pub(crate) out: Catalog,
     pub(crate) errors: Vec<Error>,
-    /// Set by the screen when a tool release lifted a hit.
-    pub(crate) lifted: Cell<bool>,
-    /// Tools whose release lifted something.
-    pub(crate) used_releases: HashSet<Target>,
+    /// The paths the screen lifted a hit at (for the candidate being vetted).
+    pub(crate) lifted: RefCell<HashSet<String>>,
+    /// For every tool whose release lifted something: the paths it lifted.
+    pub(crate) used_releases: std::collections::HashMap<Target, HashSet<String>>,
 }
 
 impl Run<'_> {
     pub(super) fn screen(&self) -> Screen<'_> {
-        self.screen_with(false)
+        self.screen_with(None)
     }
 
-    /// The screen of one candidate; `doc_release` says it has a written tool release for comment-word hits.
-    pub(super) fn screen_with(&self, doc_release: bool) -> Screen<'_> {
+    /// The screen of one candidate with its written tool release for comment-word hits, if it has one.
+    pub(super) fn screen_with<'s>(
+        &'s self,
+        doc_release: Option<&'s crate::ToolRelease>,
+    ) -> Screen<'s> {
         Screen {
             risk: self.g.risk,
             blocklist: &self.g.blocklist,
@@ -89,8 +92,8 @@ impl ToolGenerator for Generator<'_> {
             facts: Facts::collect(contracts),
             out: Catalog::default(),
             errors: Vec::new(),
-            lifted: Cell::new(false),
-            used_releases: HashSet::new(),
+            lifted: RefCell::new(HashSet::new()),
+            used_releases: std::collections::HashMap::new(),
         };
         for c in contracts {
             for i in &c.interfaces {
@@ -121,14 +124,23 @@ impl ToolGenerator for Generator<'_> {
         out.unmarked.sort();
         out.unmarked.dedup();
         out.stale = facts::stale(contracts, self.risk);
-        out.unused_releases = self
-            .risk
-            .targets()
-            .into_iter()
-            .filter(|t| self.risk.tool_release(t).is_some() && !used.contains(t))
-            .collect();
+        for t in self.risk.targets() {
+            let Some(rel) = self.risk.tool_release(&t) else {
+                continue;
+            };
+            match used.get(&t) {
+                None => out.unused_releases.push(t),
+                Some(lifted) => {
+                    for p in rel.paths.iter().filter(|p| !lifted.contains(*p)) {
+                        out.unused_release_paths.push((t.clone(), p.clone()));
+                    }
+                }
+            }
+        }
         out.unused_releases.sort();
         out.unused_releases.dedup();
+        out.unused_release_paths.sort();
+        out.unused_release_paths.dedup();
         Ok(out)
     }
 }

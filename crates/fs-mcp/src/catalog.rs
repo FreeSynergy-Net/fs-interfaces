@@ -57,6 +57,8 @@ pub struct Catalog {
     pub stale: Vec<Target>,
     /// WARNING: tool releases that lifted nothing (the contract was fixed, or the tool never hit the screen): delete them.
     pub unused_releases: Vec<Target>,
+    /// WARNING: paths of a release that lifted nothing (the other paths did): delete them from `paths`.
+    pub unused_release_paths: Vec<(Target, String)>,
 }
 
 impl Catalog {

@@ -137,8 +137,42 @@ impl MarkFiles {
     }
 }
 
+/// `paths = ["file/Owner.name", ...]` of a tool release: a non-empty list of distinct places, each `file/Owner` or
+/// `file/Owner.name` as the screen names them.
+fn release_paths(e: &toml::Table) -> Result<Vec<String>, String> {
+    let Some(Value::Array(list)) = e.get("paths") else {
+        return Err("tool_release: paths must be a list of places (`file/Owner.name`)".to_owned());
+    };
+    if list.is_empty() {
+        return Err(
+            "tool_release: paths must not be empty (a release names the places it lifts)"
+                .to_owned(),
+        );
+    }
+    let mut out: Vec<String> = Vec::new();
+    for p in list {
+        let Value::String(p) = p else {
+            return Err("tool_release: a path must be a text".to_owned());
+        };
+        let ok = p
+            .split_once('/')
+            .is_some_and(|(f, rest)| !f.is_empty() && !rest.is_empty())
+            && !p.chars().any(char::is_whitespace);
+        if !ok {
+            return Err(format!(
+                "tool_release: path {p:?} must look like `file/Owner.name`"
+            ));
+        }
+        if out.contains(p) {
+            return Err(format!("tool_release: path {p:?} twice"));
+        }
+        out.push(p.clone());
+    }
+    Ok(out)
+}
+
 impl MarkFiles {
-    /// `[[tool_release]]` entries: `tool = "Owner.method"`, `reason`, `source`, all three non-empty.
+    /// `[[tool_release]]` entries: `tool = "Owner.method"`, `reason`, `source`, `paths`, all four required and non-empty.
     fn add_tool_releases(&mut self, file: &str, body: &Value) -> Result<(), String> {
         let Value::Array(entries) = body else {
             return Err(
@@ -151,7 +185,7 @@ impl MarkFiles {
             };
             if let Some(k) = e
                 .keys()
-                .find(|k| !["tool", "reason", "source"].contains(&k.as_str()))
+                .find(|k| !["tool", "reason", "source", "paths"].contains(&k.as_str()))
             {
                 return Err(format!("tool_release: unknown key {k:?}"));
             }
@@ -168,6 +202,7 @@ impl MarkFiles {
                 ToolRelease {
                     reason: text("reason")?,
                     source: text("source")?,
+                    paths: release_paths(e)?,
                 },
             );
         }

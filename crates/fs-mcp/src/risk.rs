@@ -88,6 +88,9 @@ pub struct ToolRelease {
     pub reason: String,
     /// Where the false alarm sits, such as `common.capnp:122-124`.
     pub source: String,
+    /// The places of the hit the release lifts, as the screen names them (`common/SupportReport.entries`): a release
+    /// is for these hits only, a later hit at another place of the same tool is not released with them.
+    pub paths: Vec<String>,
 }
 
 /// Where marks and releases come from.

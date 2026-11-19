@@ -19,6 +19,7 @@ mod program_marks;
 mod resource;
 mod risk;
 mod secrets;
+pub mod serve;
 mod source;
 mod surface;
 mod target;

@@ -37,7 +37,7 @@ fn marks(release: &[&str]) -> FakeMarks {
     m.put("Items", "report", RiskClass::Read)
         .put("Items", "clean", RiskClass::Read);
     for r in release {
-        m.release_tool("Items", r);
+        m.release_tool("Items", r, &["messenger/Report.plain"]);
     }
     m
 }
@@ -96,7 +96,11 @@ fn a_release_never_lifts_an_exclusion_or_the_block_list() {
     // the block list: `messenger/MessageAction.decide` stays out whatever is released
     let mut b = FakeMarks::default();
     b.put("MessageAction", "decide", RiskClass::Read)
-        .release_tool("MessageAction", "decide");
+        .release_tool(
+            "MessageAction",
+            "decide",
+            &["messenger/MessageAction.decide"],
+        );
     let cat = run(&support::messenger_like(), &b);
     assert!(!has_tool(&cat, "MessageAction", "decide"));
 }
@@ -104,7 +108,7 @@ fn a_release_never_lifts_an_exclusion_or_the_block_list() {
 #[test]
 fn an_explicit_secret_annotation_beats_a_release() {
     // `issue` has `$secret` on its result: the generator leaves it out of the table, a release in the marks changes nothing
-    let text = "[Notes]\nissue = \"read\"\nget = \"read\"\n[[tool_release]]\ntool = \"Notes.issue\"\nreason = \"x\"\nsource = \"y\"\n";
+    let text = "[Notes]\nissue = \"read\"\nget = \"read\"\n[[tool_release]]\ntool = \"Notes.issue\"\nreason = \"x\"\nsource = \"y\"\npaths = [\"fx/Notes.issue\"]\n";
     let marks = fs_mcp::ProgramMarks::new(MarkFiles::from_sources(&[("fx", text)]).unwrap());
     let table = fx::table(marks);
     assert!(!fx::has_tool(&table, "fx.notes.issue"));
@@ -117,16 +121,17 @@ fn an_explicit_secret_annotation_beats_a_release() {
 
 #[test]
 fn the_mark_file_format_is_strict() {
-    let ok = "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\nsource = \"s\"\n";
+    let ok =
+        "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\nsource = \"s\"\npaths = [\"f/X.y\"]\n";
     let m = MarkFiles::from_sources(&[("f", ok)]).unwrap();
     let r = fs_mcp::RiskSource::tool_release(&m, &Target::item("f", "A", "b")).unwrap();
     assert_eq!((r.reason.as_str(), r.source.as_str()), ("r", "s"));
     assert!(fs_mcp::RiskSource::tool_release(&m, &Target::item("g", "A", "b")).is_none());
     for bad in [
-        "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\n",
-        "[[tool_release]]\ntool = \"A.b\"\nreason = \" \"\nsource = \"s\"\n",
-        "[[tool_release]]\ntool = \"Ab\"\nreason = \"r\"\nsource = \"s\"\n",
-        "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\nsource = \"s\"\nmore = 1\n",
+        "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\npaths = [\"f/X.y\"]\n",
+        "[[tool_release]]\ntool = \"A.b\"\nreason = \" \"\nsource = \"s\"\npaths = [\"f/X.y\"]\n",
+        "[[tool_release]]\ntool = \"Ab\"\nreason = \"r\"\nsource = \"s\"\npaths = [\"f/X.y\"]\n",
+        "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\nsource = \"s\"\npaths = [\"f/X.y\"]\nmore = 1\n",
         "[tool_release]\ntool = \"A.b\"\n",
     ] {
         assert!(MarkFiles::from_sources(&[("f", bad)]).is_err(), "{bad}");
@@ -134,21 +139,28 @@ fn the_mark_file_format_is_strict() {
 }
 
 #[test]
-fn the_two_real_releases_make_it_twenty_of_twenty_and_none_is_unused() {
+fn the_real_releases_lift_support_report_and_describe_still_has_a_second_hit() {
     let catalog = real_catalog();
     let a = Surface::new(&catalog).admit(&On, tasks_mcp::TOOLS);
+    // support-report is offered by its release; types.describe has a second hit (`types.capnp:100`, "translation key" at
+    // `FieldDescription.label`) that the release of `TypeDescription.label` does not name: not released with it
+    assert_eq!(a.offered.len(), 19);
+    let refused: Vec<_> = a.refused.iter().map(|(t, _)| t.name).collect();
+    assert_eq!(refused, ["tasks.types.describe"]);
+    let why = catalog
+        .left_out
+        .iter()
+        .find(|l| l.target.as_str() == "types/TypeCatalog.describe")
+        .map(|l| l.why.clone());
     assert_eq!(
-        a.offered.len(),
-        20,
-        "{:?}",
-        a.refused
-            .iter()
-            .map(|(t, r)| (t.name, *r))
-            .collect::<Vec<_>>()
+        why,
+        Some(Why::SecretSuspect {
+            path: "types/FieldDescription.label".to_owned()
+        })
     );
-    assert_eq!(a.refused.len(), 0);
-    // a release that lifts nothing any more (the contract was fixed) shows here: then delete the entry
+    // nothing lifted in vain
     assert_eq!(catalog.unused_releases, Vec::<Target>::new());
+    assert_eq!(catalog.unused_release_paths, Vec::<(Target, String)>::new());
     assert_eq!(tasks_mcp::tools(&Off).len(), 0);
 }
 
@@ -172,8 +184,11 @@ fn a_release_that_lifted_a_hit_is_used_even_if_another_hit_still_refuses_the_too
         )],
     );
     let mut m = FakeMarks::default();
-    m.put("Items", "report", RiskClass::Read)
-        .release_tool("Items", "report");
+    m.put("Items", "report", RiskClass::Read).release_tool(
+        "Items",
+        "report",
+        &["messenger/Report.plain"],
+    );
     let cat = run(&c, &m);
     assert!(!has_tool(&cat, "Items", "report"));
     assert_eq!(
@@ -185,7 +200,8 @@ fn a_release_that_lifted_a_hit_is_used_even_if_another_hit_still_refuses_the_too
 
 #[test]
 fn a_release_of_a_missing_tool_in_the_mark_files_is_a_stale_target() {
-    let text = "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\nsource = \"s\"\n";
+    let text =
+        "[[tool_release]]\ntool = \"A.b\"\nreason = \"r\"\nsource = \"s\"\npaths = [\"f/X.y\"]\n";
     let m = MarkFiles::from_sources(&[("f", text)]).unwrap();
     assert_eq!(
         fs_mcp::RiskSource::targets(&m),

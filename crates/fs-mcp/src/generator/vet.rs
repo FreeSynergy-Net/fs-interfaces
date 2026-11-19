@@ -44,9 +44,9 @@ impl Run<'_> {
         }
         let ins: Vec<&Field> = v.inputs.iter().collect();
         let outs: Vec<&Field> = m.results.iter().collect();
-        let release = self.g.risk.tool_release(target).is_some();
-        self.lifted.set(false);
-        let screen = self.screen_with(release);
+        let release = self.g.risk.tool_release(target);
+        self.lifted.borrow_mut().clear();
+        let screen = self.screen_with(release.as_ref());
         let problem = v
             .whole
             .as_ref()
@@ -59,10 +59,10 @@ impl Run<'_> {
             .or_else(|| screen.name(&Target::item(file, iface, &m.name), &m.name, &m.doc, None))
             .or_else(|| screen.fields(file, iface, &m.name, &ins))
             .or_else(|| screen.fields(file, iface, &m.name, &outs));
-        let lifted = self.lifted.get();
+        let lifted = self.lifted.borrow().clone();
         if let Some(why) = problem {
-            if lifted {
-                self.used_releases.insert(target.clone());
+            if !lifted.is_empty() {
+                self.used_releases.insert(target.clone(), lifted);
             }
             self.leave(target.clone(), why);
             return None;
@@ -71,8 +71,8 @@ impl Run<'_> {
         free.extend(screen.free_fields(file, iface, &m.name, &outs));
         free.sort();
         free.dedup();
-        if lifted {
-            self.used_releases.insert(target.clone());
+        if !lifted.is_empty() {
+            self.used_releases.insert(target.clone(), lifted);
         }
         Some(Verdict { class, mark, free })
     }

@@ -43,3 +43,4 @@ types = "read"
 tool = "Tasks.supportReport"
 reason = "false alarm: the comment on `instance` (\"The id is no secret ...\") hangs on the field `entries` and says 'secret'; the report holds capability names and counts, no secret"
 source = "common.capnp:122-124 (comment after `entries @2`); delete this entry when the comment sits behind `instance`"
+paths = ["common/SupportReport.entries"]

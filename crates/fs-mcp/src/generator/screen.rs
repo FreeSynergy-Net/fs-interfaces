@@ -6,7 +6,7 @@
 //! Fail-closed: what is unknown, unclear, free-form or secret-looking is out until somebody releases it in
 //! writing; a structure the index does not hold is a problem, never "no problem".
 
-use std::cell::Cell;
+use std::cell::RefCell;
 use std::collections::HashSet;
 
 use crate::free_format::looks_free_format;
@@ -19,20 +19,24 @@ pub(super) struct Screen<'a> {
     pub blocklist: &'a Blocklist,
     pub index: &'a Index<'a>,
     /// The candidate has a written release for comment-word hits ([`crate::ToolRelease`]).
-    pub doc_release: bool,
-    /// Set when that release lifted a hit.
-    pub used: &'a Cell<bool>,
+    pub doc_release: Option<&'a crate::ToolRelease>,
+    /// The paths a release lifted a hit at.
+    pub used: &'a RefCell<HashSet<String>>,
 }
 
 impl Screen<'_> {
-    /// Does a name or comment look like a secret? A comment-word hit alone is lifted by a tool release.
-    fn suspect(&self, name: &str, doc: &str) -> bool {
+    /// Does a name or comment look like a secret? A comment-word hit alone is lifted by a tool release, and only at
+    /// a path that the release names (`paths`): a later hit at another place of the same tool stays a hit.
+    fn suspect(&self, path: &str, name: &str, doc: &str) -> bool {
         if name_looks_secret(name) {
             return true;
         }
         if doc_looks_secret(doc) {
-            if self.doc_release {
-                self.used.set(true);
+            if self
+                .doc_release
+                .is_some_and(|r| r.paths.iter().any(|p| p == path))
+            {
+                self.used.borrow_mut().insert(path.to_owned());
                 return false;
             }
             return true;
@@ -77,7 +81,7 @@ impl Screen<'_> {
         }
         let def = self.index.struct_def(n)?;
         let own = Target::owner(&n.file, &def.name);
-        let looks = self.suspect(&def.name, &def.doc);
+        let looks = self.suspect(&own.to_string(), &def.name, &def.doc);
         (looks && self.risk.release(&own).is_none()).then(|| Why::SecretSuspect {
             path: own.to_string(),
         })
@@ -96,7 +100,7 @@ impl Screen<'_> {
         }
         let path = || target.to_string();
         let released = || self.risk.release(target).is_some();
-        if self.suspect(name, doc) && !released() {
+        if self.suspect(&path(), name, doc) && !released() {
             return Some(Why::SecretSuspect { path: path() });
         }
         if looks_free_form(name, ty) && !released() {
@@ -124,7 +128,7 @@ impl Screen<'_> {
                     .unwrap_or_else(|| "interface marked excluded".to_owned()),
             ));
         }
-        let looks = self.suspect(&def.name, &def.doc);
+        let looks = self.suspect(&own.to_string(), &def.name, &def.doc);
         (looks && self.risk.release(&own).is_none()).then(|| Why::SecretSuspect {
             path: own.to_string(),
         })
@@ -152,7 +156,9 @@ impl Screen<'_> {
                     });
                 };
                 let own = Target::owner(&n.file, &def.name);
-                if self.suspect(&def.name, &def.doc) && self.risk.release(&own).is_none() {
+                if self.suspect(&own.to_string(), &def.name, &def.doc)
+                    && self.risk.release(&own).is_none()
+                {
                     return Some(Why::SecretSuspect {
                         path: own.to_string(),
                     });

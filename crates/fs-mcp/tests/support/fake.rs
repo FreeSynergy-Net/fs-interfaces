@@ -64,13 +64,14 @@ impl FakeMarks {
 }
 
 impl FakeMarks {
-    /// A written tool release for `owner.method`.
-    pub fn release_tool(&mut self, owner: &str, method: &str) -> &mut Self {
+    /// A written tool release for `owner.method`, for the given places.
+    pub fn release_tool(&mut self, owner: &str, method: &str, paths: &[&str]) -> &mut Self {
         self.tool_releases.insert(
             Target::item(FILE, owner, method),
             ToolRelease {
                 reason: "false alarm".into(),
                 source: "test".into(),
+                paths: paths.iter().map(|p| (*p).to_owned()).collect(),
             },
         );
         self

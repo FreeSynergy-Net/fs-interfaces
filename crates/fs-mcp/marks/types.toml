@@ -14,3 +14,4 @@ describe = "read"
 tool = "TypeCatalog.describe"
 reason = "false alarm: the comment of `TypeDescription.label` says 'translation key of the type', a label key and no key material"
 source = "fs-types types.capnp:139 (TypeDescription.label)"
+paths = ["types/TypeDescription.label"]

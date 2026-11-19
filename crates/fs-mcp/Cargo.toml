@@ -20,3 +20,9 @@ fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
 # The generated command code (`src/generated/tasks_cli.rs`) names the contracts of this repository and starts listeners.
 fs-interfaces = { path = "../fs-interfaces" }
 capnp-rpc = "0.27"
+# The server (stage 2) runs the calls of a line to the end on a local pool.
+futures = "0.3"
+
+[dev-dependencies]
+# The answers of the tools are checked against the schemas of the table (tests only); no network, no resolvers.
+jsonschema = { version = "0.61", default-features = false }

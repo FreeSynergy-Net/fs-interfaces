@@ -5,6 +5,7 @@
 pub mod fake;
 pub mod fx;
 pub mod real;
+pub mod serve;
 #[allow(unused_imports)]
 pub use fake::FakeMarks;
 
