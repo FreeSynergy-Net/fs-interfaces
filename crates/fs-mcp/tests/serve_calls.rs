@@ -132,10 +132,16 @@ impl fs_mcp::serve::Calls for Odd {
         &'a self,
         _: &capnp_compiler::mcpgen::rt::ToolSpec,
         _: &'a mut dyn capnp_compiler::cligen::rt::Input,
-        _: &'a mut dyn capnp_compiler::cligen::rt::Output,
+        output: &'a mut dyn capnp_compiler::cligen::rt::Output,
     ) -> Option<fs_mcp::serve::calls::Call<'a>> {
         let counted = self.0;
         Some(Box::pin(async move {
+            if counted {
+                // a result that could be shown: only the count of unreadable calls makes this call an error
+                output.begin_struct("", "");
+                output.field("ok", capnp_compiler::cligen::rt::Value::Bool(true));
+                output.end();
+            }
             let errors = if counted {
                 vec![std::rc::Rc::new(std::cell::Cell::new(2))]
             } else {
