@@ -181,7 +181,7 @@ fn canary_the_vault_is_never_on_in_production() {
             "release_all {release_all}"
         );
     }
-    assert!(!Never.is_on() && !Never::default().is_on());
+    assert!(!Never.is_on());
     assert_eq!(
         std::mem::size_of::<Never>(),
         0,
@@ -227,7 +227,7 @@ fn canary_the_driver_finds_a_leak_that_is_there() {
     let table = setup(&progs);
     let mut f = Findings::default();
     drive(&mut f, &progs[0], &table);
-    assert!(!progs[0].catalog.tools.is_empty());
+    assert_ne!(progs[0].catalog.tools.len(), 0);
     let paths: std::collections::BTreeSet<&str> = f.list.iter().map(|x| x.path.as_str()).collect();
     for place in [
         "vault.get.value",

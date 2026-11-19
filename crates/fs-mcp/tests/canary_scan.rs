@@ -1,6 +1,11 @@
 //! The search for canaries: every form a marker can come back in, the edges of the window, and no alarm on random text.
 //! Pattern: none (tests). The random part of every marker is fresh in every run.
 #![cfg(feature = "conformance")]
+#![allow(
+    clippy::assert_is_empty,
+    clippy::format_collect,
+    clippy::manual_assert_eq
+)] // test code: the message of an assert says more than the shorter form
 
 use fs_mcp::canary::{Canary, CanaryTable, Class, Encoding, WINDOW, fresh_marker, scan};
 use fs_mcp::serve::base64;

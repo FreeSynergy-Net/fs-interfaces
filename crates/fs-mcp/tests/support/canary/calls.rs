@@ -178,7 +178,7 @@ impl StoreCalls {
                 out.field(name, if signed { V::Int(-1) } else { V::Uint(1) });
             }
             Some("string") if pr.get("contentEncoding").is_some() => {
-                out.field(name, V::Data(text.as_bytes()))
+                out.field(name, V::Data(text.as_bytes()));
             }
             Some("string") => out.field(name, V::Text(&text)),
             Some("integer") => out.field(name, V::Uint(1)),

@@ -126,7 +126,7 @@ pub struct VaultRisk {
 
 impl RiskSource for VaultRisk {
     fn mark(&self, t: &Target) -> Option<Mark> {
-        t.as_str().starts_with("vault/").then(|| Mark {
+        t.as_str().starts_with("vault/").then_some(Mark {
             class: RiskClass::Read,
             capability: None,
             resource: false,

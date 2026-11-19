@@ -1,6 +1,6 @@
 //! What the canary test found, collected until the end, and the list it writes.
 //! Test helpers; no pattern of their own. The test does not stop at the first hit: it lists ALL leaks.
-#![allow(dead_code)]
+#![allow(dead_code, clippy::format_push_string)] // a text report: pushing formatted lines is what it is for
 
 use std::path::PathBuf;
 
@@ -86,12 +86,13 @@ impl Findings {
 
     /// Write the report; `FSCANARY_FEHLERLISTE` names the file, else it goes to the test target.
     pub fn write(&self, branch: &str, planted: &[Canary]) -> PathBuf {
-        let path = std::env::var_os("FSCANARY_FEHLERLISTE")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| {
+        let path = std::env::var_os("FSCANARY_FEHLERLISTE").map_or_else(
+            || {
                 PathBuf::from(env!("CARGO_TARGET_TMPDIR"))
                     .join(format!("fehlerliste-kanarien-{}.md", std::process::id()))
-            });
+            },
+            PathBuf::from,
+        );
         std::fs::write(&path, self.report(branch, planted)).expect("the list can be written");
         path
     }

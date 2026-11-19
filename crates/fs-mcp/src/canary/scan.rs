@@ -195,10 +195,11 @@ fn json_strings(v: &Value, depth: u32, out: &mut Vec<String>) {
     match v {
         Value::String(s) => {
             out.push(s.clone());
-            if depth < 4 && (s.starts_with('{') || s.starts_with('[')) {
-                if let Ok(inner) = serde_json::from_str::<Value>(s) {
-                    json_strings(&inner, depth + 1, out);
-                }
+            if depth < 4
+                && (s.starts_with('{') || s.starts_with('['))
+                && let Ok(inner) = serde_json::from_str::<Value>(s)
+            {
+                json_strings(&inner, depth + 1, out);
             }
         }
         Value::Array(a) => a.iter().for_each(|x| json_strings(x, depth, out)),
@@ -254,7 +255,7 @@ fn views(haystack: &str) -> Vec<(&'static str, String)> {
 
 fn alnum_lower(text: &str) -> String {
     text.chars()
-        .filter(|c| c.is_ascii_alphanumeric())
+        .filter(char::is_ascii_alphanumeric)
         .map(|c| c.to_ascii_lowercase())
         .collect()
 }
@@ -317,7 +318,7 @@ pub fn scan(haystack: &str, canaries: &[Canary]) -> Vec<Hit> {
         let lower = text.to_lowercase();
         let alnum = alnum_lower(&text);
         let mut go = |table: &Table, len: usize, view: &str| {
-            look(table, len, view, label, canaries, &mut seen, &mut out)
+            look(table, len, view, label, canaries, &mut seen, &mut out);
         };
         go(&t.exact, WINDOW, &text);
         go(&t.exact_hex, 2 * WINDOW, &text);

@@ -1,6 +1,6 @@
 //! The canary test: the program under test, the arguments, the driver, and the list of what leaked.
 //! Test helpers; no pattern of their own.
-#![allow(dead_code)]
+#![allow(dead_code, unused_imports)]
 
 pub mod calls;
 pub mod drive;
