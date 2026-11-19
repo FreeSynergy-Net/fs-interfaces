@@ -6,6 +6,8 @@
 #![warn(clippy::pedantic)]
 
 mod blocklist;
+#[cfg(feature = "conformance")]
+pub mod canary;
 mod capnpc_source;
 mod catalog;
 mod error;

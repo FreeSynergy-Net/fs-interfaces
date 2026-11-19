@@ -2,6 +2,8 @@
 //! touching the real schemas. Test helpers; no pattern of their own.
 #![allow(dead_code)]
 
+#[cfg(feature = "conformance")]
+pub mod canary;
 pub mod fake;
 pub mod fx;
 pub mod real;
