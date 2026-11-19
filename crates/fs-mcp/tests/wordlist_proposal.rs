@@ -159,6 +159,10 @@ fn rule_r1_loses_exactly_the_listed_label_comments() {
     }
     // `key` behind another word is still a hit
     for doc in [
+        "translation secret",
+        "label password",
+        "sort token",
+        "label key and the password",
         "the allowed keys",
         "an api key",
         "the key of the vault",
