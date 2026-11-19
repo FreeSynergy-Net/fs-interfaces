@@ -8,8 +8,8 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
-# Our own pure-Rust schema compiler (ADR 0040), from crates.io (tag v0.2.0 of fs-capnpc).
-capnp-compiler = { version = "0.2.0", default-features = false }
+# Our own pure-Rust schema compiler (ADR 0040), by the Git tag v0.2.1 of fs-capnpc (the tag is the one reviewed state; crates.io is the owner's upload).
+capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", tag = "v0.2.1", default-features = false }
 capnpc = "0.27"
 fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
 # The marks of the program (an adapter of `MarkSource`) for the command code and the tool tables.
