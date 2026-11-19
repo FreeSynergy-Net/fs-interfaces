@@ -4,6 +4,8 @@
 
 #[cfg(feature = "conformance")]
 pub mod canary;
+#[cfg(feature = "conformance")]
+pub mod diary;
 pub mod fake;
 pub mod fakeall;
 pub mod fx;

@@ -239,6 +239,7 @@ impl Calls for StoreCalls {
     fn call<'a>(
         &'a self,
         tool: &ToolSpec,
+        _who: &fs_mcp::serve::Connection,
         _input: &'a mut dyn Input,
         output: &'a mut dyn Output,
     ) -> Option<Call<'a>> {

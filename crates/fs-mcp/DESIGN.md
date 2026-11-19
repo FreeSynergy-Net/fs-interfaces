@@ -188,3 +188,7 @@ Left out because not released: `Upload.write`, `Draft.attach`, `Boards.import`, 
 6. `surveys.designer.invite` (an invitation to answer) is excluded for now: no tool for invitations until the strategy
    decides. Question noted.
 7. Handle expiry and per-call authorisation (problem 5) need the engine; stage 1 only names the handle's interface.
+
+## Sensitive data per recipient (`serve/access.rs`, `serve/output.rs`)
+
+A place marked `x-fs-sensitive` in the output schema (from `$Cli.sensitive`) is written only for a recipient that has a release NOW. Patterns: Strategy (`Grants`, default `DenyAll`), value objects (`ConnectionKey`, `Recipient`, `Connection`). The recipient comes from the verified key of the connection and from nothing else: there is no constructor from `_meta` or a client label. No key, no recipient, every sensitive place is held back. The question is asked per place and per call (no cache, a revocation works at once); the mark is read from the property next to its `$ref`; a struct or list that is marked holds back everything inside. A held-back place makes the whole result an error with a text that names no place. A secret (`$Cli.secret`, name or comment) is not a matter of release at all: the screen keeps it out (see above).

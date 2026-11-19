@@ -10,6 +10,7 @@ use capnp_compiler::cligen::rt::{CallError, ErrorKind};
 use capnp_compiler::mcpgen::rt::{self, ToolSpec};
 use serde_json::{Value, json};
 
+use super::access::{Access, Connection, Grants};
 use super::calls::Calls;
 use super::fit::fits;
 use super::input::JsonInput;
@@ -115,6 +116,8 @@ pub async fn call<C: Calls>(
     params: &Value,
     info: &ServerInfo,
     meta: &Meta,
+    who: &Connection,
+    grants: &dyn Grants,
 ) -> Result<Value, RpcError> {
     let name = params
         .get("name")
@@ -139,8 +142,12 @@ pub async fn call<C: Calls>(
         return error(&format!("invalid arguments: {why}"));
     }
     let mut input = JsonInput::new(arguments);
-    let mut output = JsonOutput::new(&tool.output);
-    let Some(run) = calls.call(tool.spec, &mut input, &mut output) else {
+    let mut output = JsonOutput::new(&tool.output).with_access(Access {
+        connection: who,
+        grants,
+        tool: tool.spec.name,
+    });
+    let Some(run) = calls.call(tool.spec, who, &mut input, &mut output) else {
         return error("this tool has no command in this program");
     };
     let outcome = run.await;

@@ -6,6 +6,7 @@
 //! [`switch::Switch`] (on or off). Off is the default: with an off switch the server does not start, writes nothing to
 //! stdout, and says why on stderr. The list of tools is [`crate::Surface::admit`], never the table itself.
 
+pub mod access;
 pub mod base64;
 pub mod calls;
 pub mod fit;
@@ -18,6 +19,7 @@ pub mod server;
 pub mod switch;
 pub mod tools;
 
+pub use access::{Access, Connection, ConnectionKey, DenyAll, Grants, Recipient};
 pub use calls::{Calls, TasksCalls};
 pub use lifecycle::ServerInfo;
 pub use server::{Server, StartError};

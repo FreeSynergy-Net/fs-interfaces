@@ -8,6 +8,7 @@ use capnp_compiler::mcpgen::rt::ToolSpec;
 use futures::executor::LocalPool;
 use serde_json::Value;
 
+use super::access::{Connection, DenyAll, Grants};
 use super::calls::Calls;
 use super::lifecycle::ServerInfo;
 use super::rpc::{self, METHOD_NOT_FOUND, RpcError};
@@ -38,6 +39,8 @@ pub struct Server<C> {
     calls: C,
     offered: Vec<tools::Offered>,
     info: ServerInfo,
+    connection: Connection,
+    grants: Box<dyn Grants>,
 }
 
 impl<C: Calls> Server<C> {
@@ -66,7 +69,18 @@ impl<C: Calls> Server<C> {
             calls,
             offered,
             info,
+            connection: Connection::keyless(),
+            grants: Box::new(DenyAll),
         })
+    }
+
+    /// The connection of this server and the question that decides about sensitive data. Without it the connection has no key
+    /// and nobody is released: every sensitive field is held back.
+    #[must_use]
+    pub fn with_access(mut self, connection: Connection, grants: Box<dyn Grants>) -> Self {
+        self.connection = connection;
+        self.grants = grants;
+        self
     }
 
     /// The names of the tools offered, in the order of the list.
@@ -102,7 +116,16 @@ impl<C: Calls> Server<C> {
             "ping" => Ok(lifecycle::ping(&self.info, &meta)),
             "tools/list" => Ok(tools::list(&self.offered, &self.info, &meta)),
             "tools/call" => {
-                tools::call(&self.calls, &self.offered, params, &self.info, &meta).await
+                tools::call(
+                    &self.calls,
+                    &self.offered,
+                    params,
+                    &self.info,
+                    &meta,
+                    &self.connection,
+                    &*self.grants,
+                )
+                .await
             }
             other => Err(RpcError::new(
                 METHOD_NOT_FOUND,

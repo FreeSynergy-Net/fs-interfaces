@@ -131,6 +131,7 @@ impl fs_mcp::serve::Calls for Odd {
     fn call<'a>(
         &'a self,
         _: &capnp_compiler::mcpgen::rt::ToolSpec,
+        _: &fs_mcp::serve::Connection,
         _: &'a mut dyn capnp_compiler::cligen::rt::Input,
         output: &'a mut dyn capnp_compiler::cligen::rt::Output,
     ) -> Option<fs_mcp::serve::calls::Call<'a>> {

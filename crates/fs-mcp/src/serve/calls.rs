@@ -10,6 +10,7 @@ use capnp_compiler::cligen::rt::{CallError, Input, Outcome, Output};
 use capnp_compiler::mcpgen::rt::ToolSpec;
 use fs_interfaces::tasks_capnp::tasks;
 
+use super::access::Connection;
 use crate::tasks_mcp;
 
 /// A call in progress.
@@ -17,10 +18,12 @@ pub type Call<'a> = Pin<Box<dyn Future<Output = Result<Outcome, CallError>> + 'a
 
 /// Runs the command of a tool.
 pub trait Calls {
-    /// Start the command of `tool`; `None` if there is none (the table and the command code do not belong together).
+    /// Start the command of `tool` for the connection `who`; `None` if there is none (the table and the command code do not belong
+    /// together). `who` comes from the key of the connection, never from a label of the client.
     fn call<'a>(
         &'a self,
         tool: &ToolSpec,
+        who: &Connection,
         input: &'a mut dyn Input,
         output: &'a mut dyn Output,
     ) -> Option<Call<'a>>;
@@ -33,6 +36,7 @@ impl Calls for TasksCalls {
     fn call<'a>(
         &'a self,
         tool: &ToolSpec,
+        _who: &Connection,
         input: &'a mut dyn Input,
         output: &'a mut dyn Output,
     ) -> Option<Call<'a>> {

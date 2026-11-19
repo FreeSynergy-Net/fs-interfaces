@@ -102,8 +102,8 @@ fn read_struct(t: &Tables<'_>, id: u64, name: &str, c: &mut Contract) -> Result<
             doc: t.member_doc(id, ix),
             ty,
             in_union: f.get_discriminant_value() != NO_DISCRIMINANT,
-            secret: marked(f, SECRET_ANNOTATION),
-            sensitive: marked(f, SENSITIVE_ANNOTATION),
+            secret: marked(f, SECRET_ANNOTATION)?,
+            sensitive: marked(f, SENSITIVE_ANNOTATION)?,
         });
     }
     c.structs.push(StructDef {
@@ -135,8 +135,8 @@ fn params(t: &Tables<'_>, id: u64) -> Result<(Vec<Field>, bool, bool), Error> {
                 doc: t.member_doc(id, ix),
                 ty: map(t, slot.get_type()?)?,
                 in_union: false,
-                secret: marked(f, SECRET_ANNOTATION),
-                sensitive: marked(f, SENSITIVE_ANNOTATION),
+                secret: marked(f, SECRET_ANNOTATION)?,
+                sensitive: marked(f, SENSITIVE_ANNOTATION)?,
             }),
             field::Which::Group(_) => unclear = true,
         }
@@ -144,10 +144,10 @@ fn params(t: &Tables<'_>, id: u64) -> Result<(Vec<Field>, bool, bool), Error> {
     Ok((out, streaming, unclear))
 }
 
-/// Does the field carry the annotation with this id (`$Cli.secret`, `$Cli.sensitive`)? Read from the compiled schema, not guessed from names.
-fn marked(f: capnp::schema_capnp::field::Reader<'_>, id: u64) -> bool {
-    f.get_annotations()
-        .is_ok_and(|list| list.iter().any(|a| a.get_id() == id))
+/// Does the field carry the annotation with this id (`$Cli.secret`, `$Cli.sensitive`)? Read from the compiled schema, not guessed from
+/// names. FAIL CLOSED: a list of annotations that cannot be read is an error (the contract is not read), never "no mark".
+fn marked(f: capnp::schema_capnp::field::Reader<'_>, id: u64) -> Result<bool, Error> {
+    Ok(f.get_annotations()?.iter().any(|a| a.get_id() == id))
 }
 
 fn read_method(

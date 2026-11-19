@@ -11,6 +11,7 @@ use capnp_compiler::cligen::model::kebab;
 use capnp_compiler::cligen::rt::{Output, Value as V};
 use serde_json::{Map, Number, Value};
 
+use super::access::Access;
 use super::{base64, schema};
 
 /// The schema of a place that the output schema does not know: it declares nothing.
@@ -29,9 +30,17 @@ pub struct JsonOutput<'s> {
     schemas: Vec<&'s Value>,
     names: Vec<String>,
     stack: Vec<Frame>,
+    /// Per open frame: is it sensitive (declared so, or inside a sensitive place)?
+    sensitive: Vec<bool>,
     result: Option<Value>,
     problem: Option<String>,
+    /// Who may see sensitive places; without it nobody does.
+    access: Option<Access<'s>>,
 }
+
+/// What a result says when a sensitive place was held back. It names no place and no value.
+pub const WITHHELD: &str =
+    "the result holds data of a person that this connection has no release for";
 
 impl<'s> JsonOutput<'s> {
     /// An empty result for a tool with this output schema.
@@ -42,9 +51,19 @@ impl<'s> JsonOutput<'s> {
             schemas: Vec::new(),
             names: Vec::new(),
             stack: Vec::new(),
+            sensitive: Vec::new(),
             result: None,
             problem: None,
+            access: None,
         }
+    }
+
+    /// The same, for a connection: a sensitive place (`x-fs-sensitive` in the schema) is written only if the grants say yes at
+    /// the moment it is written. Without this, no sensitive place is written, ever.
+    #[must_use]
+    pub const fn with_access(mut self, access: Access<'s>) -> Self {
+        self.access = Some(access);
+        self
     }
 
     /// The finished result, if the walk ended and nothing was wrong.
@@ -97,6 +116,48 @@ impl<'s> JsonOutput<'s> {
         !(declared && (kind.is_none() || kind == Some(wanted)))
     }
 
+    /// Does the schema of the enclosing object (or list) mark the place `name` as sensitive? Read from the property itself, before a
+    /// reference is resolved: the mark sits next to the `$ref`.
+    fn declared_sensitive(&self, name: &str) -> bool {
+        let Some(parent) = self.schemas.last() else {
+            return self
+                .root_schema
+                .get("x-fs-sensitive")
+                .and_then(Value::as_bool)
+                .unwrap_or(false);
+        };
+        let parent = schema::resolve(self.root_schema, parent);
+        let own = match self.stack.last() {
+            Some(Frame::Object(_)) => parent.get("properties").and_then(|p| p.get(name)),
+            _ => parent.get("items"),
+        };
+        own.and_then(|s| s.get("x-fs-sensitive"))
+            .and_then(Value::as_bool)
+            .unwrap_or(false)
+    }
+
+    /// The place of `name` in the result, as the schema writes it (`entries.text`; list elements add nothing).
+    fn path_of(&self, name: &str) -> String {
+        let mut parts: Vec<&str> = self.names.iter().map(String::as_str).collect();
+        parts.push(name);
+        parts.retain(|p| !p.is_empty());
+        parts.join(".")
+    }
+
+    /// Is `name` sensitive here, and if it is: does the recipient have a release now? `true` = fine to write. A sensitive place
+    /// that is held back makes the whole result an error (the text names nothing).
+    fn admitted(&mut self, name: &str) -> bool {
+        let inherited = self.sensitive.last().copied().unwrap_or(false);
+        if !(inherited || self.declared_sensitive(name)) {
+            return true;
+        }
+        let ok = self.access.is_some_and(|a| a.may_see(&self.path_of(name)));
+        if !ok {
+            self.mark(WITHHELD.to_owned());
+        }
+        ok
+    }
+
     /// The name of an enumerant as the schema writes it: the one in its `enum` list whose kebab form is `kebab_name`, else
     /// the camel form.
     fn contract_name(&self, field: &str, kebab_name: &str) -> String {
@@ -126,6 +187,10 @@ impl<'s> JsonOutput<'s> {
         if self.undeclared(name) {
             self.mark(format!("`{name}` is not a field of the contract"));
         }
+        let sensitive =
+            self.sensitive.last().copied().unwrap_or(false) || self.declared_sensitive(name);
+        // asked at the opening of the place as well as at every field in it: a struct that is held back is held back whole
+        self.admitted(name);
         let s = if self.stack.is_empty() {
             Some(schema::resolve(self.root_schema, self.root_schema))
         } else {
@@ -133,6 +198,7 @@ impl<'s> JsonOutput<'s> {
         };
         self.schemas.push(s.unwrap_or(&UNKNOWN));
         self.names.push(name.to_owned());
+        self.sensitive.push(sensitive);
         self.stack.push(frame);
     }
 }
@@ -158,6 +224,9 @@ impl Output for JsonOutput<'_> {
         if self.undeclared(name) {
             self.mark(format!("`{name}` is not a field of the contract"));
             return;
+        }
+        if !self.admitted(name) {
+            return; // held back: the value is not put anywhere
         }
         let wide = self.child_schema(name).is_some_and(schema::is_wide_int);
         let v = match value {
@@ -199,6 +268,7 @@ impl Output for JsonOutput<'_> {
     fn end(&mut self) {
         let frame = self.stack.pop();
         self.schemas.pop();
+        self.sensitive.pop();
         let name = self.names.pop().unwrap_or_default();
         let v = match frame {
             Some(Frame::Object(m)) => Value::Object(m),
