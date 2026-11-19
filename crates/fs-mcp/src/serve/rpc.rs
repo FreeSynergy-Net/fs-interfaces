@@ -107,7 +107,7 @@ pub fn parse(line: &str) -> Result<Request, String> {
 
 /// The line of a result.
 #[must_use]
-pub fn result(id: &Value, result: Value) -> String {
+pub fn result(id: &Value, result: &Value) -> String {
     json!({"jsonrpc": "2.0", "id": id, "result": result}).to_string()
 }
 

@@ -43,10 +43,10 @@ fn check(root: &Value, schema: &Value, value: &Value, path: &str) -> Result<(), 
             Err(format!("{} matches none of the allowed forms", at(path)))
         };
     }
-    if let Some(names) = s.get("enum").and_then(Value::as_array) {
-        if !names.contains(value) {
-            return Err(format!("{} is not one of the allowed values", at(path)));
-        }
+    if let Some(names) = s.get("enum").and_then(Value::as_array)
+        && !names.contains(value)
+    {
+        return Err(format!("{} is not one of the allowed values", at(path)));
     }
     match s.get("type").and_then(Value::as_str) {
         Some("object") => object(root, s, value, path),
@@ -82,10 +82,10 @@ fn object(root: &Value, s: &Value, value: &Value, path: &str) -> Result<(), Stri
         .into_iter()
         .flatten()
     {
-        if let Some(name) = r.as_str() {
-            if !m.contains_key(name) {
-                return Err(format!("{} is required", at(&join(path, name))));
-            }
+        if let Some(name) = r.as_str()
+            && !m.contains_key(name)
+        {
+            return Err(format!("{} is required", at(&join(path, name))));
         }
     }
     if let Some(alts) = s.get("oneOf").and_then(Value::as_array) {

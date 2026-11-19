@@ -25,14 +25,17 @@ pub fn encode(bytes: &[u8]) -> String {
 }
 
 fn sextet(c: u8) -> Option<u32> {
-    ALPHABET.iter().position(|a| *a == c).map(|p| p as u32)
+    ALPHABET
+        .iter()
+        .position(|a| *a == c)
+        .and_then(|p| u32::try_from(p).ok())
 }
 
 /// The bytes of base64 text; `None` for anything that is not canonical padded base64.
 #[must_use]
 pub fn decode(text: &str) -> Option<Vec<u8>> {
     let b = text.as_bytes();
-    if b.len() % 4 != 0 {
+    if !b.len().is_multiple_of(4) {
         return None;
     }
     let mut out = Vec::with_capacity(b.len() / 4 * 3);

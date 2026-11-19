@@ -43,7 +43,9 @@ impl<'s> JsonOutput<'s> {
     }
 
     /// The finished result, if the walk ended and nothing was wrong.
-    #[must_use]
+    ///
+    /// # Errors
+    /// The text says why the result cannot be shown (an unknown enumerant, a capability, an unreadable value, or no result).
     pub fn finish(self) -> Result<Value, String> {
         match (self.problem, self.result) {
             (Some(p), _) => Err(p),

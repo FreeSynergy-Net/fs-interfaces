@@ -1,6 +1,6 @@
 //! The server under test: a fake program for `tasks.capnp` (in-process capnp-rpc), the lines to send, and what comes back.
 //! Test helpers; no pattern of their own.
-#![allow(dead_code)]
+#![allow(dead_code, clippy::needless_pass_by_value)] // the helpers take their JSON by value so a call site can write `json!(..)` inline
 
 use std::cell::RefCell;
 use std::future::{Future, ready};

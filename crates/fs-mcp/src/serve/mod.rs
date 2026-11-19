@@ -101,7 +101,7 @@ impl<C: Calls> Server<C> {
         // a notification has no id and is never answered
         let id = req.id?;
         Some(match self.dispatch(&req.method, &req.params).await {
-            Ok(v) => rpc::result(&id, v),
+            Ok(v) => rpc::result(&id, &v),
             Err(e) => rpc::error(&id, &e),
         })
     }
