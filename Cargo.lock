@@ -130,7 +130,8 @@ dependencies = [
 [[package]]
 name = "capnp-compiler"
 version = "0.2.0"
-source = "git+https://github.com/FreeSynergy/fs-capnpc?rev=81425e23d8e9dbef77b895864add55f7c2c46c5c#81425e23d8e9dbef77b895864add55f7c2c46c5c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a09e431728eccde1d34935e36f7092a0b41fa590c8808f75ec6305d3eb2e33a9"
 dependencies = [
  "capnp",
 ]
