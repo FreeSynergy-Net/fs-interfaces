@@ -32,3 +32,8 @@ pub fn setup(progs: &[Prog]) -> Rc<RefCell<CanaryTable>> {
 pub fn branch() -> String {
     std::env::var("FSCANARY_BRANCH").unwrap_or_else(|_| "local".to_owned())
 }
+
+/// The programs under test: the real tools of `tasks.capnp` and the stand-in for the vault.
+pub fn programs() -> Vec<Prog> {
+    vec![tasks(), vault_prog(false)]
+}
