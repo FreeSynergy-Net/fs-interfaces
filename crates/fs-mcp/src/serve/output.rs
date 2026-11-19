@@ -13,6 +13,9 @@ use serde_json::{Map, Number, Value};
 
 use super::{base64, schema};
 
+/// The schema of a place that the output schema does not know: it declares nothing.
+static UNKNOWN: Value = Value::Null;
+
 enum Frame {
     Object(Map<String, Value>),
     List(Vec<Value>),
@@ -22,7 +25,8 @@ enum Frame {
 pub struct JsonOutput<'s> {
     root_schema: &'s Value,
     /// The schema of each open frame (`None` where the schema does not know the name).
-    schemas: Vec<Option<&'s Value>>,
+    /// The schema of each open frame; a place whose schema is not known has `Value::Null`, which declares nothing.
+    schemas: Vec<&'s Value>,
     names: Vec<String>,
     stack: Vec<Frame>,
     result: Option<Value>,
@@ -66,7 +70,7 @@ impl<'s> JsonOutput<'s> {
     }
 
     fn child_schema(&self, name: &str) -> Option<&'s Value> {
-        let parent = self.schemas.last().copied().flatten()?;
+        let parent = *self.schemas.last()?;
         match self.stack.last()? {
             Frame::Object(_) => schema::property(self.root_schema, parent, name),
             Frame::List(_) => schema::items(self.root_schema, parent),
@@ -77,24 +81,20 @@ impl<'s> JsonOutput<'s> {
     /// not known, or is not an object or a list, nothing is declared. A program that gives more than its contract says is a
     /// leak waiting to happen, so the whole result is refused.
     fn undeclared(&self, name: &str) -> bool {
-        let Some(frame) = self.stack.last() else {
+        let (Some(frame), Some(parent)) = (self.stack.last(), self.schemas.last()) else {
             return false; // the root of the result has no parent
-        };
-        let Some(Some(parent)) = self.schemas.last() else {
-            return true; // a place whose schema is not known declares nothing
         };
         let parent = schema::resolve(self.root_schema, parent);
         let kind = parent.get("type").and_then(Value::as_str);
-        match frame {
-            Frame::Object(_) => {
-                !(kind == Some("object") || (kind.is_none() && parent.get("properties").is_some()))
-                    || parent.get("properties").and_then(|p| p.get(name)).is_none()
-            }
-            Frame::List(_) => {
-                !(kind == Some("array") || (kind.is_none() && parent.get("items").is_some()))
-                    || parent.get("items").is_none()
-            }
-        }
+        let (declared, wanted) = match frame {
+            Frame::Object(_) => (
+                parent.get("properties").and_then(|p| p.get(name)).is_some(),
+                "object",
+            ),
+            Frame::List(_) => (parent.get("items").is_some(), "array"),
+        };
+        // declared by a schema of the right kind (or of no kind): anything else, also an unknown schema, declares nothing
+        !(declared && (kind.is_none() || kind == Some(wanted)))
     }
 
     /// The name of an enumerant as the schema writes it: the one in its `enum` list whose kebab form is `kebab_name`, else
@@ -131,7 +131,7 @@ impl<'s> JsonOutput<'s> {
         } else {
             self.child_schema(name)
         };
-        self.schemas.push(s);
+        self.schemas.push(s.unwrap_or(&UNKNOWN));
         self.names.push(name.to_owned());
         self.stack.push(frame);
     }

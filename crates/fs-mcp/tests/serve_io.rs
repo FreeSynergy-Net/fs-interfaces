@@ -191,6 +191,8 @@ fn where_the_schema_is_not_known_nothing_is_declared() {
         "text": {"type": "string"},
         "ok": {"type": "object", "properties": {"a": {"type": "string"}}},
         "untyped": {"properties": {"a": {"type": "string"}}},
+        "weird": {"type": "string", "properties": {"a": {"type": "string"}}},
+        "weirdlist": {"type": "object", "items": {"type": "string"}},
         "items": {"type": "array", "items": {"type": "string"}}
     }});
     let run = |f: &dyn Fn(&mut JsonOutput<'_>)| {
@@ -208,6 +210,19 @@ fn where_the_schema_is_not_known_nothing_is_declared() {
         });
         assert!(r.is_err(), "{name}: {r:?}");
     }
+    // a place of the wrong kind declares nothing, even if it has `properties` or `items`
+    let r = run(&|o| {
+        o.begin_struct("weird", "");
+        o.field("a", V::Text("x"));
+        o.end();
+    });
+    assert!(r.is_err(), "an object schema of kind string: {r:?}");
+    let r = run(&|o| {
+        o.begin_list("weirdlist", "");
+        o.field("", V::Text("x"));
+        o.end();
+    });
+    assert!(r.is_err(), "a list schema of kind object: {r:?}");
     let r = run(&|o| {
         o.begin_list("list", "");
         o.field("", V::Text("x"));

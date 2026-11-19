@@ -56,23 +56,28 @@ fn child_logs_run() {
         drive(&mut f, p, &table);
     }
     // the self-test of the log search: a program that writes a secret into its log
-    if std::env::var_os("FSCANARY_LEAK").is_some() {
+    if let Ok(how) = std::env::var("FSCANARY_LEAK") {
         let marker = table
             .borrow()
             .marker("(program error text)")
             .map(str::to_owned)
             .unwrap_or_default();
-        println!("out: connected with {marker}");
-        eprintln!("log: failed for {marker}");
-        // a panic with the secret in its message: the default hook writes it to stderr
-        let _ = std::panic::catch_unwind(|| panic!("failed for {marker}"));
+        match how.as_str() {
+            "out" => println!("out: connected with {marker}"),
+            "log" => eprintln!("log: failed for {marker}"),
+            // a panic with the secret in its message: the default hook writes it to stderr
+            "panic" => {
+                let _ = std::panic::catch_unwind(|| panic!("failed for {marker}"));
+            }
+            other => panic!("no such way to leak: {other}"),
+        }
     }
 }
 
-fn logs_of_a_child(table: &CanaryTable, f: &mut Findings, leak: bool) {
+fn logs_of_a_child(table: &CanaryTable, f: &mut Findings, leak: Option<&str>) {
     let mut cmd = Command::new(std::env::current_exe().expect("the test binary"));
-    if leak {
-        cmd.env("FSCANARY_LEAK", "1");
+    if let Some(how) = leak {
+        cmd.env("FSCANARY_LEAK", how);
     }
     let out = cmd
         .args([
@@ -112,7 +117,7 @@ fn canary_everything() {
         drive(&mut f, p, &table);
     }
     let canaries = CanaryTable::from_canaries(table.borrow().all().to_vec());
-    logs_of_a_child(&canaries, &mut f, false);
+    logs_of_a_child(&canaries, &mut f, None);
     // no failure mode of the program was left out
     let want = [
         "rpc-error-with-a-canary-in-its-text",
@@ -205,26 +210,24 @@ fn canary_the_driver_finds_a_leak_that_is_there() {
 
 #[test]
 fn canary_the_logs_of_a_child_are_searched_stdout_and_stderr() {
-    let progs = programs();
-    let table = setup(&progs);
-    let canaries = CanaryTable::from_canaries(table.borrow().all().to_vec());
-    let mut f = Findings::default();
-    logs_of_a_child(&canaries, &mut f, true);
-    let places: std::collections::BTreeSet<&str> =
-        f.list.iter().map(|x| x.place.as_str()).collect();
-    assert!(
-        places.iter().any(|p| p.contains("stdout")) && places.iter().any(|p| p.contains("stderr")),
-        "{places:?}"
-    );
-    assert!(f.list.iter().all(|x| x.path == "(program error text)"));
-    // the panic message is found too (its text says `panicked at`)
-    assert!(
-        f.list
-            .iter()
-            .any(|x| x.place.contains("stderr") && x.found_in == "text"),
-        "{:?}",
-        f.list
-    );
-    let stderr_hits = f.list.iter().filter(|x| x.place.contains("stderr")).count();
-    assert!(stderr_hits >= 1);
+    // a program that leaks into stdout, into a log line (stderr) and into the message of a panic (stderr): each is found
+    for (how, place) in [("out", "stdout"), ("log", "stderr"), ("panic", "stderr")] {
+        let progs = programs();
+        let table = setup(&progs);
+        let canaries = CanaryTable::from_canaries(table.borrow().all().to_vec());
+        let mut f = Findings::default();
+        logs_of_a_child(&canaries, &mut f, Some(how));
+        assert!(
+            f.list
+                .iter()
+                .any(|x| x.place.contains(place) && x.path == "(program error text)"),
+            "{how}: {:?}",
+            f.list
+        );
+        assert!(
+            f.list.iter().all(|x| x.path == "(program error text)"),
+            "{how}: only that canary: {:?}",
+            f.list
+        );
+    }
 }
