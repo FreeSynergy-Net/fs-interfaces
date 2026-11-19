@@ -82,6 +82,9 @@ fn official_compiler_output_is_committed() {
     let mut cmd = capnpc_embedded::CompileCommand::new();
     let types = stage::reachable(Path::new(fs_types::SCHEMA_DIR)).unwrap();
     cmd.import_path(types.path());
+    // the annotations of the generators (`$Cli.secret`): the schemas import them, the official compiler reads them too
+    let marks = stage::reachable(Path::new(capnp_compiler::SCHEMA_DIR)).unwrap();
+    cmd.import_path(marks.path());
     for s in SCHEMAS {
         cmd.file(schema.join(format!("{s}.capnp")));
     }
@@ -96,6 +99,8 @@ fn own_compiler_output_is_committed() {
     cmd.src_prefix(&schema);
     let types = stage::reachable(Path::new(fs_types::SCHEMA_DIR)).unwrap();
     cmd.import_path(types.path());
+    let marks = stage::reachable(Path::new(capnp_compiler::SCHEMA_DIR)).unwrap();
+    cmd.import_path(marks.path());
     for s in SCHEMAS {
         cmd.file(schema.join(format!("{s}.capnp")));
     }

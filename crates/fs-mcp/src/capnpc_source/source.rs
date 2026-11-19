@@ -63,6 +63,10 @@ impl ContractSource for CapnpcSource {
             files.extend(capnp_files(dir.path())?);
             staged.push(dir);
         }
+        // The marks of the generators (`using Cli = import "/capnpc_cli.capnp"`): an import path only, its file is no contract.
+        let marks = super::stage::reachable(std::path::Path::new(capnp_compiler::SCHEMA_DIR))
+            .map_err(Error::Compile)?;
+        cmd.import_path(marks.path());
         for f in &files {
             cmd.file(f);
         }

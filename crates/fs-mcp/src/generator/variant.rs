@@ -52,6 +52,8 @@ impl Run<'_> {
                         ty: member.ty.clone(),
                         doc: member.doc.clone(),
                         in_union: false,
+                        secret: member.secret,
+                        sensitive: member.sensitive,
                     };
                 }
                 Variant {

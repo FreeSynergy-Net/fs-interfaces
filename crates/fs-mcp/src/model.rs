@@ -70,6 +70,11 @@ pub struct Field {
     pub ty: TypeRef,
     /// Member of the struct's union?
     pub in_union: bool,
+    /// Marked `$Cli.secret` in the contract: a credential. No release lifts it; the screen keeps every tool out that takes or gives it.
+    pub secret: bool,
+    /// Marked `$Cli.sensitive` in the contract: the content of a person's secret store. Not part of the screen; it is held back at the
+    /// output for everyone who has no grant (`x-fs-sensitive`).
+    pub sensitive: bool,
 }
 
 /// A struct or group.

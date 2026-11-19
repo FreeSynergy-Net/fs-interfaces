@@ -22,6 +22,8 @@ fn field(name: &str, doc: &str, ty: TypeRef) -> Field {
         doc: doc.into(),
         ty,
         in_union: false,
+        secret: false,
+        sensitive: false,
     }
 }
 

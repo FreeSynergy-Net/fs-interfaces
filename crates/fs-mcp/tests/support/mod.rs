@@ -29,6 +29,8 @@ pub fn field(n: &str, ty: TypeRef) -> Field {
         doc: String::new(),
         ty,
         in_union: false,
+        secret: false,
+        sensitive: false,
     }
 }
 pub fn member(n: &str, ty: TypeRef) -> Field {

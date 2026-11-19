@@ -13,7 +13,8 @@ pub enum Why {
     Blocked(&'static str),
     /// A mark file excludes it.
     Marked(String),
-    /// A name or comment looks like a secret and nobody released it. `path` says where.
+    /// A name or comment looks like a secret and nobody released it, or the contract marks the field `$Cli.secret` (no release lifts that).
+    /// `path` says where.
     SecretSuspect {
         /// The suspicious name, such as `AccountSetup.secret`.
         path: String,

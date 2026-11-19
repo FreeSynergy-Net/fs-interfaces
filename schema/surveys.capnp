@@ -34,6 +34,7 @@ using CapabilityList = C.CapabilityList;
 using SupportReport = C.SupportReport;
 using ChangeListener = C.ChangeListener;
 using Subscription = C.Subscription;
+using Cli = import "/capnpc_cli.capnp";   # the marks of the generators of tools and command lines (`$Cli.secret`)
 
 enum SurveyState { draft @0; open @1; closed @2; archived @3; }
 
@@ -150,7 +151,7 @@ struct Credential {
   union {
     none   @0 :Void;              # anonymousOpen
     person @1 :Text;              # named
-    token  @2 :Text;              # anonymousOnce
+    token  @2 :Text $Cli.secret;  # anonymousOnce: the right of the holder to take part is a credential
     proof  @3 :Data;              # public: the answer to `Respond.challenge`
     open   @4 :OpenClaim;         # anonymousOpen: anyone, no proof (2026-11-08, owner); `none` is refused there
   }

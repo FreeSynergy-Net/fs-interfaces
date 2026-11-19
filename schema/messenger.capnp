@@ -22,6 +22,7 @@ using Problem = C.Problem;
 using Envelope = C.Envelope;
 using Blob = C.Blob;
 using T = import "/types.capnp";
+using Cli = import "/capnpc_cli.capnp";   # the marks of the generators of tools and command lines (`$Cli.secret`)
 
 # pages: one struct per item type (Cap'n Proto has no List(T) over generic parameters)
 struct MessagePage      { items @0 :List(MessageSummary);      next @1 :Cursor; skipped @2 :UInt32; }   # skipped = unreadable local records on this page; empty items with a next is not the end
@@ -167,7 +168,7 @@ interface Accounts {
   remove @2 (id :Uuid) -> ();
 }
 struct Account      { id @0 :Uuid; address @1 :Text; kind @2 :Text; encryptionReady @3 :Bool; }
-struct AccountSetup { address @0 :Text; kind @1 :Text; secret @2 :Text; }  # kind: "mail", "matrix", "mimi"
+struct AccountSetup { address @0 :Text; kind @1 :Text; secret @2 :Text $Cli.secret; }  # kind: "mail", "matrix", "mimi"
 
 interface Conversations {
   list    @0 (folder :Text, onlyUnread :Bool, cursor :Cursor) -> (page :ConversationPage);

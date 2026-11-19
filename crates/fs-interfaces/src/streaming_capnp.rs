@@ -51,7 +51,7 @@ pub(crate) static ENCODED_NODE: [::capnp::Word; 45] = [
     ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-    ::capnp::word(20, 7, 0, 0, 107, 7, 0, 0),
+    ::capnp::word(135, 7, 0, 0, 222, 7, 0, 0),
     ::capnp::word(21, 0, 0, 0, 226, 0, 0, 0),
     ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -329,7 +329,7 @@ pub mod stream {
             ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
             ::capnp::word(3, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(109, 7, 0, 0, 170, 8, 0, 0),
+            ::capnp::word(224, 7, 0, 0, 29, 9, 0, 0),
             ::capnp::word(21, 0, 0, 0, 186, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -631,7 +631,7 @@ pub mod stream_page {
             ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(172, 8, 0, 0, 234, 8, 0, 0),
+            ::capnp::word(31, 9, 0, 0, 93, 9, 0, 0),
             ::capnp::word(21, 0, 0, 0, 218, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -749,7 +749,7 @@ pub(crate) static ENCODED_NODE: [::capnp::Word; 45] = [
     ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-    ::capnp::word(236, 8, 0, 0, 99, 10, 0, 0),
+    ::capnp::word(95, 9, 0, 0, 214, 10, 0, 0),
     ::capnp::word(21, 0, 0, 0, 226, 0, 0, 0),
     ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -1102,7 +1102,7 @@ pub mod target {
             ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
             ::capnp::word(5, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(101, 10, 0, 0, 252, 11, 0, 0),
+            ::capnp::word(216, 10, 0, 0, 111, 12, 0, 0),
             ::capnp::word(21, 0, 0, 0, 186, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -1537,7 +1537,7 @@ pub mod status {
             ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
             ::capnp::word(3, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(62, 12, 0, 0, 66, 13, 0, 0),
+            ::capnp::word(177, 12, 0, 0, 181, 13, 0, 0),
             ::capnp::word(21, 0, 0, 0, 186, 0, 0, 0),
             ::capnp::word(29, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -1924,7 +1924,7 @@ pub mod target_status {
             ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(68, 13, 0, 0, 52, 14, 0, 0),
+            ::capnp::word(183, 13, 0, 0, 167, 14, 0, 0),
             ::capnp::word(21, 0, 0, 0, 234, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -2098,7 +2098,7 @@ pub(crate) static ENCODED_NODE: [::capnp::Word; 33] = [
     ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-    ::capnp::word(161, 14, 0, 0, 216, 14, 0, 0),
+    ::capnp::word(20, 15, 0, 0, 75, 15, 0, 0),
     ::capnp::word(21, 0, 0, 0, 202, 0, 0, 0),
     ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
     ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -2340,7 +2340,7 @@ pub mod check_result {
             ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
             ::capnp::word(2, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(2, 15, 0, 0, 227, 15, 0, 0),
+            ::capnp::word(117, 15, 0, 0, 86, 16, 0, 0),
             ::capnp::word(21, 0, 0, 0, 226, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -2741,7 +2741,7 @@ pub mod recording_info {
             ::capnp::word(36, 249, 22, 123, 12, 142, 213, 163),
             ::capnp::word(6, 0, 7, 0, 0, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-            ::capnp::word(229, 15, 0, 0, 8, 17, 0, 0),
+            ::capnp::word(88, 16, 0, 0, 123, 17, 0, 0),
             ::capnp::word(21, 0, 0, 0, 242, 0, 0, 0),
             ::capnp::word(33, 0, 0, 0, 7, 0, 0, 0),
             ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -6870,7 +6870,7 @@ pub mod streams {
             }
         }
         mod _private {
-            pub(crate) static ENCODED_NODE: [::capnp::Word; 66] = [
+            pub(crate) static ENCODED_NODE: [::capnp::Word; 74] = [
                 ::capnp::word(0, 0, 0, 0, 6, 0, 6, 0),
                 ::capnp::word(203, 68, 114, 117, 223, 242, 172, 141),
                 ::capnp::word(24, 0, 0, 0, 1, 0, 0, 0),
@@ -6908,9 +6908,9 @@ pub mod streams {
                 ::capnp::word(0, 0, 1, 0, 2, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(81, 0, 0, 0, 106, 0, 0, 0),
-                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-                ::capnp::word(80, 0, 0, 0, 3, 0, 1, 0),
-                ::capnp::word(92, 0, 0, 0, 2, 0, 1, 0),
+                ::capnp::word(85, 0, 0, 0, 31, 0, 0, 0),
+                ::capnp::word(112, 0, 0, 0, 3, 0, 1, 0),
+                ::capnp::word(124, 0, 0, 0, 2, 0, 1, 0),
                 ::capnp::word(115, 116, 114, 101, 97, 109, 0, 0),
                 ::capnp::word(16, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(54, 220, 133, 70, 128, 107, 219, 206),
@@ -6930,6 +6930,14 @@ pub mod streams {
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(112, 117, 98, 108, 105, 115, 104, 101),
                 ::capnp::word(114, 75, 101, 121, 0, 0, 0, 0),
+                ::capnp::word(4, 0, 0, 0, 1, 0, 2, 0),
+                ::capnp::word(176, 254, 172, 70, 80, 61, 172, 239),
+                ::capnp::word(4, 0, 0, 0, 2, 0, 1, 0),
+                ::capnp::word(12, 0, 0, 0, 0, 0, 1, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(12, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -6947,7 +6955,10 @@ pub mod streams {
                 }
             }
             pub(crate) fn get_annotation_types(child_index: Option<u16>, index: u32) -> ::capnp::introspect::Type {
-                ::capnp::introspect::panic_invalid_annotation_indices(child_index, index)
+                    match (child_index, index) {
+                        (Some(2), 0) => <() as ::capnp::introspect::Introspect>::introspect(),
+                        _ => ::capnp::introspect::panic_invalid_annotation_indices(child_index, index),
+                    }
             }
             pub(crate) static ARENA: ::capnp::private::arena::GeneratedCodeArena = ::capnp::private::arena::GeneratedCodeArena::new(&ENCODED_NODE);
             pub(crate) static RAW_SCHEMA: ::capnp::introspect::RawStructSchema = ::capnp::introspect::RawStructSchema::new(
@@ -7326,7 +7337,7 @@ pub mod streams {
         impl Pipeline  {
         }
         mod _private {
-            pub(crate) static ENCODED_NODE: [::capnp::Word; 36] = [
+            pub(crate) static ENCODED_NODE: [::capnp::Word; 44] = [
                 ::capnp::word(0, 0, 0, 0, 6, 0, 6, 0),
                 ::capnp::word(64, 39, 183, 227, 28, 77, 40, 209),
                 ::capnp::word(24, 0, 0, 0, 1, 0, 0, 0),
@@ -7351,11 +7362,19 @@ pub mod streams {
                 ::capnp::word(0, 0, 1, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(13, 0, 0, 0, 106, 0, 0, 0),
-                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-                ::capnp::word(12, 0, 0, 0, 3, 0, 1, 0),
-                ::capnp::word(24, 0, 0, 0, 2, 0, 1, 0),
+                ::capnp::word(17, 0, 0, 0, 31, 0, 0, 0),
+                ::capnp::word(44, 0, 0, 0, 3, 0, 1, 0),
+                ::capnp::word(56, 0, 0, 0, 2, 0, 1, 0),
                 ::capnp::word(112, 117, 98, 108, 105, 115, 104, 101),
                 ::capnp::word(114, 75, 101, 121, 0, 0, 0, 0),
+                ::capnp::word(4, 0, 0, 0, 1, 0, 2, 0),
+                ::capnp::word(176, 254, 172, 70, 80, 61, 172, 239),
+                ::capnp::word(4, 0, 0, 0, 2, 0, 1, 0),
+                ::capnp::word(12, 0, 0, 0, 0, 0, 1, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(12, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -7371,7 +7390,10 @@ pub mod streams {
                 }
             }
             pub(crate) fn get_annotation_types(child_index: Option<u16>, index: u32) -> ::capnp::introspect::Type {
-                ::capnp::introspect::panic_invalid_annotation_indices(child_index, index)
+                    match (child_index, index) {
+                        (Some(0), 0) => <() as ::capnp::introspect::Introspect>::introspect(),
+                        _ => ::capnp::introspect::panic_invalid_annotation_indices(child_index, index),
+                    }
             }
             pub(crate) static ARENA: ::capnp::private::arena::GeneratedCodeArena = ::capnp::private::arena::GeneratedCodeArena::new(&ENCODED_NODE);
             pub(crate) static RAW_SCHEMA: ::capnp::introspect::RawStructSchema = ::capnp::introspect::RawStructSchema::new(
@@ -10632,7 +10654,7 @@ pub mod streams {
             }
         }
         mod _private {
-            pub(crate) static ENCODED_NODE: [::capnp::Word; 80] = [
+            pub(crate) static ENCODED_NODE: [::capnp::Word; 88] = [
                 ::capnp::word(0, 0, 0, 0, 6, 0, 6, 0),
                 ::capnp::word(227, 85, 27, 172, 23, 226, 78, 158),
                 ::capnp::word(24, 0, 0, 0, 1, 0, 0, 0),
@@ -10678,9 +10700,9 @@ pub mod streams {
                 ::capnp::word(0, 0, 1, 0, 3, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(109, 0, 0, 0, 34, 0, 0, 0),
-                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-                ::capnp::word(104, 0, 0, 0, 3, 0, 1, 0),
-                ::capnp::word(116, 0, 0, 0, 2, 0, 1, 0),
+                ::capnp::word(109, 0, 0, 0, 31, 0, 0, 0),
+                ::capnp::word(136, 0, 0, 0, 3, 0, 1, 0),
+                ::capnp::word(148, 0, 0, 0, 2, 0, 1, 0),
                 ::capnp::word(115, 116, 114, 101, 97, 109, 0, 0),
                 ::capnp::word(16, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(170, 255, 204, 129, 122, 252, 160, 138),
@@ -10706,6 +10728,14 @@ pub mod streams {
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(107, 101, 121, 0, 0, 0, 0, 0),
+                ::capnp::word(4, 0, 0, 0, 1, 0, 2, 0),
+                ::capnp::word(176, 254, 172, 70, 80, 61, 172, 239),
+                ::capnp::word(4, 0, 0, 0, 2, 0, 1, 0),
+                ::capnp::word(12, 0, 0, 0, 0, 0, 1, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(12, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -10724,7 +10754,10 @@ pub mod streams {
                 }
             }
             pub(crate) fn get_annotation_types(child_index: Option<u16>, index: u32) -> ::capnp::introspect::Type {
-                ::capnp::introspect::panic_invalid_annotation_indices(child_index, index)
+                    match (child_index, index) {
+                        (Some(3), 0) => <() as ::capnp::introspect::Introspect>::introspect(),
+                        _ => ::capnp::introspect::panic_invalid_annotation_indices(child_index, index),
+                    }
             }
             pub(crate) static ARENA: ::capnp::private::arena::GeneratedCodeArena = ::capnp::private::arena::GeneratedCodeArena::new(&ENCODED_NODE);
             pub(crate) static RAW_SCHEMA: ::capnp::introspect::RawStructSchema = ::capnp::introspect::RawStructSchema::new(
@@ -11636,7 +11669,7 @@ pub mod streams {
             }
         }
         mod _private {
-            pub(crate) static ENCODED_NODE: [::capnp::Word; 50] = [
+            pub(crate) static ENCODED_NODE: [::capnp::Word; 58] = [
                 ::capnp::word(0, 0, 0, 0, 6, 0, 6, 0),
                 ::capnp::word(109, 227, 207, 166, 172, 94, 87, 230),
                 ::capnp::word(24, 0, 0, 0, 1, 0, 0, 0),
@@ -11668,9 +11701,9 @@ pub mod streams {
                 ::capnp::word(0, 0, 1, 0, 1, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(45, 0, 0, 0, 34, 0, 0, 0),
-                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
-                ::capnp::word(40, 0, 0, 0, 3, 0, 1, 0),
-                ::capnp::word(52, 0, 0, 0, 2, 0, 1, 0),
+                ::capnp::word(45, 0, 0, 0, 31, 0, 0, 0),
+                ::capnp::word(72, 0, 0, 0, 3, 0, 1, 0),
+                ::capnp::word(84, 0, 0, 0, 2, 0, 1, 0),
                 ::capnp::word(105, 100, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(16, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(170, 255, 204, 129, 122, 252, 160, 138),
@@ -11680,6 +11713,14 @@ pub mod streams {
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(107, 101, 121, 0, 0, 0, 0, 0),
+                ::capnp::word(4, 0, 0, 0, 1, 0, 2, 0),
+                ::capnp::word(176, 254, 172, 70, 80, 61, 172, 239),
+                ::capnp::word(4, 0, 0, 0, 2, 0, 1, 0),
+                ::capnp::word(12, 0, 0, 0, 0, 0, 1, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+                ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(12, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
                 ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
@@ -11696,7 +11737,10 @@ pub mod streams {
                 }
             }
             pub(crate) fn get_annotation_types(child_index: Option<u16>, index: u32) -> ::capnp::introspect::Type {
-                ::capnp::introspect::panic_invalid_annotation_indices(child_index, index)
+                    match (child_index, index) {
+                        (Some(1), 0) => <() as ::capnp::introspect::Introspect>::introspect(),
+                        _ => ::capnp::introspect::panic_invalid_annotation_indices(child_index, index),
+                    }
             }
             pub(crate) static ARENA: ::capnp::private::arena::GeneratedCodeArena = ::capnp::private::arena::GeneratedCodeArena::new(&ENCODED_NODE);
             pub(crate) static RAW_SCHEMA: ::capnp::introspect::RawStructSchema = ::capnp::introspect::RawStructSchema::new(

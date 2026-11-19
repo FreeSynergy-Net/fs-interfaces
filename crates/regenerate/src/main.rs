@@ -58,6 +58,10 @@ fn main() {
         }
     );
     cmd.import_path(types.path());
+    // the annotations of the generators, imported by the contracts that carry `$Cli.secret`
+    let marks = stage::reachable(std::path::Path::new(capnp_compiler::SCHEMA_DIR))
+        .expect("annotation directory of capnp-compiler");
+    cmd.import_path(marks.path());
     let import_path = types.path().to_path_buf();
     for s in SCHEMAS {
         cmd.file(format!("schema/{s}.capnp"));

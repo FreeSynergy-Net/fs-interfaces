@@ -48,6 +48,8 @@ sensitive (ADR 0029) is decided by the engine at the object, never here.
 
 Principle (strategy): **what is unclear stays out.** A secret once released cannot be taken back.
 
+The contract itself can say it: a field marked `$Cli.secret` is read from the compiled schema (`Field.secret`, by the annotation id) and is out in every place (parameter, result, nested, member of a union) and for every release; a release is for what only LOOKS like a secret. `$Cli.sensitive` (`Field.sensitive`) is not a screen: the content of a person's secret store is held back at the output per recipient.
+
 1. **Block list** (`blocklist.rs`, wins over any mark): the targets `MessageAction.decide`, `MessageAction.none`,
    interface `Guard`, `Messenger.guard`, `AccountSetup.secret`, and **by type, wherever it appears** (parameter, result,
    field, listener event, any file): `ToolCallDecision`, `GuardProof`, `AiGrant`, `Guard`. Renaming a method lifts nothing.

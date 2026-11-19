@@ -55,8 +55,16 @@ impl Screen<'_> {
         let mut seen = HashSet::new();
         fields.iter().find_map(|f| {
             let target = Target::item(file, iface, &format!("{method}.{}", f.name));
-            self.name(&target, &f.name, &f.doc, Some(&f.ty))
+            Self::annotated(&target, f)
+                .or_else(|| self.name(&target, &f.name, &f.doc, Some(&f.ty)))
                 .or_else(|| self.walk(&f.ty, &mut seen))
+        })
+    }
+
+    /// A field the contract itself marks `$Cli.secret`: out, and no release lifts it (a release is for what only looks like a secret).
+    fn annotated(target: &Target, f: &Field) -> Option<Why> {
+        f.secret.then(|| Why::SecretSuspect {
+            path: target.to_string(),
         })
     }
 
@@ -165,7 +173,8 @@ impl Screen<'_> {
                 }
                 def.fields.iter().find_map(|f| {
                     let t = Target::item(&n.file, &def.name, &f.name);
-                    self.name(&t, &f.name, &f.doc, Some(&f.ty))
+                    Self::annotated(&t, f)
+                        .or_else(|| self.name(&t, &f.name, &f.doc, Some(&f.ty)))
                         .or_else(|| self.walk(&f.ty, seen))
                 })
             }

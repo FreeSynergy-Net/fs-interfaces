@@ -32,6 +32,7 @@ using CapabilityList = C.CapabilityList;
 using SupportReport = C.SupportReport;
 using Subscription = C.Subscription;
 using T = import "/types.capnp";
+using Cli = import "/capnpc_cli.capnp";   # the marks of the generators of tools and command lines (`$Cli.secret`)
 
 enum StreamState { idle @0; checking @1; live @2; ended @3; error @4; interrupted @5; }
 
@@ -131,9 +132,9 @@ interface Streaming {
 
 interface Streams {
   # where a sender connects, and the publisher key: shown this once
-  create    @0 (name :Text) -> (stream :Stream, ingestUrl :Text, publisherKey :Text);  # stream.create
+  create    @0 (name :Text) -> (stream :Stream, ingestUrl :Text, publisherKey :Text $Cli.secret);  # stream.create
   # the old key stops at once; a running sender is ended and cannot come back with it
-  rotateKey @1 (id :Uuid) -> (publisherKey :Text);                                     # publisher.authorize
+  rotateKey @1 (id :Uuid) -> (publisherKey :Text $Cli.secret);                                     # publisher.authorize
   rename    @2 (id :Uuid, name :Text) -> (stream :Stream);                             # stream.create
   # with its targets; refused while it is live, interrupted or checking
   delete    @3 (id :Uuid) -> ();                                                       # stream.create
@@ -146,10 +147,10 @@ interface Streams {
 
   # A target added, switched on or reconnected during a live stream gets the codec headers first, then
   # starts at the next keyframe.
-  addTarget  @9 (stream :Uuid, name :Text, url :Text, key :Text) -> (target :Target);  # restream.add
+  addTarget  @9 (stream :Uuid, name :Text, url :Text, key :Text $Cli.secret) -> (target :Target);  # restream.add
   editTarget @10 (id :Uuid, name :Text, url :Text) -> (target :Target);                # restream.add; refused while it is sending
   # replaces the key, used from the next connection on; an empty key removes it
-  setTargetKey @11 (id :Uuid, key :Text) -> (target :Target);                          # restream.add
+  setTargetKey @11 (id :Uuid, key :Text $Cli.secret) -> (target :Target);                          # restream.add
   setTargetEnabled @12 (id :Uuid, enabled :Bool) -> (target :Target);                  # restream.add
   removeTarget @13 (id :Uuid) -> ();                                                   # restream.add
   targets    @14 (stream :Uuid) -> (items :List(Target));                              # stream.read
