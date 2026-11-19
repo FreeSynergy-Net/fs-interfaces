@@ -263,17 +263,15 @@ fn an_enumerant_in_a_result_is_written_with_its_contract_name_and_fits_the_schem
 
 #[test]
 fn a_field_the_contract_does_not_declare_is_refused_with_the_whole_result() {
-    use capnp_compiler::cligen::rt::Value as V;
+    use capnp_compiler::cligen::rt::{Output, Value as V};
     let schema = json!({"type":"object","properties":{"a":{"type":"string"},"inner":{"type":"object","properties":{"b":{"type":"string"}}}}});
     let try_with = |f: &dyn Fn(&mut fs_mcp::serve::output::JsonOutput<'_>)| {
-        use capnp_compiler::cligen::rt::Output;
         let mut o = fs_mcp::serve::output::JsonOutput::new(&schema);
         o.begin_struct("", "");
         f(&mut o);
         o.end();
         o.finish()
     };
-    use capnp_compiler::cligen::rt::Output;
     assert!(try_with(&|o| o.field("a", V::Text("x"))).is_ok());
     for bad in [
         try_with(&|o| o.field("extra", V::Text("x"))),
