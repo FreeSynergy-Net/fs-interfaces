@@ -57,6 +57,12 @@ fn wide_integers_special_floats_enums_and_data() {
     assert_eq!(i.float("ninf").unwrap(), Some(f64::NEG_INFINITY));
     assert!(i.float("nan").unwrap().unwrap().is_nan());
     assert_eq!(i.enumerant("e", &["a", "b"]).unwrap(), Some(1));
+    // the JSON names the contract (`dependsOn`), the command code its kebab form
+    let mut j = input(json!({"r": "dependsOn", "k": "depends-on"}));
+    assert_eq!(j.enumerant("r", &["first", "depends-on"]).unwrap(), Some(1));
+    // the kebab form maps too (it is its own kebab form); it is no name of the contract, and `fit` refuses it before
+    assert_eq!(j.enumerant("k", &["first", "depends-on"]).unwrap(), Some(1));
+    assert!(j.enumerant("r", &["first"]).is_err());
     assert!(i.enumerant("bad", &["a", "b"]).is_err());
     assert_eq!(i.data("d").unwrap().as_deref(), Some(&b"foo"[..]));
 }
@@ -66,6 +72,7 @@ fn schema() -> Value {
         "type": "object",
         "properties": {
             "n": {"type": "integer"},
+            "e": {"type": "string", "enum": ["open", "dependencyCancelled"]},
             "wide": {"type": "string", "x-fs-int": {"bits": 64}},
             "inner": {"$ref": "#/$defs/Inner"},
             "list": {"type": "array", "items": {"$ref": "#/$defs/Inner"}}
@@ -94,7 +101,8 @@ fn a_result_is_written_in_the_form_of_the_schema() {
     o.end();
     o.field("t", V::Text("hi"));
     o.field("d", V::Data(b"foobar"));
-    o.field("e", V::Enum("open"));
+    o.field("e", V::Enum("dependency-cancelled"));
+    o.field("e2", V::Enum("not-in-schema"));
     o.field("nan", V::Float(f64::NAN));
     o.field("inf", V::Float(f64::INFINITY));
     o.field("ninf", V::Float(f64::NEG_INFINITY));
@@ -107,7 +115,7 @@ fn a_result_is_written_in_the_form_of_the_schema() {
             "n": -3, "wide": "18446744073709551615",
             "inner": {"wide": "-9223372036854775808", "small": 7},
             "list": [{"wide": "1", "small": 2}],
-            "t": "hi", "d": "Zm9vYmFy", "e": "open", "nan": "NaN", "inf": "Infinity", "ninf": "-Infinity", "fl": 0.5, "b": true
+            "t": "hi", "d": "Zm9vYmFy", "e": "dependencyCancelled", "e2": "notInSchema", "nan": "NaN", "inf": "Infinity", "ninf": "-Infinity", "fl": 0.5, "b": true
         })
     );
 }

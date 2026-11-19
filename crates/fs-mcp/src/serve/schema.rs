@@ -17,6 +17,21 @@ pub fn resolve<'a>(root: &'a Value, schema: &'a Value) -> &'a Value {
     }
 }
 
+/// The schema behind a `$ref`, strictly: a reference that does not resolve is an error (the check of arguments must
+/// not let anything through because it could not read the schema).
+///
+/// # Errors
+/// The `$ref` is not a local `#/$defs/...` reference, or names nothing in `root`.
+pub fn try_resolve<'a>(root: &'a Value, schema: &'a Value) -> Result<&'a Value, String> {
+    let Some(r) = schema.get("$ref") else {
+        return Ok(schema);
+    };
+    r.as_str()
+        .and_then(|r| r.strip_prefix("#/$defs/"))
+        .and_then(|k| root.get("$defs")?.get(k))
+        .ok_or_else(|| format!("the schema has a reference that does not resolve: {r}"))
+}
+
 /// The schema of the property `name` of an object schema, references resolved.
 #[must_use]
 pub fn property<'a>(root: &'a Value, schema: &'a Value, name: &str) -> Option<&'a Value> {

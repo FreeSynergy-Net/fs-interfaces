@@ -54,7 +54,7 @@ fn target_of(key: &str) -> Option<Target> {
 }
 
 /// `other-uid` as `otherUid`: the spelling of the contract (the generators spell parameter paths in kebab case).
-fn camel(kebab: &str) -> String {
+pub(crate) fn camel(kebab: &str) -> String {
     let mut out = String::new();
     let mut up = false;
     for c in kebab.chars() {

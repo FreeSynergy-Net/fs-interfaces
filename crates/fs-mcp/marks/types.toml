@@ -10,8 +10,10 @@ describe = "read"
 "AddressComponent.value" = "one part of a postal address (street, locality, postcode ...); display text of the kind in `kind`, not a secret field"
 
 # Written release (rule: safe first, a human releases one tool at a time; delete the entry to revoke).
+# `tasks.types.describe`: the label hits ("translation key") are gone since the comment rule R1 (a key right behind
+# `translation`, `label`, `sort`, `primary`, `foreign`, `cache` is no key material); this hit is left.
 [[tool_release]]
 tool = "TypeCatalog.describe"
-reason = "false alarm: the comment of `TypeDescription.label` says 'translation key of the type', a label key and no key material"
-source = "fs-types types.capnp:139 (TypeDescription.label)"
-paths = ["types/TypeDescription.label"]
+reason = "false alarm: the comment of `FieldDescription.choices` says 'the allowed keys' of a choice field: the values a person may pick (labels of the language files), no key material"
+source = "fs-types types.capnp:91 (FieldDescription.choices)"
+paths = ["types/FieldDescription.choices"]

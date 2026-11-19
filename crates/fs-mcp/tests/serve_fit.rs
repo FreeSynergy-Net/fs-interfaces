@@ -163,3 +163,92 @@ fn a_union_needs_exactly_one_member() {
     assert!(fits(&root, &root, &json!({})).is_err());
     assert!(fits(&root, &root, &json!({"x": true, "y": true})).is_err());
 }
+
+#[test]
+fn a_float_is_a_number_or_one_of_the_three_strings_and_an_enum_is_one_of_its_names() {
+    let root = json!({"type":"object","additionalProperties":false,"required":["f","e"],"properties":{
+        "f":{"anyOf":[{"type":"number"},{"type":"string","enum":["Infinity","-Infinity","NaN"]}]},
+        "e":{"type":"string","enum":["a","b"]}}});
+    let v = Validator::new(&root).unwrap();
+    for (f, e, ok) in [
+        (json!(1.5), json!("a"), true),
+        (json!(0), json!("b"), true),
+        (json!("NaN"), json!("a"), true),
+        (json!("Infinity"), json!("a"), true),
+        (json!("-Infinity"), json!("a"), true),
+        (json!("x"), json!("a"), false),
+        (json!(true), json!("a"), false),
+        (json!(null), json!("a"), false),
+        (json!(1.5), json!("c"), false),
+        (json!(1.5), json!("A"), false),
+        (json!(1.5), json!(0), false),
+    ] {
+        agree(&root, &v, &json!({"f": f, "e": e}), ok, &format!("{f} {e}"));
+    }
+}
+
+#[test]
+fn the_check_fails_closed_on_what_it_cannot_read() {
+    // a reference that does not resolve
+    let root = json!({"type":"object","properties":{"a":{"$ref":"#/$defs/Nowhere"}}});
+    assert!(fits(&root, &root, &json!({"a": 1})).is_err());
+    let root = json!({"type":"object","properties":{"a":{"$ref":"http://example.org/x"}}});
+    assert!(fits(&root, &root, &json!({"a": 1})).is_err());
+    let root = json!({"type":"object","properties":{"a":{"$ref":5}}});
+    assert!(fits(&root, &root, &json!({"a": 1})).is_err());
+    // a schema that names no type
+    let root = json!({"type":"object","properties":{"a":{"description":"anything?"}}});
+    assert!(fits(&root, &root, &json!({"a": 1})).is_err());
+    // a pattern it does not know
+    let root = json!({"type":"object","properties":{"a":{"type":"string","pattern":"^[a-z]+$"}}});
+    assert!(fits(&root, &root, &json!({"a": "abc"})).is_err());
+    // an enum alone is a schema; a known pattern is checked
+    let root = json!({"type":"object","properties":{"a":{"enum":["x"]}}});
+    assert!(fits(&root, &root, &json!({"a": "x"})).is_ok());
+    let wide = |p: &str| json!({"type":"object","properties":{"a":{"type":"string","pattern":p,"x-fs-int":{"minimum":"-5","maximum":"5"}}}});
+    let unsigned = wide("^[0-9]+$");
+    let signed = wide("^-?[0-9]+$");
+    for (root, text, ok) in [
+        (&unsigned, "5", true),
+        (&unsigned, "+5", false),
+        (&unsigned, "-1", false),
+        (&unsigned, "", false),
+        (&unsigned, "5 ", false),
+        (&unsigned, "0x5", false),
+        (&signed, "-5", true),
+        (&signed, "+5", false),
+        (&signed, "-", false),
+        (&signed, "--5", false),
+        (&signed, "", false),
+        (&signed, "6", false),
+    ] {
+        assert_eq!(
+            fits(root, root, &json!({"a": text})).is_ok(),
+            ok,
+            "{text:?}"
+        );
+    }
+}
+
+#[test]
+fn base64_must_be_canonical_in_the_arguments() {
+    let root =
+        json!({"type":"object","properties":{"d":{"type":"string","contentEncoding":"base64"}}});
+    for (text, ok) in [
+        ("Zm9v", true),
+        ("Zg==", true),
+        ("", true),
+        ("A===", false),
+        ("====", false),
+        ("Zg=", false),
+        ("Zh==", false),
+        ("Zm9", false),
+        ("Zm9v\n", false),
+    ] {
+        assert_eq!(
+            fits(&root, &root, &json!({"d": text})).is_ok(),
+            ok,
+            "{text:?}"
+        );
+    }
+}

@@ -51,6 +51,17 @@ impl items::Server for FakeItems {
         ready(r)
     }
 
+    fn readiness(
+        self: capnp::capability::Rc<Self>,
+        _: items::ReadinessParams,
+        mut results: items::ReadinessResults,
+    ) -> impl Future<Output = Result<(), capnp::Error>> + 'static {
+        let mut report = results.get().init_report();
+        report.set_readiness(fs_interfaces::tasks_capnp::Readiness::DependencyCancelled);
+        report.init_by(1).set(0, "u1");
+        ready(Ok(()))
+    }
+
     fn delete(
         self: capnp::capability::Rc<Self>,
         _: items::DeleteParams,

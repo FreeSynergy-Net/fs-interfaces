@@ -145,10 +145,30 @@ pub fn name_looks_secret(name: &str) -> bool {
     secretish(name, SECRET_WORDS)
 }
 
-/// Does a schema comment say it holds a secret?
+/// Words in front of `key` that make it a key in the data sense (a label key of the language files, a sort key), not key
+/// material: "translation key", "label key", "sort key", "primary key", "foreign key", "cache key". A closed list: a
+/// comment that says anything else about a key is still a hit.
+const LABEL_BEFORE_KEY: &[&str] = &[
+    "translation",
+    "label",
+    "sort",
+    "primary",
+    "foreign",
+    "cache",
+];
+
+/// Does a schema comment say it holds a secret? The comment words of `DOC_WORDS` count, except `key`/`keys` right behind a
+/// word of [`LABEL_BEFORE_KEY`] (rule R1 of the word-list proposal, accepted at the review of M4).
 #[must_use]
 pub fn doc_looks_secret(doc: &str) -> bool {
-    secretish(doc, DOC_WORDS)
+    let ws = words(doc);
+    let word_hit = ws.iter().enumerate().any(|(i, w)| {
+        DOC_WORDS.contains(&w.as_str())
+            && !(matches!(w.as_str(), "key" | "keys")
+                && i.checked_sub(1)
+                    .is_some_and(|j| LABEL_BEFORE_KEY.contains(&ws[j].as_str())))
+    });
+    word_hit || NEEDLES.iter().any(|n| ws.concat().contains(n))
 }
 
 /// Is this a place for content the generator cannot judge: `Data` anywhere in the type, or a name such as

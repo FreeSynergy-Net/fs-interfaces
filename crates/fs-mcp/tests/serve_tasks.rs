@@ -123,13 +123,13 @@ fn the_list_is_byte_equal_every_time_and_is_what_the_screen_offers() {
     let v: Value = serde_json::from_str(&a).unwrap();
     assert_eq!(v["result"]["resultType"], "complete");
     let tools = v["result"]["tools"].as_array().unwrap();
-    assert_eq!(tools.len(), 19);
+    assert_eq!(tools.len(), 20);
     let names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert_eq!(names, s.tool_names());
     let mut sorted = names.clone();
     sorted.sort_unstable();
     sorted.dedup();
-    assert_eq!(sorted.len(), 19, "names are unique");
+    assert_eq!(sorted.len(), 20, "names are unique");
     for t in tools {
         assert_eq!(t["inputSchema"]["type"], "object", "{}", t["name"]);
         assert_eq!(t["_meta"]["net.freesynergy/mcp"]["actor"], "ai");
@@ -263,4 +263,25 @@ fn the_capabilities_must_be_an_object_and_params_must_be_an_object() {
     );
     assert_eq!(code(&a), -32602);
     assert!(a["error"]["message"].as_str().unwrap().contains("params"));
+}
+
+#[test]
+fn the_version_must_be_exactly_the_supported_one() {
+    let (s, _) = server();
+    for v in [
+        "2026-07-28x",
+        "2026-01-01",
+        "2026",
+        "2026-07-2",
+        " 2026-07-28",
+        "2026-07-28 ",
+        "2025-11-25",
+        "",
+    ] {
+        let mut m = meta(None);
+        m["io.modelcontextprotocol/protocolVersion"] = json!(v);
+        let a = ask(&s, &request(1, "ping", json!({"_meta": m})));
+        assert_eq!(code(&a), -32022, "{v:?}");
+        assert_eq!(a["error"]["data"]["requested"], v);
+    }
 }

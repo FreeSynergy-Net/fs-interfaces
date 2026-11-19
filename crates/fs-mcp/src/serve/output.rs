@@ -7,6 +7,7 @@
 //! version does not know, a capability, a value the generator could not read) is not shown as a number or dropped: the
 //! output is marked [`JsonOutput::problem`] and the call is an error.
 
+use capnp_compiler::cligen::model::kebab;
 use capnp_compiler::cligen::rt::{Output, Value as V};
 use serde_json::{Map, Number, Value};
 
@@ -72,6 +73,21 @@ impl<'s> JsonOutput<'s> {
         }
     }
 
+    /// The name of an enumerant as the schema writes it: the one in its `enum` list whose kebab form is `kebab_name`, else
+    /// the camel form.
+    fn contract_name(&self, field: &str, kebab_name: &str) -> String {
+        let listed = self
+            .child_schema(field)
+            .and_then(|s| s.get("enum")?.as_array())
+            .and_then(|names| {
+                names
+                    .iter()
+                    .filter_map(Value::as_str)
+                    .find(|n| kebab(n) == kebab_name)
+            });
+        listed.map_or_else(|| crate::program_marks::camel(kebab_name), str::to_owned)
+    }
+
     fn put(&mut self, name: &str, v: Value) {
         match self.stack.last_mut() {
             Some(Frame::Object(m)) => {
@@ -123,7 +139,8 @@ impl Output for JsonOutput<'_> {
             V::Float(f) => number(Number::from_f64(f)),
             V::Text(s) => Value::String(s.to_owned()),
             V::Data(b) => Value::String(base64::encode(b)),
-            V::Enum(n) => Value::String(n.to_owned()),
+            // the command code names an enumerant in kebab form; the schema lists the names of the contract
+            V::Enum(n) => Value::String(self.contract_name(name, n)),
             V::UnknownEnum(n) => {
                 self.mark(format!(
                     "`{name}` holds the enumerant {n}, which this version does not know"

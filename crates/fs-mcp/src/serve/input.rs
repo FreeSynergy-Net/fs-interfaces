@@ -107,9 +107,10 @@ impl Input for JsonInput {
     fn enumerant(&mut self, path: &str, names: &[&str]) -> Result<Option<usize>, CallError> {
         match self.given(path) {
             None => Ok(None),
+            // the JSON says the name of the contract (`dependsOn`), the command code the kebab form (`depends-on`)
             Some(Value::String(s)) => names
                 .iter()
-                .position(|n| n == s)
+                .position(|n| *n == kebab(s))
                 .map(Some)
                 .ok_or_else(|| bad(path, "not a name of this enumeration")),
             Some(_) => Err(bad(path, "a name of the enumeration is expected")),

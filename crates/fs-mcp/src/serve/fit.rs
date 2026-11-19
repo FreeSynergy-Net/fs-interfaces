@@ -35,7 +35,7 @@ fn join(path: &str, name: &str) -> String {
 }
 
 fn check(root: &Value, schema: &Value, value: &Value, path: &str) -> Result<(), String> {
-    let s = schema::resolve(root, schema);
+    let s = schema::try_resolve(root, schema)?;
     if let Some(alts) = s.get("anyOf").and_then(Value::as_array) {
         return if alts.iter().any(|a| check(root, a, value, path).is_ok()) {
             Ok(())
@@ -57,7 +57,12 @@ fn check(root: &Value, schema: &Value, value: &Value, path: &str) -> Result<(), 
         Some("boolean") if value.is_boolean() => Ok(()),
         Some("null") if value.is_null() => Ok(()),
         Some(t) => Err(format!("{} must be of type {t}", at(path))),
-        None => Ok(()),
+        // a schema that says nothing about the type is not "anything goes": the check fails closed
+        None if s.get("enum").is_some() => Ok(()),
+        None => Err(format!(
+            "the schema of {} names no type and cannot be checked",
+            at(path)
+        )),
     }
 }
 
@@ -126,6 +131,23 @@ fn string(s: &Value, value: &Value, path: &str) -> Result<(), String> {
     let Some(text) = value.as_str() else {
         return Err(format!("{} must be a string", at(path)));
     };
+    if let Some(pattern) = s.get("pattern").and_then(Value::as_str) {
+        // the two patterns the generator writes for 64-bit integers; any other pattern is not checked here, so it fails closed
+        let digits = |t: &str| !t.is_empty() && t.bytes().all(|b| b.is_ascii_digit());
+        let ok = match pattern {
+            "^[0-9]+$" => digits(text),
+            "^-?[0-9]+$" => digits(text.strip_prefix('-').unwrap_or(text)),
+            other => {
+                return Err(format!(
+                    "{} has a pattern ({other}) that this check does not know",
+                    at(path)
+                ));
+            }
+        };
+        if !ok {
+            return Err(format!("{} does not match its pattern", at(path)));
+        }
+    }
     if let Some(range) = s.get("x-fs-int") {
         // a 64-bit integer written as a string
         let n: i128 = text

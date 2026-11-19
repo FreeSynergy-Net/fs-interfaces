@@ -139,25 +139,13 @@ fn the_mark_file_format_is_strict() {
 }
 
 #[test]
-fn the_real_releases_lift_support_report_and_describe_still_has_a_second_hit() {
+fn the_real_releases_lift_support_report_and_describe_and_none_is_unused() {
     let catalog = real_catalog();
     let a = Surface::new(&catalog).admit(&On, tasks_mcp::TOOLS);
-    // support-report is offered by its release; types.describe has a second hit (`types.capnp:100`, "translation key" at
-    // `FieldDescription.label`) that the release of `TypeDescription.label` does not name: not released with it
-    assert_eq!(a.offered.len(), 19);
-    let refused: Vec<_> = a.refused.iter().map(|(t, _)| t.name).collect();
-    assert_eq!(refused, ["tasks.types.describe"]);
-    let why = catalog
-        .left_out
-        .iter()
-        .find(|l| l.target.as_str() == "types/TypeCatalog.describe")
-        .map(|l| l.why.clone());
-    assert_eq!(
-        why,
-        Some(Why::SecretSuspect {
-            path: "types/FieldDescription.label".to_owned()
-        })
-    );
+    // all 20: support-report by its release (`entries`), describe by its release (`choices`; the label comments are no
+    // hits since rule R1 of the comment words)
+    assert_eq!(a.offered.len(), 20);
+    assert_eq!(a.refused.len(), 0);
     // nothing lifted in vain
     assert_eq!(catalog.unused_releases, Vec::<Target>::new());
     assert_eq!(catalog.unused_release_paths, Vec::<(Target, String)>::new());
