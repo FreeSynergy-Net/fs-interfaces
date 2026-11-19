@@ -56,7 +56,7 @@ fn without_a_release_the_comment_word_keeps_the_tool_out_and_with_it_the_tool_is
     assert!(has_tool(&on, "Items", "report"));
     // only that tool: the release is for one tool
     assert!(has_tool(&on, "Items", "clean"));
-    assert!(on.unused_releases.is_empty());
+    assert_eq!(on.unused_releases.len(), 0);
 }
 
 #[test]
