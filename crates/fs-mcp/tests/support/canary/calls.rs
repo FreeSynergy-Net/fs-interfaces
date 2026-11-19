@@ -3,7 +3,7 @@
 //! Test helpers; no pattern of their own. One implementation serves every table (tasks, the vault).
 #![allow(dead_code)]
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use capnp_compiler::cligen::model::kebab;
@@ -22,8 +22,10 @@ pub enum Mode {
     Normal,
     /// Fails; the text of the error holds the given text (a canary, in the tests that look for echoes).
     RpcError(String),
-    /// Answers, but one of the values cannot be read.
+    /// Answers with a text that is the canary in every string, but one of the values cannot be read: the whole result must go.
     Unreadable,
+    /// Answers with its data and one field more than its contract declares (holding the canary).
+    Extra,
     /// Answers with nothing.
     Empty,
 }
@@ -37,6 +39,10 @@ pub struct StoreCalls {
     pub mode: Mode,
     /// Only walk the schemas and plant the canaries, write nothing.
     pub plant: bool,
+    /// In mode `Unreadable`: the next value is the one that cannot be read.
+    pub first_unreadable: Rc<Cell<bool>>,
+    /// In mode `Unreadable`: the text of every string.
+    pub text: Option<String>,
 }
 
 impl StoreCalls {
@@ -46,6 +52,8 @@ impl StoreCalls {
             released,
             mode: Mode::Normal,
             plant: false,
+            first_unreadable: Rc::default(),
+            text: None,
         }
     }
 
@@ -134,7 +142,14 @@ impl StoreCalls {
         } else {
             None
         };
-        let text = marker.clone().unwrap_or_else(|| "plain".to_owned());
+        let text = marker
+            .clone()
+            .or_else(|| self.text.clone())
+            .unwrap_or_else(|| "plain".to_owned());
+        if !self.plant && self.first_unreadable.replace(false) {
+            out.field(name, V::UnknownEnum(9));
+            return;
+        }
         if let Some(names) = pr.get("enum").and_then(Value::as_array) {
             if let Some(n) = names.first().and_then(Value::as_str) {
                 out.field(name, V::Enum(Box::leak(kebab(n).into_boxed_str())));
@@ -206,18 +221,25 @@ impl Calls for StoreCalls {
                     ));
                 }
                 Mode::Empty => return Ok(Outcome::none()),
-                Mode::Unreadable => {
-                    output.begin_struct("", "");
-                    output.field("x", V::Unreadable("any pointer"));
-                    output.field("y", V::UnknownEnum(9));
-                    output.end();
-                    return Ok(Outcome::none());
-                }
-                Mode::Normal => {}
+                Mode::Unreadable | Mode::Extra | Mode::Normal => {}
             }
             let root: Value = serde_json::from_str(schema).expect("the schema is JSON");
+            let canary = self
+                .table
+                .borrow()
+                .marker("(program error text)")
+                .map(str::to_owned)
+                .unwrap_or_default();
+            let me = Self {
+                first_unreadable: Rc::new(Cell::new(self.mode == Mode::Unreadable)),
+                text: (self.mode == Mode::Unreadable).then(|| canary.clone()),
+                ..self.clone()
+            };
             output.begin_struct("", "");
-            self.object(&root, &root, name, output, 0);
+            me.object(&root, &root, name, output, 0);
+            if self.mode == Mode::Extra {
+                output.field("zzExtra", V::Text(&canary));
+            }
             output.end();
             Ok(Outcome::none())
         }))

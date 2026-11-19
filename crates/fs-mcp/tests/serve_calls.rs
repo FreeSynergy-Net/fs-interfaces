@@ -139,7 +139,8 @@ impl fs_mcp::serve::Calls for Odd {
             if counted.is_some() {
                 // a result that could be shown: only the count of unreadable calls makes this call an error
                 output.begin_struct("", "");
-                output.field("ok", capnp_compiler::cligen::rt::Value::Bool(true));
+                output.begin_struct("capabilities", "");
+                output.end();
                 output.end();
             }
             let errors = match counted {
@@ -258,4 +259,46 @@ fn an_enumerant_in_a_result_is_written_with_its_contract_name_and_fits_the_schem
             .map(|e| e.to_string())
             .collect::<Vec<_>>()
     );
+}
+
+#[test]
+fn a_field_the_contract_does_not_declare_is_refused_with_the_whole_result() {
+    use capnp_compiler::cligen::rt::Value as V;
+    let schema = json!({"type":"object","properties":{"a":{"type":"string"},"inner":{"type":"object","properties":{"b":{"type":"string"}}}}});
+    let try_with = |f: &dyn Fn(&mut fs_mcp::serve::output::JsonOutput<'_>)| {
+        use capnp_compiler::cligen::rt::Output;
+        let mut o = fs_mcp::serve::output::JsonOutput::new(&schema);
+        o.begin_struct("", "");
+        f(&mut o);
+        o.end();
+        o.finish()
+    };
+    use capnp_compiler::cligen::rt::Output;
+    assert!(try_with(&|o| o.field("a", V::Text("x"))).is_ok());
+    for bad in [
+        try_with(&|o| o.field("extra", V::Text("x"))),
+        try_with(&|o| {
+            o.begin_struct("extra", "");
+            o.end();
+        }),
+        try_with(&|o| {
+            o.begin_list("extra", "");
+            o.end();
+        }),
+        try_with(&|o| {
+            o.begin_struct("inner", "");
+            o.field("b", V::Text("x"));
+            o.field("c", V::Text("y"));
+            o.end();
+        }),
+    ] {
+        assert!(bad.is_err(), "{bad:?}");
+    }
+    // a result that declares nothing takes nothing
+    let empty = json!({"type":"object","additionalProperties":false});
+    let mut o = fs_mcp::serve::output::JsonOutput::new(&empty);
+    o.begin_struct("", "");
+    o.field("x", V::Bool(true));
+    o.end();
+    assert!(o.finish().is_err());
 }

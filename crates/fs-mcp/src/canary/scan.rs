@@ -86,17 +86,8 @@ fn grams(table: &mut Table, canary: usize, enc: Encoding, form: &str) {
     }
 }
 
-fn hex(bytes: &[u8], upper: bool) -> String {
-    bytes
-        .iter()
-        .map(|b| {
-            if upper {
-                format!("{b:02X}")
-            } else {
-                format!("{b:02x}")
-            }
-        })
-        .collect()
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
 /// The part of the base64 text of `marker` that does not depend on the bytes around it, for the marker at byte offset
@@ -116,10 +107,10 @@ fn base64_core(marker: &str, o: usize, url: bool) -> String {
     }
 }
 
-/// The tables of one run, one per view of the text and window length.
+/// The tables of one run, one per view of the text and window length. Hex is searched in lower case only (the text is
+/// lowered too), so both cases are found.
 struct Tables {
     exact: Table,
-    exact_hex: Table,
     folded: Table,
     folded_hex: Table,
     alnum: Table,
@@ -128,7 +119,6 @@ struct Tables {
 fn tables(canaries: &[Canary]) -> Tables {
     let mut t = Tables {
         exact: Table::new(),
-        exact_hex: Table::new(),
         folded: Table::new(),
         folded_hex: Table::new(),
         alnum: Table::new(),
@@ -138,19 +128,7 @@ fn tables(canaries: &[Canary]) -> Tables {
         grams(&mut t.exact, i, Encoding::Raw, m);
         grams(&mut t.folded, i, Encoding::CaseFolded, &m.to_lowercase());
         grams(&mut t.alnum, i, Encoding::Separated, &m.to_lowercase());
-        grams(
-            &mut t.exact_hex,
-            i,
-            Encoding::Hex,
-            &hex(m.as_bytes(), false),
-        );
-        grams(&mut t.exact_hex, i, Encoding::Hex, &hex(m.as_bytes(), true));
-        grams(
-            &mut t.folded_hex,
-            i,
-            Encoding::Hex,
-            &hex(m.as_bytes(), false),
-        );
+        grams(&mut t.folded_hex, i, Encoding::Hex, &hex(m.as_bytes()));
         for o in 0..3_u8 {
             grams(
                 &mut t.exact,
@@ -192,11 +170,7 @@ fn look(
             // a window of the constant prefix belongs to every marker: say so once, instead of naming a field at random
             let (path, marker, class) = if distinct.len() > 1 {
                 // the start every marker of a class shares: no field can be named; the worst class among them counts
-                let worst = distinct
-                    .iter()
-                    .map(|d| canaries[*d].class)
-                    .min()
-                    .unwrap_or(Class::Secret);
+                let worst = canaries[*distinct.iter().next().unwrap_or(&0)].class;
                 (ANY.to_owned(), worst.prefix().to_owned(), worst)
             } else {
                 (
@@ -237,7 +211,6 @@ pub fn scan(haystack: &str, canaries: &[Canary]) -> Vec<Hit> {
             look(table, len, view, label, canaries, &mut seen, &mut out);
         };
         go(&t.exact, WINDOW, &text);
-        go(&t.exact_hex, 2 * WINDOW, &text);
         go(&t.folded, WINDOW, &lower);
         go(&t.folded_hex, 2 * WINDOW, &lower);
         go(&t.alnum, WINDOW, &alnum);

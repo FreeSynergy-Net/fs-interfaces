@@ -73,6 +73,7 @@ fn schema() -> Value {
         "properties": {
             "n": {"type": "integer"},
             "e": {"type": "string", "enum": ["open", "dependencyCancelled"]},
+            "e2": {"type": "string"}, "t": {"type": "string"}, "d": {"type": "string"}, "nan": {}, "inf": {}, "ninf": {}, "fl": {}, "b": {"type": "boolean"},
             "wide": {"type": "string", "x-fs-int": {"bits": 64}},
             "inner": {"$ref": "#/$defs/Inner"},
             "list": {"type": "array", "items": {"$ref": "#/$defs/Inner"}}

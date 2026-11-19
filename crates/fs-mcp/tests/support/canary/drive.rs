@@ -189,6 +189,7 @@ pub fn drive(f: &mut Findings, p: &Prog, table: &Rc<RefCell<CanaryTable>>) {
             )),
             Mode::RpcError(format!("could not decrypt with {key:?}")),
             Mode::Unreadable,
+            Mode::Extra,
             Mode::Empty,
         ];
         for mode in failing {

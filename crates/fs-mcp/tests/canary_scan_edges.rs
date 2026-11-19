@@ -168,12 +168,24 @@ fn the_class_of_a_marker_is_in_the_hit_and_both_classes_are_found() {
         only.is_empty(),
         "six characters are less than a window: {only:?}"
     );
-    let mut two = CanaryTable::new();
-    two.plant_as("a", Class::Sensitive);
-    two.plant_as("b", Class::Sensitive);
+    // two markers of known content: the shared six characters plus two that differ from both
+    let mk = |path: &str, fill: char| Canary {
+        path: path.into(),
+        marker: format!("FSSENS{}", fill.to_string().repeat(24)),
+        class: Class::Sensitive,
+    };
+    let two = [mk("a", 'Q'), mk("b", 'R')];
     assert_eq!(
-        scan("<FSSENSAB>", two.all()),
+        scan("<FSSENSAB>", &two),
         vec![],
-        "8 characters, but the marker's random part differs"
+        "8 characters, but the random part differs"
+    );
+    let hits = scan("<FSSENSQQ>", &two);
+    assert!(
+        !hits.is_empty()
+            && hits
+                .iter()
+                .all(|h| h.path == "a" && h.class == Class::Sensitive),
+        "{hits:?}"
     );
 }

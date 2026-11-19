@@ -73,6 +73,18 @@ impl<'s> JsonOutput<'s> {
         }
     }
 
+    /// Is `name` a field the contract does not declare? (The parent is an object of the output schema and has no such property.)
+    /// A program that gives more than its contract says is a leak waiting to happen, so the whole result is refused.
+    fn undeclared(&self, name: &str) -> bool {
+        let Some(Some(parent)) = self.schemas.last() else {
+            return false;
+        };
+        let parent = schema::resolve(self.root_schema, parent);
+        matches!(self.stack.last(), Some(Frame::Object(_)))
+            && parent.get("type").and_then(Value::as_str) == Some("object")
+            && parent.get("properties").and_then(|p| p.get(name)).is_none()
+    }
+
     /// The name of an enumerant as the schema writes it: the one in its `enum` list whose kebab form is `kebab_name`, else
     /// the camel form.
     fn contract_name(&self, field: &str, kebab_name: &str) -> String {
@@ -99,6 +111,9 @@ impl<'s> JsonOutput<'s> {
     }
 
     fn open(&mut self, name: &str, frame: Frame) {
+        if self.undeclared(name) {
+            self.mark(format!("`{name}` is not a field of the contract"));
+        }
         let s = if self.stack.is_empty() {
             Some(schema::resolve(self.root_schema, self.root_schema))
         } else {
@@ -124,6 +139,14 @@ impl Output for JsonOutput<'_> {
     }
 
     fn field(&mut self, name: &str, value: V<'_>) {
+        if matches!(value, V::Void) {
+            // a `Void` is left out: the codec writes nothing for it and the schema does not require it
+            return;
+        }
+        if self.undeclared(name) {
+            self.mark(format!("`{name}` is not a field of the contract"));
+            return;
+        }
         let wide = self.child_schema(name).is_some_and(schema::is_wide_int);
         let v = match value {
             // a `Void` is left out: the codec writes nothing for a null pointer and the schema does not require it
