@@ -63,10 +63,9 @@ fn narrow_hit(doc: &str) -> bool {
     }
     !hits.iter().all(|&i| {
         let before = |k: usize| i.checked_sub(k).map(|j| w[j].as_str());
-        let negated = matches!(before(1), Some("no" | "not"))
+        matches!(before(1), Some("no" | "not"))
             || (matches!(before(1), Some("a" | "an" | "any" | "the"))
-                && matches!(before(2), Some("no" | "not")));
-        negated
+                && matches!(before(2), Some("no" | "not")))
     })
 }
 
