@@ -40,3 +40,8 @@ messages.matrix | Matrix | planned | A Matrix homeserver (client-server and fede
 messages.matrix.oidc-server | Matrix sign-in server | planned | The OAuth 2.0 / OpenID Connect server of a Matrix homeserver, for Matrix clients only (named by fs-tuwunel)
 settings | Settings | planned | Settings of a person and instance defaults (fs-settings, ADR 0100)
 layouts | Layouts | planned | Frontend descriptions, overlays and locks (fs-forms, ADR 0096)
+board.open | Open boards | stable | Listing task boards and their columns with the cards in them
+board.create | Create boards | stable | Creating a task board
+column.create | Create columns | stable | Adding, renaming and removing the columns of a task board
+column.limit | Column limits | stable | Setting the limit of cards of a column (reported, never enforced)
+card.move | Move cards | stable | Placing the card of a task in a column of a board

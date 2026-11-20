@@ -142,9 +142,9 @@ fn the_mark_file_format_is_strict() {
 fn the_real_releases_lift_support_report_and_describe_and_none_is_unused() {
     let catalog = real_catalog();
     let a = Surface::new(&catalog).admit(&On, tasks_mcp::TOOLS);
-    // all 20: support-report by its release (`entries`), describe by its release (`choices`; the label comments are no
+    // all 25 (20 + the five of `Boards`, 0.0.29, which need no release): support-report by its release (`entries`), describe by its release (`choices`; the label comments are no
     // hits since rule R1 of the comment words)
-    assert_eq!(a.offered.len(), 20);
+    assert_eq!(a.offered.len(), 25);
     assert_eq!(a.refused.len(), 0);
     // nothing lifted in vain
     assert_eq!(catalog.unused_releases, Vec::<Target>::new());

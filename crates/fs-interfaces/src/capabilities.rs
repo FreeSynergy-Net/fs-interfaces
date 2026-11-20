@@ -42,6 +42,16 @@ pub mod name {
     pub const COMMENTS: &str = "comments";
     /// Readiness of tasks from their dependencies.
     pub const DEPENDENCY_EVALUATE: &str = "dependency.evaluate";
+    /// Listing task boards and their layout.
+    pub const BOARD_OPEN: &str = "board.open";
+    /// Creating a task board.
+    pub const BOARD_CREATE: &str = "board.create";
+    /// Adding, renaming and removing the columns of a task board.
+    pub const COLUMN_CREATE: &str = "column.create";
+    /// Setting the limit of cards of a column.
+    pub const COLUMN_LIMIT: &str = "column.limit";
+    /// Placing a card in a column.
+    pub const CARD_MOVE: &str = "card.move";
     /// A storage provider.
     pub const STORAGE_PROVIDER: &str = "storage.provider";
     /// Sign-in with `OpenID` Connect.

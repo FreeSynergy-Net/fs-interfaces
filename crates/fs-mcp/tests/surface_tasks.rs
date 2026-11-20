@@ -41,8 +41,8 @@ fn every_tool_is_offered_or_refused_with_a_reason_and_the_table_is_complete() {
     let catalog = real_catalog();
     let a = Surface::new(&catalog).admit(&On, tasks_mcp::TOOLS);
     assert_eq!(a.offered.len() + a.refused.len(), tasks_mcp::TOOLS.len());
-    // with the written releases of the mark files: all 20 (see tests/tool_release.rs)
-    assert_eq!(a.offered.len(), 20);
+    // with the written releases of the mark files: all 25 (see tests/tool_release.rs)
+    assert_eq!(a.offered.len(), 25);
     assert_eq!(a.refused.len(), 0);
     // the table is in walk order and unique
     let mut names: Vec<&str> = tasks_mcp::TOOLS.iter().map(|t| t.name).collect();
@@ -199,7 +199,7 @@ fn without_the_releases_exactly_two_tools_are_refused_each_with_its_reason() {
     let g = fs_mcp::Generator::new(&no, Blocklist::standard());
     let catalog = g.generate(&support::real::contracts()).unwrap();
     let a = Surface::new(&catalog).admit(&On, tasks_mcp::TOOLS);
-    assert_eq!(a.offered.len(), 18);
+    assert_eq!(a.offered.len(), 23);
     let refused: Vec<_> = a.refused.iter().map(|(t, r)| (t.name, *r)).collect();
     assert_eq!(
         refused,

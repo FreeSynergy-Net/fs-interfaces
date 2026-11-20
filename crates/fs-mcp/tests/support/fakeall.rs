@@ -4,11 +4,12 @@
 
 use std::future::{Future, ready};
 
-use fs_interfaces::tasks_capnp::{items, tasks};
+use fs_interfaces::tasks_capnp::{boards, items, tasks};
 use fs_types::types_capnp::type_catalog;
 
 pub struct All;
 struct AllItems;
+struct AllBoards;
 struct AllTypes;
 
 macro_rules! plain {
@@ -79,6 +80,26 @@ impl items::Server for AllItems {
     }
 }
 
+impl boards::Server for AllBoards {
+    plain!(create, boards::CreateParams, boards::CreateResults);
+    plain!(layout, boards::LayoutParams, boards::LayoutResults);
+    plain!(
+        edit_columns,
+        boards::EditColumnsParams,
+        boards::EditColumnsResults
+    );
+    plain!(move_card, boards::MoveCardParams, boards::MoveCardResults);
+
+    fn list(
+        self: capnp::capability::Rc<Self>,
+        _: boards::ListParams,
+        mut r: boards::ListResults,
+    ) -> impl Future<Output = Result<(), capnp::Error>> + 'static {
+        r.get().init_boards(2);
+        ready(Ok(()))
+    }
+}
+
 impl type_catalog::Server for AllTypes {
     plain!(
         describe,
@@ -105,6 +126,15 @@ impl tasks::Server for All {
         mut r: tasks::ItemsResults,
     ) -> impl Future<Output = Result<(), capnp::Error>> + 'static {
         r.get().set_items(capnp_rpc::new_client(AllItems));
+        ready(Ok(()))
+    }
+
+    fn boards(
+        self: capnp::capability::Rc<Self>,
+        _: tasks::BoardsParams,
+        mut r: tasks::BoardsResults,
+    ) -> impl Future<Output = Result<(), capnp::Error>> + 'static {
+        r.get().set_boards(capnp_rpc::new_client(AllBoards));
         ready(Ok(()))
     }
 

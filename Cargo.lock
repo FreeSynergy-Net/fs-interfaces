@@ -383,7 +383,7 @@ dependencies = [
 
 [[package]]
 name = "fs-interfaces"
-version = "0.0.28"
+version = "0.0.29"
 dependencies = [
  "capnp",
  "capnp-compiler",
@@ -394,7 +394,7 @@ dependencies = [
 
 [[package]]
 name = "fs-mcp"
-version = "0.0.28"
+version = "0.0.29"
 dependencies = [
  "capnp",
  "capnp-compiler",
@@ -1167,7 +1167,7 @@ dependencies = [
 
 [[package]]
 name = "regenerate"
-version = "0.0.28"
+version = "0.0.29"
 dependencies = [
  "capnp-compiler",
  "capnpc",

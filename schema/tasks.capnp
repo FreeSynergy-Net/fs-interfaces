@@ -84,12 +84,13 @@ struct ImportReport {
 }
 
 # root capability (capability ids: task.create, task.edit, task.assign, relation.create, label.assign,
-# task.read, task.query, task.delete, task.import, task.export, task.subscribe; boards: board.*, later)
+# task.read, task.query, task.delete, task.import, task.export, task.subscribe; boards: board.open, board.create,
+# column.create, column.limit, card.move)
 interface Tasks {
   capabilities @0 () -> (capabilities :CapabilityList);
   items        @1 () -> (items :Items);
   subscribe    @2 (listener :ChangeListener) -> (subscription :Subscription);
-  boards       @3 () -> (boards :Boards);      # placeholder, see below
+  boards       @3 () -> (boards :Boards);      # methods since 0.0.29, see below
   supportReport @4 () -> (report :C.SupportReport);  # provider rule (ADR 0045)
   # The data types this program owns (`Task`) and what can be done with them (ADR 0066), for a generated frontend.
   types         @5 () -> (catalog :T.TypeCatalog);
@@ -121,8 +122,50 @@ interface Items {
   # its extension `path` repeats once for every uid of the cycle, in order.
 }
 
-# PLACEHOLDER — declared so the root can hand it out; NOT implemented and without methods yet.
-# Planned (design.md): board.open, board.create, column.create, column.limit, card.move.
-# Moving a card is an `Update` on `task_link`, never on the task (projects/technical.md).
+# Boards (methods appended in 0.0.29; the interface was empty before). The Rust form is the trait `Boards` in
+# crates/fs-tasks-core. A board is its own object, never a member of a task (a task can be on several boards); a card is a
+# task `uid`. Capability ids: board.open (list, layout), board.create (create), column.create and column.limit (editColumns),
+# card.move (moveCard). Moving a card is an `Update` on `task_link`, never on the task (projects/technical.md); the progress
+# of the task does not change by it (that is an edit of the task).
+
+# One column of a board. `id` is stable inside the board.
+struct BoardColumn {
+  id       @0 :Text;
+  name     @1 :Text;
+  wipLimit @2 :UInt32;            # the most cards the column should hold; 0 = no limit. More is reported by the layout, never refused
+  progress @3 :List(Text);        # the `progress` values whose tasks stand in this column unless they were placed elsewhere
+}
+
+# The placed cards of one column: the task `uid`s, top to bottom.
+struct Placement { column @0 :Text; cards @1 :List(Text); }
+
+struct Board {
+  envelope @0 :Envelope;          # the board as an object (id, name, times)
+  name     @1 :Text;
+  label    @2 :Text;              # the tasks on it: those with this JSCalendar keyword; empty = every task (placed cards are on it too)
+  columns  @3 :List(BoardColumn); # left to right
+  order    @4 :List(Placement);   # only columns that hold placed cards
+  revision @5 :UInt64;            # changes at every write (for editColumns); compare for equality only, it is no counter
+}
+
+# A column with the cards in it now: the placed ones first, then those whose progress puts them there.
+struct ColumnLayout {
+  column    @0 :BoardColumn;
+  cards     @1 :List(Text);       # task `uid`s, top to bottom
+  overLimit @2 :Bool;             # more cards than the limit says (false without a limit); a report, never a refusal
+}
+
+struct BoardLayout { columns @0 :List(ColumnLayout); }
+
 interface Boards {
+  create      @0 (name :Text, label :Text) -> (board :Board);                                                 # board.create; the standard columns (to do, in progress, done, closed); empty label = every task
+  list        @1 () -> (boards :List(Board));                                                                 # board.open; by name
+  layout      @2 (id :Uuid) -> (layout :BoardLayout);                                                         # board.open; the columns with their cards now
+  # Replaces the columns (and so their limits) and the placed cards, only if the board still has `revision`; otherwise it fails
+  # with a reason starting `conflict:` and writes nothing. A board that is not valid (no column, a column id empty or twice,
+  # a limit that makes no sense, a card placed twice or in a column that does not exist) fails with a reason starting `rejected:`.
+  editColumns @3 (id :Uuid, revision :UInt64, columns :List(BoardColumn), order :List(Placement)) -> (board :Board);   # column.create, column.limit
+  # Places the card of the task `uid` in `column` at `index` (negative = at the end; larger than the column = at the end) and takes
+  # it out of any other place. A full column does not refuse it. An unknown column fails with a reason starting `rejected:`.
+  moveCard    @4 (id :Uuid, uid :Text, column :Text, index :Int32) -> (board :Board);                         # card.move
 }

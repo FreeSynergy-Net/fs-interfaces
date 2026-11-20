@@ -302,6 +302,88 @@ pub const COMMANDS: &[Command] = &[
         annotations: &[],
     },
     Command {
+        words: &["boards", "create"],
+        key: "tasks/Boards.create",
+        iface_id: 0xdae6a323bf43c7ca,
+        ordinal: 0,
+        params: &[
+            Param { path: "name", ty: ParamTy::Text, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "label", ty: ParamTy::Text, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+        ],
+        watch: false,
+        renamed: false,
+        doc: "board.create; the standard columns (to do, in progress, done, closed); empty label = every task",
+        annotations: &[],
+    },
+    Command {
+        words: &["boards", "list"],
+        key: "tasks/Boards.list",
+        iface_id: 0xdae6a323bf43c7ca,
+        ordinal: 1,
+        params: &[],
+        watch: false,
+        renamed: false,
+        doc: "board.open; by name",
+        annotations: &[],
+    },
+    Command {
+        words: &["boards", "layout"],
+        key: "tasks/Boards.layout",
+        iface_id: 0xdae6a323bf43c7ca,
+        ordinal: 2,
+        params: &[
+            Param { path: "id", ty: ParamTy::Struct, ty_name: "Uuid", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.hi", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.lo", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+        ],
+        watch: false,
+        renamed: false,
+        doc: "board.open; the columns with their cards now\nReplaces the columns (and so their limits) and the placed cards, only if the board still has `revision`; otherwise it fails\nwith a reason starting `conflict:` and writes nothing. A board that is not valid (no column, a column id empty or twice,\na limit that makes no sense, a card placed twice or in a column that does not exist) fails with a reason starting `rejected:`.",
+        annotations: &[],
+    },
+    Command {
+        words: &["boards", "edit-columns"],
+        key: "tasks/Boards.editColumns",
+        iface_id: 0xdae6a323bf43c7ca,
+        ordinal: 3,
+        params: &[
+            Param { path: "id", ty: ParamTy::Struct, ty_name: "Uuid", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.hi", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.lo", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "revision", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "columns", ty: ParamTy::List, ty_name: "BoardColumn", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "columns.*.id", ty: ParamTy::Text, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "columns.*.name", ty: ParamTy::Text, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "columns.*.wip-limit", ty: ParamTy::Int { signed: false, bits: 32 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "the most cards the column should hold; 0 = no limit. More is reported by the layout, never refused" },
+            Param { path: "columns.*.progress", ty: ParamTy::List, ty_name: "Text", union_of: None, hint: "", secret: false, doc: "the `progress` values whose tasks stand in this column unless they were placed elsewhere" },
+            Param { path: "order", ty: ParamTy::List, ty_name: "Placement", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "order.*.column", ty: ParamTy::Text, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "order.*.cards", ty: ParamTy::List, ty_name: "Text", union_of: None, hint: "", secret: false, doc: "" },
+        ],
+        watch: false,
+        renamed: false,
+        doc: "column.create, column.limit\nPlaces the card of the task `uid` in `column` at `index` (negative = at the end; larger than the column = at the end) and takes\nit out of any other place. A full column does not refuse it. An unknown column fails with a reason starting `rejected:`.",
+        annotations: &[],
+    },
+    Command {
+        words: &["boards", "move-card"],
+        key: "tasks/Boards.moveCard",
+        iface_id: 0xdae6a323bf43c7ca,
+        ordinal: 4,
+        params: &[
+            Param { path: "id", ty: ParamTy::Struct, ty_name: "Uuid", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.hi", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.lo", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "uid", ty: ParamTy::Text, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "column", ty: ParamTy::Text, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "index", ty: ParamTy::Int { signed: true, bits: 32 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+        ],
+        watch: false,
+        renamed: false,
+        doc: "card.move",
+        annotations: &[],
+    },
+    Command {
         words: &["support-report"],
         key: "tasks/Tasks.supportReport",
         iface_id: 0xb8a98bc6d030a118,
@@ -355,6 +437,11 @@ pub fn dispatch(words: &[&str]) -> Option<Runner> {
         ["items", "dependents"] => Some(|r, i, o| Box::pin(run_items_dependents(r, i, o))),
         ["items", "create-relation-with-gap"] => Some(|r, i, o| Box::pin(run_items_create_relation_with_gap(r, i, o))),
         ["subscribe"] => Some(|r, i, o| Box::pin(run_tasks_subscribe(r, i, o))),
+        ["boards", "create"] => Some(|r, i, o| Box::pin(run_boards_create(r, i, o))),
+        ["boards", "list"] => Some(|r, i, o| Box::pin(run_boards_list(r, i, o))),
+        ["boards", "layout"] => Some(|r, i, o| Box::pin(run_boards_layout(r, i, o))),
+        ["boards", "edit-columns"] => Some(|r, i, o| Box::pin(run_boards_edit_columns(r, i, o))),
+        ["boards", "move-card"] => Some(|r, i, o| Box::pin(run_boards_move_card(r, i, o))),
         ["support-report"] => Some(|r, i, o| Box::pin(run_tasks_support_report(r, i, o))),
         ["types", "describe"] => Some(|r, i, o| Box::pin(run_type_catalog_describe(r, i, o))),
         _ => None,
@@ -569,6 +656,56 @@ pub async fn run_tasks_subscribe(root: &::fs_interfaces::tasks_capnp::tasks::Cli
     Ok(Outcome::new(Held::new(resp), vec![errors_0]))
 }
 
+/// `tasks/Boards.create` board.create; the standard columns (to do, in progress, done, closed); empty label = every task
+pub async fn run_boards_create(root: &::fs_interfaces::tasks_capnp::tasks::Client, inp: &mut dyn Input, out: &mut dyn Output) -> Result<Outcome, CallError> {
+    let c0 = root.boards_request().send().pipeline.get_boards();
+    let mut req = c0.create_request();
+    set_tasks_capnp_boards_create_params(req.get(), inp, "")?;
+    let resp = req.send().promise.await?;
+    out_tasks_capnp_boards_create_results(resp.get()?, "", out)?;
+    Ok(Outcome::none())
+}
+
+/// `tasks/Boards.list` board.open; by name
+pub async fn run_boards_list(root: &::fs_interfaces::tasks_capnp::tasks::Client, inp: &mut dyn Input, out: &mut dyn Output) -> Result<Outcome, CallError> {
+    let c0 = root.boards_request().send().pipeline.get_boards();
+    let mut req = c0.list_request();
+    set_tasks_capnp_boards_list_params(req.get(), inp, "")?;
+    let resp = req.send().promise.await?;
+    out_tasks_capnp_boards_list_results(resp.get()?, "", out)?;
+    Ok(Outcome::none())
+}
+
+/// `tasks/Boards.layout` board.open; the columns with their cards now
+pub async fn run_boards_layout(root: &::fs_interfaces::tasks_capnp::tasks::Client, inp: &mut dyn Input, out: &mut dyn Output) -> Result<Outcome, CallError> {
+    let c0 = root.boards_request().send().pipeline.get_boards();
+    let mut req = c0.layout_request();
+    set_tasks_capnp_boards_layout_params(req.get(), inp, "")?;
+    let resp = req.send().promise.await?;
+    out_tasks_capnp_boards_layout_results(resp.get()?, "", out)?;
+    Ok(Outcome::none())
+}
+
+/// `tasks/Boards.editColumns` column.create, column.limit
+pub async fn run_boards_edit_columns(root: &::fs_interfaces::tasks_capnp::tasks::Client, inp: &mut dyn Input, out: &mut dyn Output) -> Result<Outcome, CallError> {
+    let c0 = root.boards_request().send().pipeline.get_boards();
+    let mut req = c0.edit_columns_request();
+    set_tasks_capnp_boards_edit_columns_params(req.get(), inp, "")?;
+    let resp = req.send().promise.await?;
+    out_tasks_capnp_boards_edit_columns_results(resp.get()?, "", out)?;
+    Ok(Outcome::none())
+}
+
+/// `tasks/Boards.moveCard` card.move
+pub async fn run_boards_move_card(root: &::fs_interfaces::tasks_capnp::tasks::Client, inp: &mut dyn Input, out: &mut dyn Output) -> Result<Outcome, CallError> {
+    let c0 = root.boards_request().send().pipeline.get_boards();
+    let mut req = c0.move_card_request();
+    set_tasks_capnp_boards_move_card_params(req.get(), inp, "")?;
+    let resp = req.send().promise.await?;
+    out_tasks_capnp_boards_move_card_results(resp.get()?, "", out)?;
+    Ok(Outcome::none())
+}
+
 /// `tasks/Tasks.supportReport` provider rule (ADR 0045)
 pub async fn run_tasks_support_report(root: &::fs_interfaces::tasks_capnp::tasks::Client, inp: &mut dyn Input, out: &mut dyn Output) -> Result<Outcome, CallError> {
     let mut req = root.support_report_request();
@@ -649,6 +786,104 @@ fn set_common_capnp_uuid(mut b: ::fs_interfaces::common_capnp::uuid::Builder<'_>
     let p = join(path, "lo");
     if let Some(v) = inp.int(&p)? {
         b.set_lo(u64::try_from(v).map_err(|_| CallError::out_of_range(&p, "u64"))?);
+    }
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_board_column(mut b: ::fs_interfaces::tasks_capnp::board_column::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    let p = join(path, "id");
+    if let Some(v) = inp.text(&p)? {
+        b.set_id(v.as_str());
+    }
+    let p = join(path, "name");
+    if let Some(v) = inp.text(&p)? {
+        b.set_name(v.as_str());
+    }
+    let p = join(path, "wip-limit");
+    if let Some(v) = inp.int(&p)? {
+        b.set_wip_limit(u32::try_from(v).map_err(|_| CallError::out_of_range(&p, "u32"))?);
+    }
+    let p = join(path, "progress");
+    if let Some(n) = inp.count(&p)? {
+        let mut l = b.reborrow().init_progress(n);
+        for i0 in 0..n {
+            let e0 = join(&p, &i0.to_string());
+            if let Some(v) = inp.text(&e0)? {
+                l.set(i0, v.as_str());
+            }
+        }
+    }
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_boards_create_params(mut b: ::fs_interfaces::tasks_capnp::boards::create_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    let p = join(path, "name");
+    if let Some(v) = inp.text(&p)? {
+        b.set_name(v.as_str());
+    }
+    let p = join(path, "label");
+    if let Some(v) = inp.text(&p)? {
+        b.set_label(v.as_str());
+    }
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_boards_edit_columns_params(mut b: ::fs_interfaces::tasks_capnp::boards::edit_columns_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    let p = join(path, "id");
+    if inp.has(&p) { set_common_capnp_uuid(b.reborrow().init_id(), inp, &p)?; }
+    let p = join(path, "revision");
+    if let Some(v) = inp.int(&p)? {
+        b.set_revision(u64::try_from(v).map_err(|_| CallError::out_of_range(&p, "u64"))?);
+    }
+    let p = join(path, "columns");
+    if let Some(n) = inp.count(&p)? {
+        let mut l = b.reborrow().init_columns(n);
+        for i0 in 0..n {
+            let e0 = join(&p, &i0.to_string());
+            set_tasks_capnp_board_column(l.reborrow().get(i0), inp, &e0)?;
+        }
+    }
+    let p = join(path, "order");
+    if let Some(n) = inp.count(&p)? {
+        let mut l = b.reborrow().init_order(n);
+        for i0 in 0..n {
+            let e0 = join(&p, &i0.to_string());
+            set_tasks_capnp_placement(l.reborrow().get(i0), inp, &e0)?;
+        }
+    }
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_boards_layout_params(mut b: ::fs_interfaces::tasks_capnp::boards::layout_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    let p = join(path, "id");
+    if inp.has(&p) { set_common_capnp_uuid(b.reborrow().init_id(), inp, &p)?; }
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_boards_list_params(mut b: ::fs_interfaces::tasks_capnp::boards::list_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_boards_move_card_params(mut b: ::fs_interfaces::tasks_capnp::boards::move_card_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    let p = join(path, "id");
+    if inp.has(&p) { set_common_capnp_uuid(b.reborrow().init_id(), inp, &p)?; }
+    let p = join(path, "uid");
+    if let Some(v) = inp.text(&p)? {
+        b.set_uid(v.as_str());
+    }
+    let p = join(path, "column");
+    if let Some(v) = inp.text(&p)? {
+        b.set_column(v.as_str());
+    }
+    let p = join(path, "index");
+    if let Some(v) = inp.int(&p)? {
+        b.set_index(i32::try_from(v).map_err(|_| CallError::out_of_range(&p, "i32"))?);
     }
     Ok(())
 }
@@ -827,6 +1062,25 @@ fn set_tasks_capnp_items_query_params(mut b: ::fs_interfaces::tasks_capnp::items
 fn set_tasks_capnp_items_readiness_params(mut b: ::fs_interfaces::tasks_capnp::items::readiness_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
     let p = join(path, "id");
     if inp.has(&p) { set_common_capnp_uuid(b.reborrow().init_id(), inp, &p)?; }
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_placement(mut b: ::fs_interfaces::tasks_capnp::placement::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    let p = join(path, "column");
+    if let Some(v) = inp.text(&p)? {
+        b.set_column(v.as_str());
+    }
+    let p = join(path, "cards");
+    if let Some(n) = inp.count(&p)? {
+        let mut l = b.reborrow().init_cards(n);
+        for i0 in 0..n {
+            let e0 = join(&p, &i0.to_string());
+            if let Some(v) = inp.text(&e0)? {
+                l.set(i0, v.as_str());
+            }
+        }
+    }
     Ok(())
 }
 
@@ -1074,6 +1328,130 @@ fn out_common_capnp_uuid(r: ::fs_interfaces::common_capnp::uuid::Reader<'_>, nam
 }
 
 #[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_board(r: ::fs_interfaces::tasks_capnp::board::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "Board");
+    out_common_capnp_envelope(r.get_envelope()?, "envelope", out)?;
+    out.field("name", Value::Text(r.get_name()?.to_str()?));
+    out.field("label", Value::Text(r.get_label()?.to_str()?));
+    {
+        let l = r.get_columns()?;
+        out.begin_list("columns", "BoardColumn");
+        for item in l.iter() {
+            out_tasks_capnp_board_column(item, "", out)?;
+        }
+        out.end();
+    }
+    {
+        let l = r.get_order()?;
+        out.begin_list("order", "Placement");
+        for item in l.iter() {
+            out_tasks_capnp_placement(item, "", out)?;
+        }
+        out.end();
+    }
+    out.field("revision", Value::Uint(r.get_revision()));
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_board_column(r: ::fs_interfaces::tasks_capnp::board_column::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "BoardColumn");
+    out.field("id", Value::Text(r.get_id()?.to_str()?));
+    out.field("name", Value::Text(r.get_name()?.to_str()?));
+    out.field("wipLimit", Value::Uint(u64::from(r.get_wip_limit())));
+    {
+        let l = r.get_progress()?;
+        out.begin_list("progress", "Text");
+        for item in l.iter() {
+            out.field("", Value::Text(item?.to_str()?));
+        }
+        out.end();
+    }
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_board_layout(r: ::fs_interfaces::tasks_capnp::board_layout::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "BoardLayout");
+    {
+        let l = r.get_columns()?;
+        out.begin_list("columns", "ColumnLayout");
+        for item in l.iter() {
+            out_tasks_capnp_column_layout(item, "", out)?;
+        }
+        out.end();
+    }
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_boards_create_results(r: ::fs_interfaces::tasks_capnp::boards::create_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "");
+    out_tasks_capnp_board(r.get_board()?, "board", out)?;
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_boards_edit_columns_results(r: ::fs_interfaces::tasks_capnp::boards::edit_columns_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "");
+    out_tasks_capnp_board(r.get_board()?, "board", out)?;
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_boards_layout_results(r: ::fs_interfaces::tasks_capnp::boards::layout_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "");
+    out_tasks_capnp_board_layout(r.get_layout()?, "layout", out)?;
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_boards_list_results(r: ::fs_interfaces::tasks_capnp::boards::list_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "");
+    {
+        let l = r.get_boards()?;
+        out.begin_list("boards", "Board");
+        for item in l.iter() {
+            out_tasks_capnp_board(item, "", out)?;
+        }
+        out.end();
+    }
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_boards_move_card_results(r: ::fs_interfaces::tasks_capnp::boards::move_card_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "");
+    out_tasks_capnp_board(r.get_board()?, "board", out)?;
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_column_layout(r: ::fs_interfaces::tasks_capnp::column_layout::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "ColumnLayout");
+    out_tasks_capnp_board_column(r.get_column()?, "column", out)?;
+    {
+        let l = r.get_cards()?;
+        out.begin_list("cards", "Text");
+        for item in l.iter() {
+            out.field("", Value::Text(item?.to_str()?));
+        }
+        out.end();
+    }
+    out.field("overLimit", Value::Bool(r.get_over_limit()));
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
 fn out_tasks_capnp_import_report(r: ::fs_interfaces::tasks_capnp::import_report::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
     out.begin_struct(name, "ImportReport");
     {
@@ -1259,6 +1637,22 @@ fn out_tasks_capnp_items_query_results(r: ::fs_interfaces::tasks_capnp::items::q
 fn out_tasks_capnp_items_readiness_results(r: ::fs_interfaces::tasks_capnp::items::readiness_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
     out.begin_struct(name, "");
     out_tasks_capnp_readiness_report(r.get_report()?, "report", out)?;
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_placement(r: ::fs_interfaces::tasks_capnp::placement::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "Placement");
+    out.field("column", Value::Text(r.get_column()?.to_str()?));
+    {
+        let l = r.get_cards()?;
+        out.begin_list("cards", "Text");
+        for item in l.iter() {
+            out.field("", Value::Text(item?.to_str()?));
+        }
+        out.end();
+    }
     out.end();
     Ok(())
 }

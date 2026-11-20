@@ -20,6 +20,13 @@ list = "read"
 query = "read"
 readiness = "read"
 
+[Boards]
+create = "add"
+editColumns = "change"
+layout = "read"
+list = "read"
+moveCard = "change"
+
 [Tasks]
 boards = "read"
 capabilities = "read"
