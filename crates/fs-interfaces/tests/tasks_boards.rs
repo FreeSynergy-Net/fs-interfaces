@@ -5,8 +5,8 @@
 use capnp::message::{Builder, ReaderOptions};
 use capnp::traits::HasTypeId;
 use fs_interfaces::tasks_capnp::{
-    Readiness, Relation, board, board_column, board_layout, boards, column_layout,
-    items, placement, task, task_page, tasks,
+    Readiness, Relation, board, board_column, board_layout, boards, column_layout, items,
+    placement, task, task_page, tasks,
 };
 
 const SCHEMA: &str = include_str!("../../../schema/tasks.capnp");
@@ -100,11 +100,9 @@ fn read<O: capnp::traits::Owned>(
     f: impl for<'a> FnOnce(O::Reader<'a>),
 ) {
     let bytes = capnp::serialize::write_message_to_words(msg);
-    let reader = capnp::serialize::read_message_from_flat_slice(
-        &mut &bytes[..],
-        ReaderOptions::new(),
-    )
-    .unwrap();
+    let reader =
+        capnp::serialize::read_message_from_flat_slice(&mut &bytes[..], ReaderOptions::new())
+            .unwrap();
     f(reader.get_root::<O::Reader<'_>>().unwrap());
 }
 
@@ -143,7 +141,13 @@ fn check_board(b: board::Reader<'_>) {
     assert_eq!(cols.get(0).get_wip_limit(), 3);
     assert_eq!(cols.get(0).get_id().unwrap().to_str().unwrap(), "todo");
     assert_eq!(
-        cols.get(0).get_progress().unwrap().get(0).unwrap().to_str().unwrap(),
+        cols.get(0)
+            .get_progress()
+            .unwrap()
+            .get(0)
+            .unwrap()
+            .to_str()
+            .unwrap(),
         "needs-action"
     );
     assert_eq!(cols.get(1).get_wip_limit(), 0, "0 = no limit, also unset");
@@ -172,7 +176,10 @@ fn the_params_and_results_of_every_method_go_through_the_wire() {
     }
     read::<boards::create_params::Owned>(&msg, |p| {
         assert_eq!(p.get_name().unwrap().to_str().unwrap(), "Sprint");
-        assert!(p.get_label().unwrap().is_empty(), "empty label = every task");
+        assert!(
+            p.get_label().unwrap().is_empty(),
+            "empty label = every task"
+        );
     });
 
     let mut msg = Builder::new_default();
@@ -232,12 +239,22 @@ fn a_layout_goes_through_the_wire_with_the_excess_report() {
         let cols = r.get_layout().unwrap().get_columns().unwrap();
         let c = cols.get(0);
         assert!(c.get_over_limit());
-        assert_eq!(c.get_column().unwrap().get_id().unwrap().to_str().unwrap(), "todo");
-        assert_eq!(c.get_cards().unwrap().get(0).unwrap().to_str().unwrap(), "u1");
+        assert_eq!(
+            c.get_column().unwrap().get_id().unwrap().to_str().unwrap(),
+            "todo"
+        );
+        assert_eq!(
+            c.get_cards().unwrap().get(0).unwrap().to_str().unwrap(),
+            "u1"
+        );
     });
     // the unset report is `false`: nothing is over a limit that is not there
     let mut msg = Builder::new_default();
     msg.init_root::<column_layout::Builder<'_>>();
     read::<column_layout::Owned>(&msg, |c| assert!(!c.get_over_limit()));
-    let _ = (board_column::Reader::TYPE_ID, placement::Reader::TYPE_ID, board_layout::Reader::TYPE_ID);
+    let _ = (
+        board_column::Reader::TYPE_ID,
+        placement::Reader::TYPE_ID,
+        board_layout::Reader::TYPE_ID,
+    );
 }
