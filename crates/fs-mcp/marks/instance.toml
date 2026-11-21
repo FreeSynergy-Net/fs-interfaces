@@ -1,0 +1,6 @@
+# Risk marks for instance.capnp (DRAFT, owner fs-starter; stage 1, provisional; they move into the contract as annotations later).
+# A method or union member without an entry counts as `unknown` and is listed by the tests.
+# Instance is the socket between two starts of the same program window (ADR 0097): the second start hands its words to the running window.
+
+[Instance]
+"@interface" = { risk = "excluded", reason = "socket between two starts of the same program window (fs-starter host, ADR 0097): process business of the host, no capability of a person or an agent" }
