@@ -79,3 +79,13 @@ fn every_schema_file_is_checked_and_regenerated() {
     }
     assert!(missing.is_empty(), "schema files not covered: {missing:?}");
 }
+
+#[test]
+fn the_instance_contract_is_there() {
+    // draft, owner fs-starter (ADR 0097): the file id is final, the module exists
+    assert_eq!(file_id("instance.capnp"), "@0xa36ccf61f34f0d59;");
+    assert!(
+        std::any::type_name::<fs_interfaces::instance_capnp::instance::Client>()
+            .contains("instance")
+    );
+}

@@ -20,7 +20,7 @@ use capnp_compiler::CompileCommand;
 /// File id of `types.capnp` in `fs-types`.
 pub(crate) const TYPES_FILE_ID: u64 = 0x916f_ad50_f1c1_4440;
 
-const SCHEMAS: [&str; 20] = [
+const SCHEMAS: [&str; 21] = [
     "common",
     "tasks",
     "messenger",
@@ -41,6 +41,7 @@ const SCHEMAS: [&str; 20] = [
     "settings",
     "layouts",
     "bind",
+    "instance",
 ];
 
 fn main() {

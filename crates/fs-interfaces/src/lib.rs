@@ -22,6 +22,7 @@
 //! * [`settings_capnp`] - settings of a person and instance defaults, served by one process (owner `fs-settings`)
 //! * [`layouts_capnp`] - frontend descriptions, overlays and locks (owner `fs-forms`, draft 0.1, ADR 0096)
 //! * [`bind_capnp`] - the host side of binding a frontend description to a program (owner `fs-forms`, draft; reached from `Layouts.bind`)
+//! * [`instance_capnp`] - the one window of a program: a second start hands its words to the running one (owner `fs-starter`, draft, ADR 0097)
 //!
 //! The basic types (e-mail, phone, person reference, instant, `TypeCatalog` ...) and their schema live in the crate
 //! `fs-types` (ADR 0093), not here, and are not re-exported: a program that needs them depends on `fs-types` itself.
@@ -41,6 +42,9 @@ pub mod common_capnp;
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 pub mod bind_capnp;
+#[rustfmt::skip]
+#[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
+pub mod instance_capnp;
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 pub mod comments_capnp;

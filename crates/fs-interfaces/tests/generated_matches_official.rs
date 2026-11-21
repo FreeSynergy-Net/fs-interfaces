@@ -12,7 +12,7 @@ use std::collections::HashMap;
 mod stage;
 use std::path::{Path, PathBuf};
 
-const SCHEMAS: [&str; 20] = [
+const SCHEMAS: [&str; 21] = [
     "common",
     "tasks",
     "messenger",
@@ -33,6 +33,7 @@ const SCHEMAS: [&str; 20] = [
     "settings",
     "layouts",
     "bind",
+    "instance",
 ];
 
 /// File id of `types.capnp` in `fs-types`.
