@@ -103,8 +103,7 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
         let seen =
             cx.g.list(&query(), None, 500)
                 .await
-                .map(|p| p.items)
-                .unwrap_or_default();
+                .map_or_default(|p| p.items);
         let human_children = seen
             .iter()
             .find(|s| s.id == h.neighbour)
@@ -119,8 +118,7 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
                 500,
             )
             .await
-            .map(|p| p.items)
-            .unwrap_or_default();
+            .map_or_default(|p| p.items);
         cx.ensure(
             human_children == 1 && !human_roots.iter().any(|s| s.id == h.low),
             "setup: the human sees the neighbour's child and the low group has a parent",

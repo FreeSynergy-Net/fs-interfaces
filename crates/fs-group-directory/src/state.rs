@@ -160,11 +160,11 @@ impl State {
 
     /// The confirmed edges as the logic sees them.
     pub(crate) fn logic_edges(&self) -> Vec<Edge<ObjectId>> {
-        self.edges.iter().map(|e| self.logic_edge(e)).collect()
+        self.edges.iter().map(Self::logic_edge).collect()
     }
 
     /// One edge as the logic sees it.
-    pub(crate) fn logic_edge(&self, e: &Nesting) -> Edge<ObjectId> {
+    pub(crate) fn logic_edge(e: &Nesting) -> Edge<ObjectId> {
         Self::raw_edge(e.child, e.parent, e.mode)
     }
 

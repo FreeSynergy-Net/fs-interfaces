@@ -10,7 +10,9 @@
 //! to the club's owners. The club nests under a federation with the federation's `default_mode`; the mode stays
 //! per edge. Finally a project administrator steps in with a reason: visible to everyone who may read the club.
 
-use fs_group_directory::groups_v1::shared::{BasicValue as _, Reference, Revision};
+use fs_group_directory::groups_v1::shared::{
+    BasicValue as _, ObjectId, PersonRef, Reference, Revision,
+};
 use fs_group_directory::groups_v1::{
     GroupArt, GroupDraft, Groups, NestOutcome, NestingMode, Visibility,
 };
@@ -123,14 +125,24 @@ async fn main() {
         .expect("resolve");
     println!("document owner (group) resolves to {} people", owners.len());
 
+    federation_and_admin(&fake, club.id, &admin, dora).await;
+}
+
+/// Steps 6 and 7: the edge mode per edge, and the intervention of level (a).
+async fn federation_and_admin(
+    fake: &FakeGroups,
+    club: ObjectId,
+    admin: &PersonRef,
+    dora: PersonRef,
+) {
     // 6. The club nests under a federation; the edge takes the federation's default_mode (TopDown here).
     let fed = fake
         .create_owned(draft("Chorverband", NestingMode::TopDown))
         .await
         .expect("federation");
-    match fake.nest_default(club.id, fed.id).await.expect("nest") {
+    match fake.nest_default(club, fed.id).await.expect("nest") {
         NestOutcome::Linked(edge) => {
-            println!("edge mode from the federation's default: {:?}", edge.mode)
+            println!("edge mode from the federation's default: {:?}", edge.mode);
         }
         NestOutcome::Requested(_) => println!("the other side must agree first"),
     }
@@ -140,7 +152,7 @@ async fn main() {
         .create_owned(draft("Project admins", NestingMode::Single))
         .await
         .expect("admins");
-    fake.add_member(admins.id, &admin, None)
+    fake.add_member(admins.id, admin, None)
         .await
         .expect("admin");
     fake.grant_scope(admins.id, Scope::Project)
@@ -148,15 +160,15 @@ async fn main() {
         .expect("scope");
     fake.set_asker(admin.clone());
     fake.open_intervention(
-        club.id,
+        club,
         Scope::Project,
         "Mitglied fehlt, Chor-Leitung nicht erreichbar",
     )
     .await
     .expect("intervene");
-    fake.add_member(club.id, &dora, None).await.expect("act");
+    fake.add_member(club, &dora, None).await.expect("act");
     fake.set_asker(dora);
-    for i in fake.interventions(club.id).await.expect("visible") {
+    for i in fake.interventions(club).await.expect("visible") {
         println!("intervention: {} (acts: {})", i.reason, i.acts.len());
     }
 }

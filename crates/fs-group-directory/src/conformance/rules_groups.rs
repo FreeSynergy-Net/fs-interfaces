@@ -53,8 +53,7 @@ async fn create(cx: &mut Cx<'_>) {
     let h =
         cx.g.history(g.id, None, 10)
             .await
-            .map(|p| p.items)
-            .unwrap_or_default();
+            .map_or_default(|p| p.items);
     cx.ensure(
         h.first().is_some_and(|e| e.kind == HistoryKind::Created),
         "create: the history starts with Created",
@@ -210,8 +209,7 @@ async fn update(cx: &mut Cx<'_>) {
     let h =
         cx.g.history(g.id, None, 50)
             .await
-            .map(|p| p.items)
-            .unwrap_or_default();
+            .map_or_default(|p| p.items);
     cx.ensure(
         h.iter()
             .any(|e| matches!(e.kind, HistoryKind::Updated { .. })),

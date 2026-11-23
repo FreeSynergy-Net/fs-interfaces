@@ -14,7 +14,7 @@ pub const ORG_FORMAL_ORGANIZATION: &str = "http://www.w3.org/ns/org#FormalOrgani
 pub struct FormalOrganization {
     /// Rechtlicher Name (`org:name`/`rov:legalName`), Pflicht.
     pub legal_name: String,
-    /// Rechtsform in Worten der Betreiberin ("Verein", "GmbH"), offen.
+    /// Rechtsform in Worten der Betreiberin (`Verein`, `GmbH`), offen.
     pub legal_form: Option<String>,
     /// Registernummer (Vereinsregister, Handelsregister), offen.
     pub registration: Option<String>,
@@ -31,6 +31,9 @@ pub enum AddonKind {
 
 impl AddonKind {
     /// Die IRI des Zusatzes; je Gruppe gibt es jede IRI höchstens einmal.
+    ///
+    /// # Panics
+    /// Nie: die IRI von `org:FormalOrganization` ist eine gültige Referenz.
     #[must_use]
     pub fn iri(&self) -> Reference {
         match self {
