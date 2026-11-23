@@ -4,6 +4,7 @@ members = ["crates/fs-interfaces", "crates/regenerate", "crates/fs-mcp"]
 
 [workspace.package]
 version = "0.0.30"
+authors = ["FreeSynergy <support@freesynergy.net>"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.89"
