@@ -6,7 +6,7 @@
 //! * [`groups_v1`]: the LOCKED trait folder (SHA-256 91c0f8b0...2faf3); never edit it, a change is `groups_v2`.
 //! * [`FakeGroups`]: in memory, every method and rule of `Groups`, `Mirroring` and `GroupMembers`; [`EmptyGroups`] the
 //!   empty one; [`FakePeople`] the consumed fs-people side; [`FakeMirror`] the Kanidm side.
-//! * [`sample`]: the fixed set (16 groups and 20 persons, a `TopDown` chain of nine levels, every case of the plan).
+//! * [`sample`]: the fixed set (15 groups and 20 persons, a `TopDown` chain of nine levels, every case of the plan).
 //! * [`conformance`]: rules any provider must pass (`run_conformance`, later also for `LocalGroups`).
 //! * `nesting_logic` (private): the pure nesting rule, the seed of the later crate `group-nesting`.
 

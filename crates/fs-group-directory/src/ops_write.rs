@@ -9,7 +9,7 @@ use crate::groups_v1::{
 };
 use crate::ids::reference_of;
 use crate::state::{Row, State};
-use crate::validate::{NAME_MAX, TEXT_MAX, mirror, text};
+use crate::validate::{NAME_MAX, TEXT_MAX, mirror, no_ai, text};
 
 impl State {
     pub(crate) fn create(&mut self, d: GroupDraft) -> Result<Group> {
@@ -27,7 +27,8 @@ impl State {
             TEXT_MAX,
             &mut problems,
         );
-        mirror(d.mirror, d.sensitive, d.ai, &mut problems);
+        mirror(d.mirror, d.sensitive, &mut problems);
+        no_ai(d.ai, &mut problems);
         if !problems.is_empty() {
             return Err(Error::Invalid(problems));
         }
@@ -117,23 +118,17 @@ impl State {
             new.sensitive = v;
             fields.push(GroupField::Sensitive);
         }
-        if let Some(v) = p.ai.filter(|v| *v != old.ai) {
-            new.ai = v;
-            fields.push(GroupField::Ai);
-        }
         if let Some(v) = p.mirror.filter(|v| *v != old.mirror) {
             new.mirror = v;
             fields.push(GroupField::Mirror);
         }
-        mirror(new.mirror, new.sensitive, new.ai, &mut problems);
+        mirror(new.mirror, new.sensitive, &mut problems);
+        no_ai(p.ai.unwrap_or(false), &mut problems);
         if !problems.is_empty() {
             return Err(Error::Invalid(problems));
         }
         if fields.is_empty() {
             return Ok(old);
-        }
-        if new.ai != old.ai {
-            self.check_ai_switch(id, new.ai)?;
         }
         if new.sensitive != old.sensitive {
             self.check_sensitive_switch(id, new.sensitive)?;
@@ -146,27 +141,6 @@ impl State {
         self.log(id, HistoryKind::Updated { fields });
         self.change(ChangeKind::Group(id));
         Ok(new)
-    }
-
-    /// `update(ai)`: `true` needs no human member and no effective edge or child; `false` no AI member.
-    fn check_ai_switch(&self, id: ObjectId, to_ai: bool) -> Result<()> {
-        let refused = |path: Vec<ObjectId>| Error::AiNesting { group: id, path };
-        let status = |m: &&crate::groups_v1::Membership| self.people.status(&m.person);
-        let mine = || self.members.iter().filter(|m| m.group == id);
-        if to_ai {
-            if mine().any(|m| status(&m) != Some(true)) {
-                return Err(refused(vec![id]));
-            }
-            let bad = self.edges.iter().find(|e| {
-                e.parent == id || (e.child == id && e.mode != crate::groups_v1::NestingMode::Single)
-            });
-            if let Some(e) = bad {
-                return Err(refused(vec![e.child, e.parent]));
-            }
-        } else if mine().any(|m| status(&m) == Some(true)) {
-            return Err(refused(vec![id]));
-        }
-        Ok(())
     }
 
     /// `update(sensitive)`: no arc between a sensitive and a non-sensitive group, either way.

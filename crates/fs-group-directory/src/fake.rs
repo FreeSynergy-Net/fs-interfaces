@@ -13,21 +13,19 @@ use std::sync::{Arc, Mutex, MutexGuard};
 pub const START_MS: i64 = 1_794_819_600_000;
 
 /// What the fake decided where the locked trait is silent (for the conformance rules and the DESIGN).
-pub const DECISIONS: [&str; 15] = [
+pub const DECISIONS: [&str; 13] = [
     "Every write takes one second on the fake's own clock (set_now moves it); the trash deadline is 30 days.",
     "Order of checks for a call with a group id: hidden or unknown or deleted (NotFound), then Forbidden, then Changed, then the input (Invalid), then the rule errors.",
     "Rights: Manage covers every right; every right covers Read; AddMembers and RemoveMembers are separate. The installer (if set) may everything and is never counted for LastManager.",
     "A group is an admin group when a living membership carries an admin role of the role book; it is hidden from an asking AI like a sensitive one.",
     "A person is an AI when people say so (Some(true)); a person people do not mark counts as unknown (None) and never gets Manage or an admin role; a person people do not know at all is NotFound(Person).",
-    "InForce is computed when read: KindMismatch when the kind of account does not fit the group (an AI in a human group, a human or unknown in an AI group, an AI with an admin role or Manage), AiStatusUnknown for an unknown with an admin role or Manage.",
+    "InForce is computed when read: KindMismatch when the kind of account does not fit the group (an AI account in any group, an AI with an admin role or Manage; there are no AI groups, ADR 0091), AiStatusUnknown for an unknown with an admin role or Manage.",
     "restore needs Manage (judged on the grants the deletion took) and says Changed when the deleted group's revision moved (the fixture mutator touch_deleted); edges that no longer fit stay away and are logged.",
     "An invitation past its date reads as Expired in lists; answering one stores Expired and says Expired { at }; a second answer says InvitationClosed(Expired).",
     "LastManager: removing a membership or a grant that would leave a group with no human holding Manage.",
     "Changes: the cursor is the number last seen; since = None gives an empty page whose next is 'now'; every page has a next.",
     "Mirror: the plan lists a step per group that differs; a nesting by hand that fs-groups never wrote is a ForeignNesting finding (overwritable), one it wrote earlier is an unnest step; a Remove step is planned for every directory group fs-groups no longer wants.",
     "Mirror and asking AI: every read and write of Mirroring is Forbidden with the nil id (the AI may not know any group's id).",
-    "A self edge at an AI group is Cycle [A, A] (the cycle check comes before the AI rule); group-nesting says AiNesting there. Known deviation, decided at the switch (DESIGN.md).",
-    "Old edges at an AI group count like Single everywhere (hull, cycle check, depth check); group-nesting counts them in the cycle and depth checks. Known deviation, decided at the switch (DESIGN.md).",
     "Of several equally short cycles the path named is the smallest in id order; the depth search ends on a cycle (does not follow the way that closes it).",
 ];
 

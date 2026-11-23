@@ -1,4 +1,4 @@
-//! The fixed sample: its shape (sixteen groups, twenty persons, three modes, every case of the plan) and what the
+//! The fixed sample: its shape (fifteen groups, twenty persons, three modes, every case of the plan) and what the
 //! fake says about it.
 
 use fs_group_directory::groups_v1::shared::PersonArt;
@@ -18,11 +18,11 @@ fn all() -> GroupQuery {
 }
 
 #[tokio::test]
-async fn the_sample_is_whole_and_has_sixteen_groups_one_of_them_deleted() {
+async fn the_sample_is_whole_and_has_fifteen_groups_one_of_them_deleted() {
     let s = sample();
     assert!(s.problems().is_empty(), "{:#?}", s.problems());
     let page = s.groups.list(&all(), None, 100).await.expect("list");
-    assert_eq!(page.items.len(), 16);
+    assert_eq!(page.items.len(), 15);
     assert_eq!(
         page.items
             .iter()
@@ -42,7 +42,7 @@ async fn the_sample_is_whole_and_has_sixteen_groups_one_of_them_deleted() {
         )
         .await
         .expect("list");
-    assert_eq!(live.items.len(), 15);
+    assert_eq!(live.items.len(), 14);
 }
 
 const CHAIN: [&str; 9] = [
@@ -63,7 +63,7 @@ async fn the_sample_uses_all_three_modes_in_one_tree() {
     let mut modes = Vec::new();
     for name in CHAIN
         .iter()
-        .chain(&["Association", "Events team", "Assistants", "Outreach team"])
+        .chain(&["Association", "Events team", "Outreach team"])
     {
         let id = s.id(name).expect("group");
         for e in s
@@ -106,10 +106,10 @@ async fn the_sample_uses_all_three_modes_in_one_tree() {
 }
 
 #[tokio::test]
-async fn the_sample_has_an_ai_group_an_admin_group_a_sensitive_group_and_every_invitation_state() {
+async fn the_sample_has_no_ai_group_an_admin_group_a_sensitive_group_and_every_invitation_state() {
     let s = sample();
     let q = s.groups.list(&all(), None, 100).await.expect("list").items;
-    assert!(q.iter().any(|g| g.ai && g.name == "Assistants"));
+    assert!(q.iter().all(|g| !g.ai), "there are no AI groups");
     assert!(q.iter().any(|g| g.sensitive && g.name == "Union members"));
     let events = s.id("Events team").expect("group");
     let outreach = s.id("Outreach team").expect("group");
@@ -172,11 +172,6 @@ async fn the_sample_mirror_plan_shows_a_foreign_account_and_removes_the_trashed_
         |f| matches!(&f.kind, FindingKind::Foreign(a) if a.0.ends_with("example.org"))
             && f.overwritable
     ));
-    assert!(
-        plan.findings
-            .iter()
-            .any(|f| matches!(f.kind, FindingKind::AiGroupExcluded(_)))
-    );
     let archive = s.id("Archive").expect("group");
     assert!(
         plan.steps

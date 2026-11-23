@@ -87,12 +87,6 @@ impl<'a> Cx<'a> {
         self.group_from(d).await
     }
 
-    pub(crate) async fn ai_group(&mut self, label: &str) -> Option<Group> {
-        let mut d = self.draft(label);
-        d.ai = true;
-        self.group_from(d).await
-    }
-
     pub(crate) async fn sensitive_group(&mut self, label: &str) -> Option<Group> {
         let mut d = self.draft(label);
         d.sensitive = true;

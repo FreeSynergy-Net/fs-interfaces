@@ -49,9 +49,8 @@ impl State {
 
     /// Whether a membership counts (the account kind fits the group) and in which force.
     pub(crate) fn member_force(&self, m: &Membership) -> InForce {
-        let ai_group = self.groups.get(&m.group).is_some_and(|r| r.group.ai);
         let status = self.people.status(&m.person);
-        if ai_group != (status == Some(true)) {
+        if status == Some(true) {
             return InForce::KindMismatch;
         }
         let admin = m
@@ -67,16 +66,10 @@ impl State {
 
     /// The force of a grant (`Manage` and AI rules).
     pub(crate) fn grant_force(&self, g: &Grant) -> InForce {
-        let group_ai = |id: ObjectId| self.groups.get(&id).is_some_and(|r| r.group.ai);
         let closed = self.groups.get(&g.group).is_some_and(|r| r.group.sensitive)
             || self.is_admin_group(g.group);
         if g.holder.art == PersonArt::Group {
-            let holder_ai = id_of_reference(&g.holder.id).is_some_and(group_ai);
-            return if holder_ai && (g.right == Right::Manage || closed) {
-                InForce::KindMismatch
-            } else {
-                InForce::Yes
-            };
+            return InForce::Yes;
         }
         match self.people.status(&g.holder) {
             Some(true) if g.right == Right::Manage || closed => InForce::KindMismatch,
@@ -196,8 +189,7 @@ impl State {
             else {
                 continue;
             };
-            let holder_ai = self.groups.get(&holder).is_some_and(|r| r.group.ai);
-            if (status != Some(true) || holder_ai) && self.holds_member(holder, who) {
+            if status != Some(true) && self.holds_member(holder, who) {
                 let shown = self.readable(holder).then_some(holder);
                 return Decision {
                     allowed: true,

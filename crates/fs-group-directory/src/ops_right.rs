@@ -63,10 +63,7 @@ impl State {
             PersonArt::Group => {
                 let missing = || Error::NotFound(Missing::Person(holder.id.clone()));
                 let h = id_of_reference(&holder.id).ok_or_else(missing)?;
-                let row = self.visible(h).map_err(|_| missing())?;
-                if row.ai && denied {
-                    return Err(Error::AgentNotAdmin);
-                }
+                self.visible(h).map_err(|_| missing())?;
             }
             PersonArt::Person | PersonArt::Profile => {
                 if !self.people.knows(holder) {

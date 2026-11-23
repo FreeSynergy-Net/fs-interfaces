@@ -11,7 +11,7 @@ use crate::groups_v1::{
 };
 use crate::ids::{no_group, object_id};
 use crate::mirror_state::MirrorLog;
-use crate::nesting_logic::{Edge, Mode};
+use crate::nesting_logic::Edge;
 use crate::people::FakePeople;
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -153,24 +153,14 @@ impl State {
         }
     }
 
-    /// The confirmed edges as the logic sees them: an AI group with an effective edge (old data) acts like `Single`.
+    /// The confirmed edges as the logic sees them.
     pub(crate) fn logic_edges(&self) -> Vec<Edge<ObjectId>> {
         self.edges.iter().map(|e| self.logic_edge(e)).collect()
     }
 
     /// One edge as the logic sees it.
     pub(crate) fn logic_edge(&self, e: &Nesting) -> Edge<ObjectId> {
-        let ai = |id: ObjectId| self.groups.get(&id).is_some_and(|r| r.group.ai);
-        let mode = if ai(e.child) || ai(e.parent) {
-            Mode::Single
-        } else {
-            crate::bridge::mode_in(e.mode)
-        };
-        Edge {
-            child: e.child,
-            parent: e.parent,
-            mode,
-        }
+        Self::raw_edge(e.child, e.parent, e.mode)
     }
 
     /// The edge as stored, mode as the logic mode (for checks of NEW edges: no old-data rule).
