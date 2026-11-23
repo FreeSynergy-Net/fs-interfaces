@@ -8,7 +8,7 @@ use super::cx::Cx;
 use super::fixture::Kind;
 use super::rules_owner::owned;
 use crate::groups_v1::{Error, HistoryKind, Right};
-use crate::groups_v2::{Error2, INTERVENTION_MS, Scope, role_owner};
+use crate::groups_v2::{ActKind, AddonVerb, Error2, INTERVENTION_MS, Scope, role_owner};
 
 fn err2<T>(r: &Result<T, Error2>) -> Option<&Error2> {
     r.as_ref().err()
@@ -110,6 +110,12 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
             "inside an intervention she may act",
         );
         cx.ensure(
+            v.attach_addon(owner_g.id, super::rules_addon::other())
+                .await
+                .is_ok(),
+            "inside an intervention she may attach an addon (and it is noted below)",
+        );
+        cx.ensure(
             matches!(
                 err2(&v.appoint_owner(owner_g.id, &x).await),
                 Some(Error2::NeedsOwner { .. })
@@ -126,10 +132,22 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
                         && i.reason.contains("Mitglied fehlt")
                         && i.acts
                             .iter()
-                            .any(|a| matches!(a.kind, HistoryKind::MemberAdded { .. }))
+                            .any(|a| matches!(&a.kind, ActKind::History(HistoryKind::MemberAdded { .. })))
                 })
             }),
             "interventions: the owner sees reason, actor and the act (every reader sees it)",
+        );
+        cx.ensure(
+            seen.as_ref().is_ok_and(|l| {
+                l.iter().any(|i| {
+                    i.id == iv.id
+                        && i.acts.iter().any(|a| {
+                            matches!(&a.kind, ActKind::Addon { verb: AddonVerb::Attached, iri }
+                                if *iri == super::rules_addon::other().iri())
+                        })
+                })
+            }),
+            "interventions: an addon attached in an intervention is an act of it (no silent way)",
         );
         cx.ensure(
             v.owners(owner_g.id).await.is_ok_and(|o| {

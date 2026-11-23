@@ -5,7 +5,7 @@
 
 use crate::groups_v1::shared::{ObjectId, Revision};
 use crate::groups_v1::{Error, Field, FieldProblem};
-use crate::groups_v2::{Addon, AddonKind, Error2, Level, Result2};
+use crate::groups_v2::{Addon, AddonKind, AddonVerb, Error2, Level, Result2};
 use crate::state::State;
 use crate::validate::{NAME_MAX, text};
 
@@ -74,6 +74,7 @@ impl State {
             attached: now,
         };
         self.v2.addons.push(addon.clone());
+        self.note_addon(g, AddonVerb::Attached, addon.kind.iri());
         Ok(addon)
     }
 
@@ -103,7 +104,9 @@ impl State {
             .ok_or(Error2::NoSuchAddon(id))?;
         row.kind = kind;
         row.revision = Revision(old.revision.0 + 1);
-        Ok(row.clone())
+        let done = row.clone();
+        self.note_addon(done.group, AddonVerb::Updated, done.kind.iri());
+        Ok(done)
     }
 
     pub(crate) fn detach_addon(&mut self, id: ObjectId, expected: Revision) -> Result2<()> {
@@ -112,6 +115,7 @@ impl State {
         Self::cas(old.revision, expected)?;
         self.tick();
         self.v2.addons.retain(|a| a.id != id);
+        self.note_addon(old.group, AddonVerb::Detached, old.kind.iri());
         Ok(())
     }
 }
