@@ -34,6 +34,7 @@ mod rules_nesting;
 mod rules_nesting_more;
 mod rules_owner;
 mod rules_owner_more;
+mod rules_owner_roles;
 mod rules_requests;
 mod rules_requests_more;
 mod rules_rights;

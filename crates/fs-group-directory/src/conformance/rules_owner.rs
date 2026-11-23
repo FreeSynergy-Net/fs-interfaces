@@ -7,7 +7,7 @@ use super::cx::{Cx, err};
 use super::fixture::Kind;
 use crate::groups_v1::shared::{ObjectId, PersonRef};
 use crate::groups_v1::{Error, Group, GroupDraft, Membership, Right};
-use crate::groups_v2::{Error2, GroupsV2, Level, role_manager, role_owner};
+use crate::groups_v2::{Error2, GroupsV2, Level, role_owner};
 
 /// A group the asker created with `create_owned` (she is its first owner).
 pub(super) async fn owned(cx: &mut Cx<'_>, v: &dyn GroupsV2, label: &str) -> Option<Group> {
@@ -167,9 +167,9 @@ async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
             ),
             "delete: a manager cannot delete a group that has an owner",
         );
-        v1_role_paths(cx, g.id, &stranger, cand_m.as_ref()).await;
+        super::rules_owner_roles::v1_role_paths(cx, g.id, &stranger, cand_m.as_ref()).await;
         if let Some(adder) = adder {
-            adder_cannot_make_managers(cx, g.id, &adder, &stranger).await;
+            super::rules_owner_roles::adder_cannot_make_managers(cx, g.id, &adder, &stranger).await;
         }
     }
     if cx.act(&stranger).await {
@@ -258,64 +258,4 @@ async fn last_owner(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
         v.owners(g.id).await.is_ok_and(|o| o.len() == 1),
         "owners: one left",
     );
-}
-
-/// The owner and manager roles are entries of the role book (ADR 0095 Pkt. 3), so the provider book knows both IRIs
-/// (the fixture puts them in); the refusal must come from the rule, not from a role the book does not know.
-/// The asker holds `Manage`. The owner role is made by the v2 operations only, over no v1 path.
-async fn v1_role_paths(cx: &mut Cx<'_>, g: ObjectId, other: &PersonRef, cand: Option<&Membership>) {
-    let owner = role_owner();
-    cx.ensure(
-        matches!(
-            err(&cx.g.add_member(g, other, Some(&owner)).await),
-            Some(Error::Forbidden { .. })
-        ),
-        "add_member: the owner role cannot be given over a v1 path",
-    );
-    cx.ensure(
-        matches!(
-            err(&cx.g.invite(g, other, Some(&owner), None).await),
-            Some(Error::Forbidden { .. })
-        ),
-        "invite: the owner role cannot be offered over a v1 path",
-    );
-    if let Some(m) = cand {
-        cx.ensure(
-            matches!(
-                err(&cx.g.set_role(m.id, m.revision, Some(&owner)).await),
-                Some(Error::Forbidden { .. })
-            ),
-            "set_role: a manager cannot make a member an owner (v1 path)",
-        );
-    }
-}
-
-/// Whoever only holds `AddMembers` cannot hand out the manager role (it gives `Manage`).
-async fn adder_cannot_make_managers(
-    cx: &mut Cx<'_>,
-    g: ObjectId,
-    adder: &PersonRef,
-    other: &PersonRef,
-) {
-    cx.ensure(
-        cx.g.grant(g, adder, Right::AddMembers).await.is_ok(),
-        "setup: a holder of AddMembers",
-    );
-    if cx.act(adder).await {
-        let manager = role_manager();
-        cx.ensure(
-            matches!(
-                err(&cx.g.add_member(g, other, Some(&manager)).await),
-                Some(Error::Forbidden { .. })
-            ),
-            "add_member: AddMembers does not give the manager role",
-        );
-        cx.ensure(
-            matches!(
-                err(&cx.g.invite(g, other, Some(&manager), None).await),
-                Some(Error::Forbidden { .. })
-            ),
-            "invite: AddMembers does not offer the manager role",
-        );
-    }
 }
