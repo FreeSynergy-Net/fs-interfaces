@@ -29,7 +29,7 @@ pub enum ErrorKind {
     ArtDuplicate,
     /// The required mark is neither `!` nor `-`.
     Required,
-    /// The count is not `1`, `a..b`, `a..n` or `?`.
+    /// The count is not `1`, `a..b` or `a..n` (`?` is refused too).
     Count,
     /// A required channel whose count allows none (`0..`).
     RequiredButOptionalCount,

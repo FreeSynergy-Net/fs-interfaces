@@ -422,7 +422,7 @@ dependencies = [
 
 [[package]]
 name = "fs-events"
-version = "0.0.30"
+version = "0.0.31"
 dependencies = [
  "async-trait",
  "chrono",
@@ -434,7 +434,7 @@ dependencies = [
 
 [[package]]
 name = "fs-group-directory"
-version = "0.0.30"
+version = "0.0.31"
 dependencies = [
  "async-trait",
  "fs-types",
@@ -443,7 +443,7 @@ dependencies = [
 
 [[package]]
 name = "fs-interfaces"
-version = "0.0.30"
+version = "0.0.31"
 dependencies = [
  "capnp",
  "capnp-compiler",
@@ -470,7 +470,7 @@ dependencies = [
 
 [[package]]
 name = "fs-mcp"
-version = "0.0.30"
+version = "0.0.31"
 dependencies = [
  "capnp",
  "capnp-compiler",
@@ -485,7 +485,7 @@ dependencies = [
 
 [[package]]
 name = "fs-person-directory"
-version = "0.0.30"
+version = "0.0.31"
 dependencies = [
  "async-trait",
  "fs-types",
@@ -1387,7 +1387,7 @@ dependencies = [
 
 [[package]]
 name = "regenerate"
-version = "0.0.30"
+version = "0.0.31"
 dependencies = [
  "capnp-compiler",
  "capnpc",

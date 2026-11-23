@@ -20,7 +20,6 @@ cards-in-columns@1.0 | Cards in columns | planned | Cards sorted into columns, e
 > move | command | - | 0..1
 
 # 5d-3 (23.11.): bars-in-time@1.0 and tiles@1.0 set finally (still `planned`). Source tags: K = kalender/ENTSCHEID-schnitt.md (§d, line 40-43), E = ENTSCHEID-form.md, C = fs-capture crates/fs-capture/src/index.rs (Entry :36-52), F = fs-files crates/fs-files-types/src/file.rs (:24-35), W = fs-components contract/blocks (clone read 23.11., then removed).
-# Grundtyp: only where a source names it (time = DateTime, F:33; text = Text, F:24); else `offen` (fs-types BasicType list not fully read).
 bars-in-time@1.0 | Bars in time | planned | Bars on a time axis with start and end, e.g. calendar views, Gantt of tasks, Gantt of a workflow run (E:28, K:40-43)
 > items | records | ! | 1
 > start | time | ! | 1
@@ -52,7 +51,7 @@ tiles@1.0 | Tiles | planned | A grid of tiles with a preview picture, name and a
 #   Mapping examples (proposal, field names from the sources): capture `map={items="Entry", label="title", preview="file", kind="kind", time="time", order="nr", facts=["app_name","width","height"]}`; files `map={items="File", label="name", kind="mediaType", time="updated", facts=["folder","state"]}`.
 #   Components: tile-grid (W frames.toml:97, Craft look, numbered tiles) and file-tile (W widgets.toml:92, icon/name/facts line) -> `forms=["tiles@1"]` (see README, point 3).
 
-# Added by GR3. Source for tree/members: woche-11-23/woche-11-23/groups/ENTSCHEID-schnitt.md (cited as S:line). Grundtyp per channel stays offen (as above).
+# Added by GR3. Source for tree/members: woche-11-23/woche-11-23/groups/ENTSCHEID-schnitt.md (cited as S:line).
 tree@1.0 | Tree | planned | A group tree: nodes joined by parent edges, optional inheritance mode per edge and owner mark (S:5, S:8-9, S:56)
 > nodes | records | ! | 1
 > parent | reference | ! | 1

@@ -87,6 +87,7 @@ interface), ADR 0040 (pure-Rust Cap'n Proto compiler, generated code committed).
 | `layouts.capnp` | Frontend descriptions, overlays, conflicts, locks, exchange files (draft 0.1, since 0.0.28) | fs-forms | draft |
 | `bind.capnp` | Host side of binding a frontend description to a program: plan, place, choose, check (draft, since 0.0.28; reached from `Layouts.bind`) | fs-forms | draft |
 | `instance.capnp` | Single instance of a program window: `Instance.open(words)` (draft, since 0.0.30) | fs-starter | draft |
+| `formsource.capnp` | Form source: every module service serves it; the host checks it, fs-forms draws by the form (draft, since 0.0.31; the form catalog is `schema/forms.txt`, read by `fs_interfaces::forms`) | fs-forms | draft |
 
 Each schema file starts with a header naming status, owner and consumers.
 
