@@ -29,7 +29,8 @@ pub async fn run(make: &dyn Fn() -> Fixture) -> Report {
     );
     r.record("rights.owner.write", rights::owner_write(&make()).await);
     r.record("rights.trash.private", rights::trash_private(&make()).await);
-    r.record("rights.admin", admin::admin(&make()).await);
+    r.record("rights.manager.no-server", admin::admin(&make()).await);
+    r.record("rights.operator.reads-all", admin::operator(&make()).await);
     r.record("rights.bot", admin::bot(&make()).await);
     r.record("local.import-only", admin::local_import_only(&make()).await);
     r.record("names.bad", names::bad_names(&make()).await);

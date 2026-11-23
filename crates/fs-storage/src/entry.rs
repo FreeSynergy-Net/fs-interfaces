@@ -61,7 +61,8 @@ pub enum RootKind {
     External,
 }
 
-/// How much a root holds (rclone `About`): all an admin sees of a private folder.
+/// How much a root holds (rclone `About`): what a manager (admin level (a)/(b) without server access)
+/// sees of a private folder. The operator (server access) reads everything and is not limited to this.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Usage {
     /// Bytes of all files.

@@ -2,9 +2,9 @@
 //!
 //! Pattern: Builder (fixed sample data, deterministic ids and times).
 //!
-//! Anna owns the group, Ben is a member, Fremd is nobody, Admin administers (structure of groups, only `usage` of private
-//! folders), Bot is an AI actor (member on paper, no right, no folder). Every person has "My files" (Ben's holds one file,
-//! for the admin test).
+//! Anna owns the group, Ben is a member, Fremd is nobody, Admin is a manager (admin level (a)/(b) without server access: structure of groups, only `usage` of
+//! private folders), Operator has server access and reads everything, Bot is an AI actor (member on paper, no right, no folder). Every person has "My files" (Ben's holds one file,
+//! for the manager and operator tests). Bot also stands in the operator list and still gets nothing.
 //!
 //! The group follows `helfa/UMFRAGE-ergebnis.md` (23.11.2026) and nothing else of Helfa: a local group ("Ortsgruppe") with
 //! the 4+1 rules, the three conflict steps and a moderator team. Everything the survey does not say (member lists, minutes,
@@ -19,7 +19,6 @@ use fs_types::{BasicValue, FileRef, MediaType, PersonArt, PersonRef, Reference, 
 use sha2::{Digest, Sha256};
 use std::fmt::Write;
 
-/// The name of the group folder.
 pub const GROUP_NAME: &str = "Helfa Ortsgruppe (Beispieldaten)";
 
 /// A `FileRef` for `bytes`: the reference is the checksum (`urn:sha256:<hex>`), as in the v5 `FileStore`.
@@ -45,8 +44,10 @@ pub struct Sample {
     pub ben: PersonRef,
     /// Nobody: no right anywhere.
     pub fremd: PersonRef,
-    /// Administrator: structure of group folders, only `usage` of private ones.
+    /// Manager (admin level (a)/(b), no server access): structure of group folders, only `usage` of private ones.
     pub admin: PersonRef,
+    /// Operator (server access): reads everything, private folders too.
+    pub operator: PersonRef,
     /// An AI actor: no folder, no right, never an owner.
     pub bot: PersonRef,
     /// The group "Helfa".
@@ -73,6 +74,7 @@ pub fn sample() -> Sample {
         ben: pref(2, PersonArt::Person),
         fremd: pref(3, PersonArt::Person),
         admin: pref(4, PersonArt::Person),
+        operator: pref(6, PersonArt::Person),
         bot: pref(5, PersonArt::Person),
         helfa: pref(10, PersonArt::Group),
     }
@@ -164,6 +166,7 @@ pub(super) fn build() -> World {
         (&s.ben, "mine-ben"),
         (&s.fremd, "mine-fremd"),
         (&s.admin, "mine-admin"),
+        (&s.operator, "mine-operator"),
     ] {
         w.add_folder(root, None, "Meine Dateien", who);
         w.roots.push(Root {
@@ -188,6 +191,8 @@ pub(super) fn build() -> World {
         members: vec![s.anna.clone(), s.ben.clone(), s.bot.clone()],
     });
     w.admins.push(s.admin.clone());
+    w.operators.push(s.operator.clone());
+    w.operators.push(s.bot.clone());
     w.bots.push(s.bot.clone());
     for (id, parent, name, owner) in [
         ("f-dok", "mine-anna", "Dokumente", &s.anna),
@@ -200,7 +205,6 @@ pub(super) fn build() -> World {
         w.add_folder(id, Some(parent), name, owner);
     }
     let odt = "application/vnd.oasis.opendocument.text";
-    // (parent, name, media type, owner, generator)
     let files: [(&str, &str, &str, &PersonRef, Option<&str>); 15] = [
         (
             "mine-anna",
