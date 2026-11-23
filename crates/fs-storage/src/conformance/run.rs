@@ -13,6 +13,8 @@ pub async fn run(make: &dyn Fn() -> Fixture) -> Report {
     r.record("list.paging", read::paging(&make()).await);
     r.record("tree.files", read::tree_files(&make()).await);
     r.record("file.sha256", read::file_sha256(&make()).await);
+    r.record("blob.range", read::blob_range(&make()).await);
+    r.record("scope.generator", read::scope_generator(&make()).await);
     r.record("owner.kinds", read::owner_kinds(&make()).await);
     r.record("stat.matches-list", read::stat_matches(&make()).await);
     r.record("caps.honest", read::caps_honest(&make()).await);

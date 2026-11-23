@@ -83,7 +83,7 @@ impl World {
             OnConflict::Fail => Err(Error::NameConflict {
                 name: name.to_owned(),
             }),
-            OnConflict::KeepBoth => (2..)
+            OnConflict::KeepBoth => (2..1000)
                 .map(|n| numbered(name, n))
                 .find(|c| taken(self, c).is_none())
                 .ok_or(Error::NameConflict {
@@ -97,7 +97,7 @@ impl World {
         a: &Actor,
         at: &EntryId,
         name: &str,
-        bytes: Vec<u8>,
+        bytes: &[u8],
         o: &WriteOpts,
     ) -> Result<Entry> {
         let owner = self.folder_for_write(a, at)?.entry.owner.clone();
@@ -106,7 +106,14 @@ impl World {
             .media_type
             .clone()
             .unwrap_or(MediaType("application/octet-stream".into()));
-        let id = self.add_file(at.as_str(), &name, &media.0, bytes, &owner);
+        let id = self.add_file(
+            at.as_str(),
+            &name,
+            &media.0,
+            bytes,
+            &owner,
+            o.generator.as_deref(),
+        );
         self.log_change(&id, ChangeKind::Created);
         Ok(self.nodes[&id].entry.clone())
     }
@@ -231,7 +238,7 @@ impl World {
         node.parent = Some(to.to_owned());
         node.trashed_from = None;
         node.entry.id = EntryId(id.clone());
-        node.entry.name = name.to_owned();
+        name.clone_into(&mut node.entry.name);
         node.entry.owner = owner.clone();
         node.entry.modified = Some(self.now());
         self.nodes.insert(id.clone(), node);

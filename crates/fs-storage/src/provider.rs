@@ -2,7 +2,7 @@
 //!
 //! Pattern: Repository (trait) with Null Object (not overridden methods answer `Unsupported`, as in ADR 0045).
 
-use crate::ctl::{Blob, Ctl};
+use crate::ctl::{Blob, ByteSource, Ctl};
 use crate::entry::{
     Change, ChangeSet, Delete, Entry, Kind, OnConflict, PageReq, ProviderState, Root, StorageCaps,
     Token, WriteOpts,
@@ -52,7 +52,7 @@ impl Subscription {
 
 /// One tree of everything the asker may reach. Who asks is a property of the provider (the person on whose behalf it
 /// is called), never a parameter; every call checks the rights of that person (ADR 0050, 0029), never with service
-/// rights. Writes: `ByteSource` is the whole body for now; a stream form follows with the first real provider.
+/// rights. The body of a `write` comes as a chunked `ByteSource`, the bytes of a file go out through `Blob::read(offset, length)`.
 #[async_trait]
 pub trait StorageProvider: Send + Sync {
     /// What the provider can do.
@@ -75,7 +75,7 @@ pub trait StorageProvider: Send + Sync {
         &self,
         _at: &EntryId,
         _name: &str,
-        _src: Vec<u8>,
+        _src: &mut dyn ByteSource,
         _o: WriteOpts,
         _ctl: &Ctl,
     ) -> Result<Entry> {
@@ -126,38 +126,55 @@ pub trait StorageProvider: Send + Sync {
     async fn watch(&self, _at: &EntryId, _l: Listener) -> Result<Subscription> {
         not_possible("storage.watch")
     }
+    /// Everything of one generator (AS2 `generator`, e.g. `capture`) the asker may read, wherever it lies: a gallery is
+    /// this scope, not a folder. Paged, newest first.
+    async fn scope(&self, _generator: &str, _page: PageReq) -> Result<Page<Entry>> {
+        not_possible("storage.scope")
+    }
     /// Delta since a token (`None` = from now).
     async fn changes(&self, _since: Option<&Token>) -> Result<ChangeSet> {
         not_possible("storage.delta")
     }
 
-    /// Walk a display path below `root` by `list`. Every segment is checked first (`..`, `/`, control characters are
-    /// refused, never interpreted); a link in the middle stops the walk with `LinkNotFollowed`.
+    /// Walk a display path below `root` by `list`: see [`resolve_by_list`].
     ///
     /// # Errors
     /// `InvalidName`, `NotFound`, `LinkNotFollowed`, or what `list` and `stat` answer.
     async fn resolve_path(&self, root: &EntryId, path: &str) -> Result<Entry> {
-        let parts = split_path(path)?;
-        let mut cur = self.stat(root).await?;
-        for part in parts {
-            match cur.kind {
-                Kind::Link => return Err(Error::LinkNotFollowed(cur.id)),
-                Kind::Folder => {}
-                _ => return Err(Error::NotAFolder(cur.id)),
-            }
-            let mut req = PageReq::first(100);
-            let found = loop {
-                let page = self.list(&cur.id, req.clone()).await?;
-                if let Some(e) = page.items.into_iter().find(|e| e.name == part) {
-                    break Some(e);
-                }
-                match page.next {
-                    Some(c) => req.cursor = Some(c),
-                    None => break None,
-                }
-            };
-            cur = found.ok_or_else(|| Error::NotFound(EntryId(part.to_owned())))?;
-        }
-        Ok(cur)
+        resolve_by_list(self, root, path).await
     }
+}
+
+/// Walk a display path below `root` by `list`. Every segment is checked first (`..`, `/`, control characters are
+/// refused, never interpreted); a link in the middle stops the walk with `LinkNotFollowed`.
+///
+/// # Errors
+/// `InvalidName`, `NotFound`, `LinkNotFollowed`, or what `list` and `stat` answer.
+pub async fn resolve_by_list<P: StorageProvider + ?Sized>(
+    p: &P,
+    root: &EntryId,
+    path: &str,
+) -> Result<Entry> {
+    let parts = split_path(path)?;
+    let mut cur = p.stat(root).await?;
+    for part in parts {
+        match cur.kind {
+            Kind::Link => return Err(Error::LinkNotFollowed(cur.id)),
+            Kind::Folder => {}
+            _ => return Err(Error::NotAFolder(cur.id)),
+        }
+        let mut req = PageReq::first(100);
+        let found = loop {
+            let page = p.list(&cur.id, req.clone()).await?;
+            if let Some(e) = page.items.into_iter().find(|e| e.name == part) {
+                break Some(e);
+            }
+            match page.next {
+                Some(c) => req.cursor = Some(c),
+                None => break None,
+            }
+        };
+        cur = found.ok_or_else(|| Error::NotFound(EntryId(part.to_owned())))?;
+    }
+    Ok(cur)
 }

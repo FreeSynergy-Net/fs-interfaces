@@ -9,15 +9,15 @@ use crate::entry::{Entry, Kind, PageReq, Root, RootKind, Sort, Usage};
 use crate::error::{Error, Result};
 use crate::ids::EntryId;
 use async_trait::async_trait;
-use fs_objects::v5::files::MemoryFiles;
-use fs_types::{FileRef, PageCursor, Problem};
-use std::sync::Arc;
+use fs_types::{BasicValue, PageCursor, Problem};
 
 pub(super) const TRASH: &str = "trash";
 
 pub(crate) struct MemBlob {
     pub entry: Entry,
     pub data: Vec<u8>,
+    /// Mutant: the offset is ignored.
+    pub bad_range: bool,
 }
 
 #[async_trait]
@@ -27,6 +27,7 @@ impl Blob for MemBlob {
     }
     async fn read(&self, offset: u64, length: u64) -> Result<Vec<u8>> {
         let len = self.data.len() as u64;
+        let offset = if self.bad_range { 0 } else { offset };
         let from = offset.min(len);
         let to = offset.saturating_add(length).min(len);
         Ok(
@@ -58,7 +59,7 @@ impl World {
     }
 
     /// The entry as shown (a fault may spoil the sha256).
-    pub(super) fn present(&self, a: &Actor, n: &Node) -> Entry {
+    pub(super) fn present(a: &Actor, n: &Node) -> Entry {
         let mut e = n.entry.clone();
         if let (Some(Fault::WrongSha), Some(f)) = (a.fault, e.file_ref.as_mut()) {
             f.sha256[0] ^= 0xff;
@@ -124,7 +125,7 @@ impl World {
             return Ok(e);
         }
         self.node_for(a, id, Mode::Structure)
-            .map(|n| self.present(a, n))
+            .map(|n| Self::present(a, n))
     }
 
     pub(super) fn list_of(
@@ -187,7 +188,7 @@ impl World {
             .get(start..end)
             .unwrap_or(&[])
             .iter()
-            .map(|n| self.present(a, n))
+            .map(|n| Self::present(a, n))
             .collect();
         Ok((
             out,
@@ -195,20 +196,60 @@ impl World {
         ))
     }
 
-    /// The entry and the reference to read through the `FileStore` (after the lock is released).
-    pub(super) fn open_of(
-        &self,
-        a: &Actor,
-        id: &EntryId,
-    ) -> Result<(Entry, FileRef, Arc<MemoryFiles>)> {
+    /// The entry and its bytes (the fake keeps them in a map, content-addressed by the reference).
+    pub(super) fn open_of(&self, a: &Actor, id: &EntryId) -> Result<(Entry, Vec<u8>)> {
         let n = self.node_for(a, id, Mode::Read)?;
         match (n.entry.kind, &n.entry.file_ref) {
-            (Kind::File, Some(f)) => Ok((self.present(a, n), f.clone(), Arc::clone(&self.files))),
+            (Kind::File, Some(f)) => {
+                let bytes = self
+                    .blobs
+                    .get(&f.iri.canonical())
+                    .cloned()
+                    .ok_or_else(|| Error::BackendFailed("blob missing".into()))?;
+                Ok((Self::present(a, n), bytes))
+            }
             (Kind::Link, _) => Err(Error::LinkNotFollowed(id.clone())),
             _ => Err(Error::Invalid(vec![Problem {
                 field: "id".into(),
                 reason: "not-a-file".into(),
             }])),
         }
+    }
+
+    /// Every entry of one generator the asker may read, newest first, paged.
+    pub(super) fn scope_of(
+        &self,
+        a: &Actor,
+        generator: &str,
+        page: &PageReq,
+    ) -> Result<(Vec<Entry>, Option<PageCursor>)> {
+        if page.size == 0 || page.size > 1000 {
+            return Err(Error::Invalid(vec![Problem {
+                field: "size".into(),
+                reason: "range".into(),
+            }]));
+        }
+        let mut hits: Vec<&Node> = self
+            .nodes
+            .values()
+            .filter(|n| n.trashed_from.is_none() && n.entry.generator.as_deref() == Some(generator))
+            .filter(|n| {
+                a.fault == Some(Fault::ScopeLeak) || self.allowed(a, &n.entry.owner, Mode::Read)
+            })
+            .collect();
+        hits.sort_by_key(|n| (std::cmp::Reverse(n.entry.modified), n.entry.name.clone()));
+        let start = page
+            .cursor
+            .as_ref()
+            .and_then(|c| c.0.parse::<usize>().ok())
+            .unwrap_or(0);
+        let end = start.saturating_add(page.size).min(hits.len());
+        let out = hits
+            .get(start..end)
+            .unwrap_or(&[])
+            .iter()
+            .map(|n| Self::present(a, n))
+            .collect();
+        Ok((out, (end < hits.len()).then(|| PageCursor(end.to_string()))))
     }
 }
