@@ -73,7 +73,7 @@ fn invoke_result_is_appended_after_failed_and_problem() {
     let text = schema("formsource.capnp");
     assert!(text.contains("invoke @3 (command :Text, record :Text, args :List(Value)) -> (failed :Bool, problem :Common.Problem, result :WriteResult);"));
     assert!(text.contains("struct WriteResult { record @0 :Text; text @1 :Text; }"));
-    // an old service answers without `result`: the new reader sees an empty one
+    // WriteResult itself
     let mut msg = capnp::message::Builder::new_default();
     {
         let mut r = msg.init_root::<new::write_result::Builder<'_>>();
@@ -85,6 +85,73 @@ fn invoke_result_is_appended_after_failed_and_problem() {
         .unwrap();
     assert_eq!(r.get_record().unwrap().to_str().unwrap(), "task-1");
     assert_eq!(r.get_text().unwrap().to_str().unwrap(), "created");
+}
+
+fn flat(msg: &capnp::message::Builder<capnp::message::HeapAllocator>) -> Vec<u8> {
+    capnp::serialize::write_message_to_words(msg)
+}
+
+#[test]
+fn invoke_result_old_service_to_new_reader_and_new_service_to_old_reader() {
+    // an old service answers without `result`: the new reader sees `failed` and `problem` and an empty `result`
+    let mut old_msg = capnp::message::Builder::new_default();
+    {
+        let mut r =
+            old_msg.init_root::<formsource_capnp::form_source::invoke_results::Builder<'_>>();
+        r.set_failed(true);
+        r.reborrow().init_problem().set_title("nope");
+    }
+    let bytes = flat(&old_msg);
+    let reader = capnp::serialize::read_message_from_flat_slice(
+        &mut &bytes[..],
+        capnp::message::ReaderOptions::new(),
+    )
+    .unwrap();
+    let r = reader
+        .get_root::<new::form_source::invoke_results::Reader<'_>>()
+        .unwrap();
+    assert!(r.get_failed());
+    assert_eq!(
+        r.get_problem()
+            .unwrap()
+            .get_title()
+            .unwrap()
+            .to_str()
+            .unwrap(),
+        "nope"
+    );
+    assert!(!r.has_result());
+    assert_eq!(r.get_result().unwrap().get_record().unwrap().len(), 0);
+
+    // a new service sets `result`: the old reader reads `failed` and `problem` without error and ignores `result`
+    let mut new_msg = capnp::message::Builder::new_default();
+    {
+        let mut r = new_msg.init_root::<new::form_source::invoke_results::Builder<'_>>();
+        r.set_failed(false);
+        r.reborrow().init_problem().set_title("fine");
+        let mut res = r.init_result();
+        res.set_record("task-1");
+        res.set_text("created");
+    }
+    let bytes = flat(&new_msg);
+    let reader = capnp::serialize::read_message_from_flat_slice(
+        &mut &bytes[..],
+        capnp::message::ReaderOptions::new(),
+    )
+    .unwrap();
+    let r = reader
+        .get_root::<formsource_capnp::form_source::invoke_results::Reader<'_>>()
+        .unwrap();
+    assert!(!r.get_failed());
+    assert_eq!(
+        r.get_problem()
+            .unwrap()
+            .get_title()
+            .unwrap()
+            .to_str()
+            .unwrap(),
+        "fine"
+    );
 }
 
 // ---- capabilities.txt ----

@@ -28,7 +28,7 @@ fn every_tool_of_the_real_table_gives_a_result_that_the_server_shows_and_its_sch
     let s = server();
     let listed = ask(&s, &request(1, "tools/list", json!({"_meta": meta(None)})));
     let tools = listed["result"]["tools"].as_array().unwrap();
-    assert_eq!(tools.len(), 27); // SW-1: + items claim, items release
+    assert_eq!(tools.len(), 25);
     let mut shown = 0;
     for t in tools {
         let name = t["name"].as_str().unwrap();
@@ -48,5 +48,5 @@ fn every_tool_of_the_real_table_gives_a_result_that_the_server_shows_and_its_sch
         );
         shown += 1;
     }
-    assert_eq!(shown, 27);
+    assert_eq!(shown, 25);
 }

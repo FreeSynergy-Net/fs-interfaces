@@ -5,7 +5,7 @@
 assign = "acts-in-name"
 assignLabel = "change"
 blockedBy = "read"
-claim = "acts-in-name"
+claim = { risk = "excluded", reason = "until SW-9: an AI works as its own marked actor, never in the name of the person; a claim made through the person's connection would carry the person" }
 create = "add"
 createRelation = "add"
 createRelationWithGap = "add"
@@ -20,7 +20,7 @@ importIcs = "add"
 list = "read"
 query = "read"
 readiness = "read"
-release = "change"
+release = { risk = "excluded", reason = "until SW-9: an AI works as its own marked actor, never in the name of the person; releasing a claim through the person's connection would act in their name" }
 
 [Boards]
 create = "add"

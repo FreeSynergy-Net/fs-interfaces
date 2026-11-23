@@ -123,13 +123,13 @@ fn the_list_is_byte_equal_every_time_and_is_what_the_screen_offers() {
     let v: Value = serde_json::from_str(&a).unwrap();
     assert_eq!(v["result"]["resultType"], "complete");
     let tools = v["result"]["tools"].as_array().unwrap();
-    assert_eq!(tools.len(), 27); // SW-1: + items claim, items release
+    assert_eq!(tools.len(), 25);
     let names: Vec<&str> = tools.iter().map(|t| t["name"].as_str().unwrap()).collect();
     assert_eq!(names, s.tool_names());
     let mut sorted = names.clone();
     sorted.sort_unstable();
     sorted.dedup();
-    assert_eq!(sorted.len(), 27, "names are unique");
+    assert_eq!(sorted.len(), 25, "names are unique");
     for t in tools {
         assert_eq!(t["inputSchema"]["type"], "object", "{}", t["name"]);
         assert_eq!(t["_meta"]["net.freesynergy/mcp"]["actor"], "ai");
@@ -173,7 +173,7 @@ fn a_tool_the_screen_does_not_offer_is_not_listed_and_not_callable() {
         .generate(&support::real::contracts())
         .unwrap();
     let (s, log) = server_with(&cat, &Started).unwrap();
-    assert_eq!(s.tool_names().len(), 25); // SW-1: + claim, release
+    assert_eq!(s.tool_names().len(), 23);
     assert!(!s.tool_names().contains(&"tasks.support-report"));
     assert_eq!(code(&call(&s, "tasks.support-report", json!({}))), -32602);
     assert_eq!(log.borrow().len(), 0);
