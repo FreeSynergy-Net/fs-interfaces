@@ -4,8 +4,8 @@
 
 use super::cx::{Cx, Report};
 use super::{
-    ConformanceFixture, rules_deep, rules_groups, rules_hidden, rules_members, rules_mirror,
-    rules_nesting, rules_requests, rules_rights,
+    ConformanceFixture, rules_deep, rules_directions, rules_groups, rules_hidden, rules_members,
+    rules_mirror, rules_nesting, rules_requests, rules_rights,
 };
 
 /// Run every rule against the provider of `fixture` (data is seeded through the trait: the asking person needs
@@ -20,6 +20,7 @@ pub async fn run_conformance(fixture: &dyn ConformanceFixture) -> Report {
     rules_groups::rules(&mut cx).await;
     rules_nesting::rules(&mut cx).await;
     rules_deep::rules(&mut cx).await;
+    rules_directions::rules(&mut cx).await;
     rules_requests::rules(&mut cx).await;
     rules_members::rules(&mut cx).await;
     rules_rights::rules(&mut cx).await;

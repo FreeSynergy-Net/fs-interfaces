@@ -27,6 +27,12 @@ pub enum Mutant {
     CycleAsAlready,
     /// `update` does not look at the revision.
     NoCompareAndSet,
+    /// `request_nesting` swaps `BottomUp` and `TopDown` (the direction of the edge is wrong).
+    SwapDirection,
+    /// `request_nesting` makes every `Single` edge a `BottomUp` one (a display edge that lets things flow).
+    SingleFlows,
+    /// `request_nesting` stores a `TopDown` edge as `BottomUp` (the mirror then does not reverse it).
+    TopDownNotReversed,
 }
 
 /// The forwarding provider.
@@ -83,6 +89,13 @@ impl Groups for Wrap {
         p: ObjectId,
         m: NestingMode,
     ) -> Result<NestOutcome> {
+        let m = match (self.1, m) {
+            (Mutant::SwapDirection, NestingMode::BottomUp) => NestingMode::TopDown,
+            (Mutant::SwapDirection, NestingMode::TopDown) => NestingMode::BottomUp,
+            (Mutant::SingleFlows, NestingMode::Single) => NestingMode::BottomUp,
+            (Mutant::TopDownNotReversed, NestingMode::TopDown) => NestingMode::BottomUp,
+            (_, m) => m,
+        };
         let r = self.0.request_nesting(c, p, m).await;
         if self.1 == Mutant::CycleAsAlready {
             return r.map_err(|e| {
