@@ -83,7 +83,7 @@ fn from(channel: OriginChannel, cal: u64, uid: &str) -> Origin {
         foreign_etag: Some("\"v1\"".to_owned()),
         prod_id: None,
         imported: Utc::from_millis(NOW - 3_600_000),
-        importer: "fs-calendars-testdata".to_owned(),
+        importer: "fs-events".to_owned(),
         rev_at_import: Revision(1),
         original: None,
     }

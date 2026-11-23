@@ -3,10 +3,10 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use fs_calendars_testdata::FakeAppointments;
-use fs_calendars_testdata::conformance::{Advance, Asker, ConformanceFixture};
-use fs_calendars_testdata::draft::{Appointments, Attendee, ObjectId, PersonRef, Utc};
-use fs_calendars_testdata::ids::person;
+use fs_events::FakeAppointments;
+use fs_events::conformance::{Advance, Asker, ConformanceFixture};
+use fs_events::draft::{Appointments, Attendee, ObjectId, PersonRef, Utc};
+use fs_events::ids::person;
 
 use crate::mutant::Mutant;
 use crate::wrap::Wrap;

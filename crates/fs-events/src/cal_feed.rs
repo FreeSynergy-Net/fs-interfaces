@@ -31,7 +31,7 @@ fn origin(channel: OriginChannel, cal: ObjectId, uid: &str, now: Utc) -> Origin 
         foreign_etag: None,
         prod_id: None,
         imported: now,
-        importer: "fs-calendars-testdata".to_owned(),
+        importer: "fs-events".to_owned(),
         rev_at_import: Revision(1),
         original: None,
     }

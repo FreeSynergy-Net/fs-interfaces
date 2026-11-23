@@ -1,4 +1,4 @@
-//! Conformance rules of `appointments_v1`, runnable against any provider (the fake, `LocalAppointments`, later accounts).
+//! Conformance rules of `appointments`, runnable against any provider (the fake, `LocalAppointments`, later accounts).
 //!
 //! Pattern: Template method (a fixed list of rules, each one checked against the `Appointments` under test).
 //!

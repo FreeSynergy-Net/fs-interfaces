@@ -7,7 +7,7 @@ mod mutant;
 mod tamper;
 mod wrap;
 
-use fs_calendars_testdata::conformance::run_conformance;
+use fs_events::conformance::run_conformance;
 use fx::{Fx, new_fake};
 use mutant::Mutant;
 
@@ -37,9 +37,9 @@ async fn the_fake_is_conformant_on_an_empty_provider() {
 #[tokio::test]
 async fn the_fake_is_conformant_on_the_sample() {
     let fake = std::sync::Arc::new(
-        fs_calendars_testdata::sample()
+        fs_events::sample()
             .fake()
-            .with_ai(&fs_calendars_testdata::ids::person(8)),
+            .with_ai(&fs_events::ids::person(8)),
     );
     let report = run_conformance(&Fx::plain(&fake)).await;
     assert!(

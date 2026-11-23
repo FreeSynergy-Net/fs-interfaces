@@ -8,11 +8,11 @@
 mod common;
 
 use common::{loaded, utc, window};
-use fs_calendars_testdata::draft::{
+use fs_events::draft::{
     Appointment, AppointmentPatch, Appointments, Error, OverrideChange, Recurrence, Relation,
     Restorable, RuleEnd, SeriesScope,
 };
-use fs_calendars_testdata::sample::at;
+use fs_events::sample::at;
 
 #[tokio::test]
 async fn delete_this_makes_an_excluded_override() {
@@ -148,7 +148,7 @@ async fn a_scope_that_is_not_an_occurrence_is_invalid() {
     assert!(matches!(r, Err(Error::Invalid(p)) if p[0].field == "scope"));
 }
 
-fn single_rid() -> fs_calendars_testdata::draft::LocalDateTime {
+fn single_rid() -> fs_events::draft::LocalDateTime {
     at(2026, 11, 17, 9, 0)
 }
 
@@ -175,7 +175,7 @@ async fn this_and_following_splits_the_series() {
     assert_eq!(tail.title, "Neue Runde");
     assert_eq!(
         tail.when,
-        fs_calendars_testdata::sample::timed(at(2026, 11, 25, 10, 0), "Europe/Berlin", 30)
+        fs_events::sample::timed(at(2026, 11, 25, 10, 0), "Europe/Berlin", 30)
     );
     assert!(
         tail.related

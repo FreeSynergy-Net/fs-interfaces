@@ -1,8 +1,8 @@
 //! Keywords and categories are sets (plan section 11).
 
-use fs_calendars_testdata::draft::{AppointmentDraft, AppointmentPatch, Appointments};
-use fs_calendars_testdata::sample::{at, timed};
-use fs_calendars_testdata::{FakeAppointments, ids};
+use fs_events::draft::{AppointmentDraft, AppointmentPatch, Appointments};
+use fs_events::sample::{at, timed};
+use fs_events::{FakeAppointments, ids};
 
 #[tokio::test]
 async fn keywords_and_categories_are_sets() {

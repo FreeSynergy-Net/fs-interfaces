@@ -4,13 +4,13 @@
 mod common;
 
 use common::{loaded, utc, window};
-use fs_calendars_testdata::draft::{Answer, Appointments, Error, Restorable, SeriesScope};
-use fs_calendars_testdata::ids::person;
-use fs_calendars_testdata::sample::at;
+use fs_events::draft::{Answer, Appointments, Error, Restorable, SeriesScope};
+use fs_events::ids::person;
+use fs_events::sample::at;
 
 fn count(
-    w: &fs_calendars_testdata::draft::Window,
-    id: fs_calendars_testdata::draft::ObjectId,
+    w: &fs_events::draft::Window,
+    id: fs_events::draft::ObjectId,
 ) -> usize {
     w.instances.iter().filter(|i| i.appointment == id).count()
 }
@@ -79,7 +79,7 @@ async fn restore_after_the_period_or_without_a_delete_is_refused() {
 async fn respond_compares_against_expected() {
     let (s, f) = loaded();
     let a = s.get("invitation");
-    let stale = fs_calendars_testdata::draft::Revision(a.revision.0 + 5);
+    let stale = fs_events::draft::Revision(a.revision.0 + 5);
     let r = f
         .respond(
             a.id,
@@ -135,9 +135,9 @@ async fn restore_this_and_following_reports_changed_after_a_later_change_and_the
     };
     f.delete(a.id, a.revision, scope).await.unwrap();
     let cur = f.get(a.id).await.unwrap().unwrap();
-    let patch = fs_calendars_testdata::draft::AppointmentPatch {
+    let patch = fs_events::draft::AppointmentPatch {
         title: Some("Neu".into()),
-        ..fs_calendars_testdata::draft::AppointmentPatch::default()
+        ..fs_events::draft::AppointmentPatch::default()
     };
     let changed = f
         .update(a.id, cur.revision, patch, SeriesScope::Whole)
@@ -163,7 +163,7 @@ async fn restore_this_and_following_reports_changed_after_a_later_change_and_the
         else {
             panic!("a period is set")
         };
-        f2.set_now(fs_calendars_testdata::draft::Utc::from_millis(
+        f2.set_now(fs_events::draft::Utc::from_millis(
             until.millis() + d,
         ));
         let r = f2.restore(b.id, this).await;

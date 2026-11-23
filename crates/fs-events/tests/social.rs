@@ -8,12 +8,12 @@
 mod common;
 
 use common::{loaded, utc, window};
-use fs_calendars_testdata::draft::{
+use fs_events::draft::{
     Answer, Appointments, Attendee, Error, HistoryKind, Invitee, ParticipationStatus, Roles,
     SeriesScope, Value,
 };
-use fs_calendars_testdata::ids::person;
-use fs_calendars_testdata::sample::at;
+use fs_events::ids::person;
+use fs_events::sample::at;
 
 fn invitee(n: u64) -> Invitee {
     Invitee {
@@ -104,7 +104,7 @@ async fn respond_changes_one_status_and_logs_old_and_new() {
 async fn a_proposal_is_logged_and_a_stranger_cannot_answer() {
     let (s, f) = loaded();
     let a = s.get("invitation");
-    let when = fs_calendars_testdata::sample::timed(at(2026, 11, 19, 16, 0), "Europe/Berlin", 60);
+    let when = fs_events::sample::timed(at(2026, 11, 19, 16, 0), "Europe/Berlin", 60);
     f.respond(
         a.id,
         a.revision,

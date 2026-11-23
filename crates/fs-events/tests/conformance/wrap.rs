@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use crate::mutant::{Mutant, is};
 use async_trait::async_trait;
-use fs_calendars_testdata::FakeAppointments;
-use fs_calendars_testdata::draft::{
+use fs_events::FakeAppointments;
+use fs_events::draft::{
     Answer, Appointment, AppointmentDraft, AppointmentPatch, AppointmentQuery, AppointmentSummary,
     Appointments, Attendee, Availability, CalendarDeleted, CalendarInfo, CalendarPatch,
     Capabilities, Change, Deleted, Error, FreeBusyAnswer, HistoryEntry, Invitee, ObjectId, Page,
@@ -76,7 +76,7 @@ impl Appointments for Wrap {
     }
     async fn restore_calendar(&self, id: ObjectId) -> Result<CalendarInfo> {
         if crate::tamper::held_not_restorable(self.1, &self.0, id).await {
-            return Err(fs_calendars_testdata::draft::Error::NotFound(id));
+            return Err(fs_events::draft::Error::NotFound(id));
         }
         let r = self.0.restore_calendar(id).await;
         crate::tamper::restore_calendar(self.1, &self.0, r).await
@@ -102,7 +102,7 @@ impl Appointments for Wrap {
         let mut r = self.0.get(id).await;
         if let (Ok(Some(a)), true) = (&mut r, is(self.1, Mutant::FeedInOrigin)) {
             if let Some(o) = &mut a.origin {
-                o.source = fs_calendars_testdata::zone::reference(
+                o.source = fs_events::zone::reference(
                     "https://kalender.example.org/zzconf-feed.ics",
                 );
             }
@@ -126,7 +126,7 @@ impl Appointments for Wrap {
                     l.iter().any(|c| {
                         matches!(
                             c.trash,
-                            Some(fs_calendars_testdata::draft::Restorable::Held(_))
+                            Some(fs_events::draft::Restorable::Held(_))
                         )
                     })
                 });

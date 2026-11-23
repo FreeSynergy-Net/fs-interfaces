@@ -5,14 +5,14 @@
 mod common;
 
 use common::{loaded, utc, window};
-use fs_calendars_testdata::draft::{
+use fs_events::draft::{
     AppointmentDraft, AppointmentPatch, Appointments, CalendarSource, Error, FetchState,
     Recurrence, Refresh, Restorable, SeriesScope, Trash,
 };
-use fs_calendars_testdata::ids::{object_id, person};
-use fs_calendars_testdata::sample::{at, timed};
-use fs_calendars_testdata::sample_cals::{ACCOUNT, COLLECTION, FEED, IN_TRASH, SUBSCRIBED};
-use fs_calendars_testdata::zone::reference;
+use fs_events::ids::{object_id, person};
+use fs_events::sample::{at, timed};
+use fs_events::sample_cals::{ACCOUNT, COLLECTION, FEED, IN_TRASH, SUBSCRIBED};
+use fs_events::zone::reference;
 
 #[tokio::test]
 async fn the_sample_has_a_subscription_an_account_and_a_calendar_in_the_trash() {
@@ -60,7 +60,7 @@ async fn the_calendar_in_the_trash_of_the_sample_can_come_back() {
 
 #[tokio::test]
 async fn a_feed_whose_name_now_points_into_the_private_net_is_refused_at_every_fetch() {
-    let f = fs_calendars_testdata::FakeAppointments::new();
+    let f = fs_events::FakeAppointments::new();
     let url = reference("https://feed.example.org/a.ics");
     let c = f
         .subscribe_calendar("Feed", None, &url, Refresh::Manual)
@@ -146,9 +146,9 @@ async fn never_automatically_with_a_retention_that_has_an_end_is_held_until_then
         .await
         .unwrap();
     assert_eq!(d.restorable, Restorable::Manual);
-    let end = fs_calendars_testdata::draft::Utc::from_millis(f.now().millis() + 5 * 86_400_000);
+    let end = fs_events::draft::Utc::from_millis(f.now().millis() + 5 * 86_400_000);
     f.hold(a.id, Some(end));
-    let q = fs_calendars_testdata::draft::AppointmentQuery {
+    let q = fs_events::draft::AppointmentQuery {
         trash: Trash::Only,
         ..Default::default()
     };

@@ -8,12 +8,12 @@
 mod common;
 
 use common::{loaded, utc, window};
-use fs_calendars_testdata::draft::{
+use fs_events::draft::{
     Appointment, AppointmentDraft, AppointmentPatch, AppointmentQuery, Appointments, Error,
     HistoryKind, Recurrence, Restorable, Revision, SeriesScope, Trash, Value, When,
 };
-use fs_calendars_testdata::sample::{at, rule, timed};
-use fs_calendars_testdata::{FakeAppointments, ids};
+use fs_events::sample::{at, rule, timed};
+use fs_events::{FakeAppointments, ids};
 
 fn draft(f: &FakeAppointments, title: &str, when: When) -> AppointmentDraft {
     AppointmentDraft {
@@ -26,10 +26,10 @@ fn draft(f: &FakeAppointments, title: &str, when: When) -> AppointmentDraft {
 }
 
 trait CalId {
-    fn calendars_impl_for_tests(&self) -> fs_calendars_testdata::draft::ObjectId;
+    fn calendars_impl_for_tests(&self) -> fs_events::draft::ObjectId;
 }
 impl CalId for FakeAppointments {
-    fn calendars_impl_for_tests(&self) -> fs_calendars_testdata::draft::ObjectId {
+    fn calendars_impl_for_tests(&self) -> fs_events::draft::ObjectId {
         ids::object_id(1)
     }
 }
@@ -64,8 +64,8 @@ async fn bad_input_writes_nothing() {
     let f = FakeAppointments::new();
     let bad_zone = When::Timed {
         start: at(2026, 11, 17, 9, 0),
-        zone: fs_calendars_testdata::zone::iana("Mars/Olympus"),
-        length: fs_calendars_testdata::draft::Span {
+        zone: fs_events::zone::iana("Mars/Olympus"),
+        length: fs_events::draft::Span {
             days: 0,
             seconds: 60,
         },
@@ -83,7 +83,7 @@ async fn bad_input_writes_nothing() {
         f.create(draft(
             &f,
             "x",
-            fs_calendars_testdata::sample::all_day(2026, 2, 1, 0)
+            fs_events::sample::all_day(2026, 2, 1, 0)
         ))
         .await,
         Err(Error::Invalid(_))
@@ -93,7 +93,7 @@ async fn bad_input_writes_nothing() {
     assert!(matches!(f.create(d).await, Err(Error::NotFound(_))));
     let mut hourly = draft(&f, "x", timed(at(2026, 11, 17, 9, 0), "UTC", 60));
     hourly.rest.recurrence = Some(vec![Recurrence::Rule(rule(
-        fs_calendars_testdata::draft::Frequency::Hourly,
+        fs_events::draft::Frequency::Hourly,
     ))]);
     assert!(matches!(f.create(hourly).await, Err(Error::Invalid(_))));
     assert!(
@@ -177,7 +177,7 @@ async fn move_to_another_zone_is_a_typed_change() {
     assert_eq!(c[0].field, "when.zone");
     assert_eq!(
         c[0].new,
-        Some(Value::Zone(fs_calendars_testdata::zone::iana(
+        Some(Value::Zone(fs_events::zone::iana(
             "America/New_York"
         )))
     );
@@ -193,7 +193,7 @@ async fn delete_goes_to_the_trash_and_restore_brings_it_back() {
         .unwrap();
     assert_eq!(
         d.restorable,
-        Restorable::Until(fs_calendars_testdata::draft::Utc::from_millis(
+        Restorable::Until(fs_events::draft::Utc::from_millis(
             1_794_816_000_000 + 30 * 24 * 3600 * 1000
         ))
     );
@@ -234,7 +234,7 @@ async fn restore_after_the_period_is_refused() {
     f.delete(a.id, a.revision, SeriesScope::Whole)
         .await
         .unwrap();
-    f.set_now(fs_calendars_testdata::draft::Utc::from_millis(
+    f.set_now(fs_events::draft::Utc::from_millis(
         1_794_816_000_000 + 31 * 24 * 3600 * 1000,
     ));
     assert!(matches!(

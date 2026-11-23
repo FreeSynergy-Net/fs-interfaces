@@ -1,6 +1,6 @@
 //! Thema `events`, Ziel v1 (Sprung von "events 0.1 (draft)"). Eigentümer: fs-calendars (ADR 0050). Trait `Appointments`.
 //!
-//! Ordner (ADR 0043, jede Datei <= 300 Zeilen), ARBEITS-FIXPUNKT per `tools/hash-ordner.sh appointments_v1` (SHA-256
+//! Ordner (ADR 0043, jede Datei <= 300 Zeilen), ARBEITS-FIXPUNKT per `tools/hash-ordner.sh appointments` (SHA-256
 //! über sortierte relative Pfade und Inhalte, `LC_ALL=C`). Vorgänger-Fixpunkt `2b7fc98b…19b8` (Stand-in-Typen). Dieser
 //! Stand = Typ-Tausch (Entscheidung 21, 2026-11-16: vor dem ersten Release IN v1 geändert, kein Sprung auf v2) plus
 //! Kalender verwalten, Papierkorb-Frist, Abo- und Konto-Kalender, Nutzerantworten 22-25 (Runde 2 nach Opus-Review),

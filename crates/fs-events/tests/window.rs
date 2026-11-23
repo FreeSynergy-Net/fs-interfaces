@@ -8,7 +8,7 @@
 mod common;
 
 use common::{loaded, of, utc, window};
-use fs_calendars_testdata::draft::{Appointments, Error, Status, Trash};
+use fs_events::draft::{Appointments, Error, Status, Trash};
 
 #[tokio::test]
 async fn timed_appointments_are_placed_in_their_own_zone() {
@@ -49,7 +49,7 @@ async fn custom_zone_uses_its_registered_offset_and_unknown_is_damaged_not_guess
         of(&w, s.get("custom-zone"))[0].start,
         utc(2026, 11, 20, 8, 30)
     );
-    let bare = fs_calendars_testdata::FakeAppointments::new();
+    let bare = fs_events::FakeAppointments::new();
     bare.insert_raw(s.get("custom-zone").clone());
     let w = window(&bare, utc(2026, 11, 20, 0, 0), utc(2026, 11, 21, 0, 0)).await;
     assert!(w.instances.is_empty());
@@ -143,7 +143,7 @@ async fn calendar_filter_and_damage() {
 
 #[tokio::test]
 async fn an_empty_provider_answers_an_empty_window_and_a_bad_window_is_invalid() {
-    let e = fs_calendars_testdata::EmptyAppointments::empty();
+    let e = fs_events::EmptyAppointments::empty();
     assert!(
         window(&e, utc(2026, 11, 16, 0, 0), utc(2026, 11, 23, 0, 0))
             .await
@@ -214,7 +214,7 @@ async fn floating_is_eight_everywhere_and_all_day_follows_the_viewer() {
 
 #[test]
 fn the_imported_sample_carries_its_origin_and_the_room_is_not_a_person() {
-    let s = fs_calendars_testdata::sample();
+    let s = fs_events::sample();
     let o = s.get("floating-imported").origin.as_ref().unwrap();
     assert_eq!(
         o.rev_at_import,
@@ -223,5 +223,5 @@ fn the_imported_sample_carries_its_origin_and_the_room_is_not_a_person() {
     );
     assert!(s.get("single-berlin").origin.is_none());
     let room = &s.get("invitation").participants[4];
-    assert!(fs_calendars_testdata::ids::actor(room).is_none());
+    assert!(fs_events::ids::actor(room).is_none());
 }

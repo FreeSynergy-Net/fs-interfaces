@@ -11,13 +11,13 @@ use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
 use common::{loaded, utc};
-use fs_calendars_testdata::draft::{
+use fs_events::draft::{
     AppointmentPatch, Appointments, BasicValue, CAPABILITIES, ContactAddress, Error, PersonArt,
     Revision, SeriesScope, Trash,
 };
-use fs_calendars_testdata::ids::{object_id, person};
-use fs_calendars_testdata::people::{Directory, ProposeEntry};
-use fs_calendars_testdata::{DECISIONS, FailingAppointments, SlowAppointments, sample};
+use fs_events::ids::{object_id, person};
+use fs_events::people::{Directory, ProposeEntry};
+use fs_events::{DECISIONS, FailingAppointments, SlowAppointments, sample};
 
 #[tokio::test]
 async fn every_method_of_the_failing_provider_is_unavailable() {
@@ -108,12 +108,12 @@ fn the_sample_is_complete_and_has_no_names_in_appointments() {
     assert_eq!((uids.len(), ids.len()), (50, 50));
     let customs = std::iter::once(("/Custom/Aussenstelle".to_owned(), 19_800)).collect();
     for (slug, a) in &s.appointments {
-        fs_calendars_testdata::check::appointment(a, &customs)
+        fs_events::check::appointment(a, &customs)
             .unwrap_or_else(|e| panic!("{slug}: {e:?}"));
         assert!(
             a.participants
                 .iter()
-                .all(|p| fs_calendars_testdata::ids::actor(p)
+                .all(|p| fs_events::ids::actor(p)
                     .is_none_or(|x| x.id.canonical().starts_with("urn:uuid:"))),
             "{slug}: people are references"
         );
@@ -145,7 +145,7 @@ async fn the_people_directory_finds_and_proposes_in_one_batch() {
             .unwrap()
             .is_empty()
     );
-    let origin = fs_calendars_testdata::zone::reference(
+    let origin = fs_events::zone::reference(
         "urn:sha256:0000000000000000000000000000000000000000000000000000000000000002",
     );
     let batch = dir.open_batch(&origin).await.unwrap();

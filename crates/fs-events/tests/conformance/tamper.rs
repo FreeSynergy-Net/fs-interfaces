@@ -2,12 +2,12 @@
 //!
 //! Pattern: Decorator helpers (plain functions over the answer; the mutant says what is bent).
 
-use fs_calendars_testdata::FakeAppointments;
-use fs_calendars_testdata::draft::{
+use fs_events::FakeAppointments;
+use fs_events::draft::{
     Appointment, AppointmentDraft, AppointmentQuery, AppointmentSummary, Appointments,
     CalendarInfo, CalendarSource, Error, Recurrence, Restorable, Result, Trash,
 };
-use fs_calendars_testdata::zone::reference;
+use fs_events::zone::reference;
 
 use crate::mutant::{Mutant, is};
 
@@ -52,8 +52,8 @@ pub fn trash_view(m: Mutant, items: &mut [AppointmentSummary]) {
 /// A feed address with the marker of the mutant is replaced by a good one (the mutant "accepts" it).
 pub fn feed(
     m: Mutant,
-    url: &fs_calendars_testdata::draft::Reference,
-) -> Option<fs_calendars_testdata::draft::Reference> {
+    url: &fs_events::draft::Reference,
+) -> Option<fs_events::draft::Reference> {
     let Mutant::FeedAccepts(marker) = m else {
         return (is(m, Mutant::FeedAcceptsMetadata)
             && format!("{url:?}").contains("169.254.169.254"))
@@ -68,7 +68,7 @@ pub fn feed(
 pub async fn held_not_restorable(
     m: Mutant,
     fake: &FakeAppointments,
-    id: fs_calendars_testdata::draft::ObjectId,
+    id: fs_events::draft::ObjectId,
 ) -> bool {
     is(m, Mutant::HeldCalendarNotRestorable)
         && fake.calendars(Trash::Only).await.is_ok_and(|l| {
@@ -76,7 +76,7 @@ pub async fn held_not_restorable(
                 c.id == id
                     && matches!(
                         c.trash,
-                        Some(fs_calendars_testdata::draft::Restorable::Held(_))
+                        Some(fs_events::draft::Restorable::Held(_))
                     )
             })
         })
@@ -99,7 +99,7 @@ pub async fn restore_calendar(
                     .delete(
                         s.id,
                         s.revision,
-                        fs_calendars_testdata::draft::SeriesScope::Whole,
+                        fs_events::draft::SeriesScope::Whole,
                     )
                     .await;
             }
