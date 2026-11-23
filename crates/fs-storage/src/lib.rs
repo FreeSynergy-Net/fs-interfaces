@@ -27,7 +27,7 @@ pub use entry::{
 };
 pub use error::{Error, NameProblem, Result};
 #[cfg(feature = "fake")]
-pub use fake::{FakeLocal, FakeStorage, Fault, Sample, sample};
+pub use fake::{ALL_FAULTS, FakeLocal, FakeStorage, Fault, Sample, rules_for, sample};
 pub use fs_types::{FileRef, MediaType, PersonArt, PersonRef};
 pub use ids::{EntryId, split_path, validate_name};
 pub use provider::{Listener, StorageProvider, Subscription, resolve_by_list};
