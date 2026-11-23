@@ -12,8 +12,11 @@ using HostBind = import "bind.capnp";   # host contract (H1); only for the navig
 
 # ---- the description (= fs-forms-layout `LayoutDoc`; `elem` "" = not given, format 1 only) ----
 struct Range { capability @0 :Text; minMajor @1 :UInt32; minMinor @2 :UInt32; belowMajor @3 :UInt32; belowMinor @4 :UInt32;
-              text @5 :Text; }   # PROBE F2 (question to the owner): `text` = the range as written ("name >=a.b <c.d"); a description may carry a range that
-                                 # does not parse (`range-invalid` is the SERVER's answer), so the wire must carry the text. Empty = read the fields.
+              text @5 :Text; minPatch @6 :UInt32; belowPatch @7 :UInt32; }
+# `text` = the range as written ("name@>=a.b.c, <d.e.f", SemVer, Cargo grammar; ENTSCHEID-schnitt V-2); a description may carry a range that
+# does not parse (`range-invalid` is the SERVER's answer), so the wire must carry the text. Empty = read the fields.
+# `minPatch` / `belowPatch` (appended, V-2) are the third number of the two bounds, so `>=0.0.1, <0.1.0` passes without a silent cut.
+# Appended only: an old writer leaves them 0 (= `a.b.0`), an old reader ignores them.
 struct Requires { elem @0 :Text; range @1 :Range; }
 struct Source { elem @0 :Text; n @1 :UInt32; range @2 :Range; dataType @3 :Text; scope @4 :Text; }      # scope "" | all | selected-list
 struct MenuNode {

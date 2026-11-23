@@ -129,7 +129,7 @@ enum Trust {
   makerAndMirror @3;                     # the maker's signature checked, then signed by the mirror
 }
 
-# A capability (ADR 0068): a name of the list in `fs-interfaces` and a level `major.minor`; empty level = any.
+# A capability (ADR 0068): a name of the list in `fs-interfaces` and a level `major.minor.patch` (SemVer); empty level = any.
 struct CapabilityRef { name @0 :Text; version @1 :Text; }
 
 struct Picture {

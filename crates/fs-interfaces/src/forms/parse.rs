@@ -2,20 +2,20 @@
 
 use std::fmt;
 
-use super::types::{Art, Channel, Count, Form, Status, Version, number};
+use super::types::{Art, Channel, Count, Form, Status, number, parse_version};
 
 /// Why a line was refused.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ErrorKind {
-    /// Not of the form `name@H.N | display | status | description` or `> channel | art | required | count`.
+    /// Not of the form `name@H.N.P | display | status | description` or `> channel | art | required | count`.
     Shape,
     /// The form name is not lower-case words joined by `-`.
     Name,
-    /// The version is not `H.N`.
+    /// The version is not `H.N.P` (`SemVer`, three parts).
     Version,
     /// The status is neither `stable` nor `planned`.
     Status,
-    /// The same `name@H.N` twice.
+    /// The same `name@H.N.P` twice.
     DuplicateForm,
     /// A channel line before any form line.
     ChannelWithoutForm,
@@ -90,7 +90,7 @@ fn parse_form(fields: &[&str]) -> Result<Form, ErrorKind> {
     if !is_word_name(name) {
         return Err(ErrorKind::Name);
     }
-    let version = Version::parse(version).ok_or(ErrorKind::Version)?;
+    let version = parse_version(version).ok_or(ErrorKind::Version)?;
     let status = match *status {
         "stable" => Status::Stable,
         "planned" => Status::Planned,

@@ -3,9 +3,9 @@
 
 use std::path::{Path, PathBuf};
 
-use fs_interfaces::forms::{self, Art, Count, ErrorKind, Status, Version, parse};
+use fs_interfaces::forms::{self, Art, Count, ErrorKind, Status, Version, parse, parse_version};
 
-const GOOD: &str = "a@1.0 | A | planned | text\n> items | records | ! | 1\n";
+const GOOD: &str = "a@1.0.0 | A | planned | text\n> items | records | ! | 1\n";
 
 fn kind(text: &str) -> ErrorKind {
     parse(text).unwrap_err().kind
@@ -16,16 +16,16 @@ fn the_builtin_file_parses_with_the_named_forms() {
     let all = parse(forms::SOURCE).unwrap();
     assert_eq!(all.len(), forms::catalog().len());
     for key in [
-        "bars-in-time@1.0",
-        "tiles@1.0",
-        "tree@1.0",
-        "members@1.0",
-        "checklist@1.0",
-        "cards-in-columns@1.0",
+        "bars-in-time@1.0.0",
+        "tiles@1.0.0",
+        "tree@1.0.0",
+        "members@1.0.0",
+        "checklist@1.0.0",
+        "cards-in-columns@1.0.0",
     ] {
         assert!(forms::find_key(key).is_some(), "{key}");
     }
-    let tiles = forms::find("tiles", Version { major: 1, minor: 0 }).unwrap();
+    let tiles = forms::find("tiles", &Version::new(1, 0, 0)).unwrap();
     assert_eq!(tiles.status, Status::Planned);
     let required: Vec<_> = tiles.required().map(|c| c.name.as_str()).collect();
     assert_eq!(required, ["items", "label"]);
@@ -36,8 +36,8 @@ fn the_builtin_file_parses_with_the_named_forms() {
             max: Some(4)
         }
     );
-    assert_eq!(tiles.key(), "tiles@1.0");
-    assert!(forms::find_key("tiles@2.0").is_none());
+    assert_eq!(tiles.key(), "tiles@1.0.0");
+    assert!(forms::find_key("tiles@2.0.0").is_none());
     assert!(forms::find_key("tiles").is_none());
 }
 
@@ -60,7 +60,7 @@ fn only_the_seven_arts_are_used() {
             }
         }
     }
-    let tree = forms::find_key("cards-in-columns@1.0").unwrap();
+    let tree = forms::find_key("cards-in-columns@1.0.0").unwrap();
     assert_eq!(tree.channel("column").unwrap().arts, [Art::Text]);
     let facts = tree.channel("facts").unwrap();
     assert_eq!(facts.arts, [Art::Text, Art::Number, Art::Time, Art::Flag]);
@@ -72,7 +72,7 @@ fn only_the_seven_arts_are_used() {
     );
     assert!(!tree.channel("title").unwrap().accepts_basic("Number"));
     assert_eq!(
-        forms::find_key("checklist@1.0")
+        forms::find_key("checklist@1.0.0")
             .unwrap()
             .channel("order")
             .unwrap()
@@ -137,16 +137,16 @@ fn bad_files_are_refused_with_the_line() {
         ErrorKind::ChannelWithoutForm
     );
     assert_eq!(kind("a 1.0 | A | planned | t\n"), ErrorKind::Shape);
-    assert_eq!(kind("a@1.0 | A | planned\n"), ErrorKind::Shape);
-    assert_eq!(kind("A@1.0 | A | planned | t\n"), ErrorKind::Name);
+    assert_eq!(kind("a@1.0.0 | A | planned\n"), ErrorKind::Shape);
+    assert_eq!(kind("A@1.0.0 | A | planned | t\n"), ErrorKind::Name);
     assert_eq!(kind("a@1 | A | planned | t\n"), ErrorKind::Version);
     assert_eq!(kind("a@1.x | A | planned | t\n"), ErrorKind::Version);
-    assert_eq!(kind("a@1.0 | A | soon | t\n"), ErrorKind::Status);
+    assert_eq!(kind("a@1.0.0 | A | soon | t\n"), ErrorKind::Status);
     assert_eq!(kind(&format!("{GOOD}{GOOD}")), ErrorKind::DuplicateForm);
-    let two = "a@2.0 | A | stable | t\n> items | records | ! | 1\n";
+    let two = "a@2.0.0 | A | stable | t\n> items | records | ! | 1\n";
     let both = parse(&format!("{GOOD}{two}")).unwrap();
     assert_eq!(both[1].status, Status::Stable);
-    assert_eq!(both[1].version, Version { major: 2, minor: 0 });
+    assert_eq!(both[1].version, Version::new(2, 0, 0));
     assert_eq!(
         kind(&format!("{GOOD}> items | records | ! | 1\n")),
         ErrorKind::DuplicateChannel
@@ -206,23 +206,46 @@ fn bad_files_are_refused_with_the_line() {
         ErrorKind::RequiredButOptionalCount
     );
     assert_eq!(kind(&format!("{GOOD}> x | text\n")), ErrorKind::Shape);
-    assert_eq!(kind("a@1.0 | A | planned | t\n"), ErrorKind::NoChannel);
+    assert_eq!(kind("a@1.0.0 | A | planned | t\n"), ErrorKind::NoChannel);
     assert_eq!(
-        kind("a@1.0 | A | planned | t\n> x | text | - | 1\n"),
+        kind("a@1.0.0 | A | planned | t\n> x | text | - | 1\n"),
         ErrorKind::NoRequiredChannel
     );
-    let e = parse(&format!("# c\n{GOOD}b@1.0 | B | zzz | t\n")).unwrap_err();
+    let e = parse(&format!("# c\n{GOOD}b@1.0.0 | B | zzz | t\n")).unwrap_err();
     assert_eq!(e.line, 4);
     assert!(e.to_string().contains("line 4"));
 }
 
 #[test]
-fn a_version_is_two_plain_numbers() {
-    assert_eq!(Version::parse("1.0"), Some(Version { major: 1, minor: 0 }));
-    for bad in ["1", "1.", ".1", "1.0.0", "+1.0", "1.-1", " 1.0", "a.b", ""] {
-        assert!(Version::parse(bad).is_none(), "{bad:?}");
+fn a_version_is_three_plain_numbers() {
+    assert_eq!(parse_version("1.0.0"), Some(Version::new(1, 0, 0)));
+    assert_eq!(parse_version("0.0.1"), Some(Version::new(0, 0, 1)));
+    for bad in [
+        "1",
+        "1.",
+        ".1",
+        "1.0",
+        "0.1",
+        "+1.0.0",
+        "1.-1.0",
+        " 1.0.0",
+        "a.b.c",
+        "",
+        "1.0.0-rc.1",
+        "1.0.0+b5",
+    ] {
+        assert!(parse_version(bad).is_none(), "{bad:?}");
     }
-    assert!(Version { major: 1, minor: 2 } < Version { major: 2, minor: 0 });
+    assert!(Version::new(1, 2, 0) < Version::new(2, 0, 0));
+    assert!(Version::new(0, 0, 10) > Version::new(0, 0, 9));
+}
+
+#[test]
+fn a_two_part_version_in_the_file_is_an_error_with_its_line() {
+    let e = parse(&format!("{GOOD}tree@1.0 | T | planned | t\n")).unwrap_err();
+    assert_eq!(e.kind, ErrorKind::Version);
+    assert_eq!(e.line, 3);
+    assert!(forms::find_key("tiles@1.0").is_none());
 }
 
 fn schema_dir() -> PathBuf {

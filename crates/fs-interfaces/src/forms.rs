@@ -12,4 +12,4 @@ mod types;
 
 pub use catalog::{FORM_SOURCE_LEVEL, SOURCE, catalog, find, find_key};
 pub use parse::{ErrorKind, ParseError, parse};
-pub use types::{Art, Channel, Count, Form, Status, Version};
+pub use types::{Art, Channel, Count, Form, Status, Version, parse_version};

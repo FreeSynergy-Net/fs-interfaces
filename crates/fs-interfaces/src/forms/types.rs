@@ -104,25 +104,15 @@ pub struct Channel {
     pub count: Count,
 }
 
-/// `Major.Minor` of a form: Minor when an optional channel comes, Major when a channel goes or changes meaning.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Version {
-    /// Major part.
-    pub major: u32,
-    /// Minor part.
-    pub minor: u32,
-}
+/// The version of a form: `SemVer` `Major.Minor.Patch` (the crate `semver`, no adapter). Minor when an optional channel comes, Major when a channel
+/// goes or changes meaning, Patch never (no change of the interface). Read with [`parse_version`].
+pub use semver::Version;
 
-impl Version {
-    /// Reads `H.N` (both parts digits, no sign, no spaces).
-    #[must_use]
-    pub fn parse(text: &str) -> Option<Version> {
-        let (major, minor) = text.split_once('.')?;
-        Some(Version {
-            major: number(major)?,
-            minor: number(minor)?,
-        })
-    }
+/// Reads `H.N.P` (three plain numbers, no pre-release, no build part). `0.1` is no version and is refused.
+#[must_use]
+pub fn parse_version(text: &str) -> Option<Version> {
+    let v = Version::parse(text).ok()?;
+    (v.pre.is_empty() && v.build.is_empty()).then_some(v)
 }
 
 pub(super) fn number(text: &str) -> Option<u32> {
@@ -166,13 +156,10 @@ impl Channel {
 }
 
 impl Form {
-    /// The key `name@Major.Minor`.
+    /// The key `name@Major.Minor.Patch`.
     #[must_use]
     pub fn key(&self) -> String {
-        format!(
-            "{}@{}.{}",
-            self.name, self.version.major, self.version.minor
-        )
+        format!("{}@{}", self.name, self.version)
     }
 
     /// A channel by name.

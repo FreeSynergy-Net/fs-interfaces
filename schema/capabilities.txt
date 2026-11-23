@@ -4,7 +4,7 @@
 # key: lower-case dotted machine name (`topic` or `topic.facet`); a topic key is the name of its schema in fs-interfaces
 #   (ADR 0068). display name: for people ("Boards" for key `whiteboard`); the pair lives here and nowhere else.
 # status: `stable` (the interface exists) or `planned` (named, not built yet; is_known is true, is_planned tells).
-# A package states a level `major.minor` next to the key (provides, requires, recommends). Only append, never rename or remove.
+# A package states a level `major.minor.patch` (SemVer, read with `semver`) next to the key (provides, requires, recommends). Only append, never rename or remove.
 # `#` starts a comment line.
 messenger | Messages | stable | Saying something to someone (fs-messages; the capability key stays `messenger`, ADR 0087)
 people | People | stable | People and how to reach them (fs-people)

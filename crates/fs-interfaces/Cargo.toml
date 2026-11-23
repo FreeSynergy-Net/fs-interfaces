@@ -9,6 +9,8 @@ repository.workspace = true
 
 [dependencies]
 capnp = "0.27"
+# Versions of forms: SemVer, read directly with the crate (ENTSCHEID-schnitt V-2, no adapter).
+semver = "1.0.28"
 # The basic types (ADR 0093): the generated code points at `::fs_types::types_capnp`. No re-export from here.
 fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
 
