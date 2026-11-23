@@ -49,12 +49,20 @@ impl Ctl {
     }
 }
 
+/// The most bytes one `Blob::read` answers (8 MiB): the contract never forces a whole file into one buffer, and a caller
+/// cannot make a provider build a buffer of gigabytes with one call.
+pub const MAX_READ: u64 = 8 * 1024 * 1024;
+
 /// The bytes of an opened file; the seam to streaming is `read` (ADR 0070 risk 5).
 #[async_trait]
 pub trait Blob: Send + Sync {
     /// The entry that was opened.
     fn entry(&self) -> &Entry;
-    /// Read `length` bytes from `offset`; shorter at the end, empty behind it.
+    /// Read up to `length` bytes from `offset`. A read may return FEWER bytes than asked (a short read): at most
+    /// [`MAX_READ`], and at least one byte while `offset` is before the end; an empty answer means the end or behind it,
+    /// never "try again". A caller that needs more reads again from where it stopped. A provider never answers more than
+    /// `length`. The provider checks the sha256 of the file against `Entry.file_ref` while reading and answers
+    /// `BackendFailed` on a mismatch (it does not hand out bytes that differ from their reference).
     async fn read(&self, offset: u64, length: u64) -> Result<Vec<u8>>;
 }
 

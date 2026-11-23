@@ -2,7 +2,9 @@
 //!
 //! Pattern: Rule set (one function per rule, `Ok` or the reason).
 
-use super::fixture::{Check, Fixture, all, read_all, refused, root_of, s, sha, walk, want};
+use super::fixture::{
+    Check, Fixture, all, read_all, read_range, refused, root_of, s, sha, walk, want,
+};
 use crate::ctl::Ctl;
 use crate::entry::{Kind, PageReq, RootKind};
 use crate::error::Error;
@@ -99,7 +101,7 @@ pub(super) async fn file_sha256(fx: &Fixture) -> Check {
         )?;
         let blob = s(fx.anna.open(&e.id, &Ctl::none()).await)?;
         want(
-            s(blob.read(2, 5).await)? == bytes[2..7],
+            read_range(&*blob, bytes.len() as u64, 2, 5).await? == bytes[2..7],
             &format!("{path}: range read is wrong"),
         )?;
         want(
@@ -158,6 +160,13 @@ pub(super) async fn blob_range(fx: &Fixture) -> Check {
     let bytes = read_all(&*fx.anna, &e).await?;
     let len = bytes.len() as u64;
     let blob = s(fx.anna.open(&e.id, &Ctl::none()).await)?;
+    let first = s(blob.read(0, u64::MAX).await)?;
+    want(
+        !first.is_empty()
+            && first.len() as u64 <= len.min(crate::ctl::MAX_READ)
+            && first == bytes[..first.len()],
+        "read(0, u64::MAX) must answer a non-empty prefix of at most MAX_READ bytes",
+    )?;
     for (offset, length) in [
         (0, 1),
         (3, 4),
@@ -169,7 +178,7 @@ pub(super) async fn blob_range(fx: &Fixture) -> Check {
     ] {
         let from = usize::try_from(offset.min(len)).unwrap_or(0);
         let to = usize::try_from(offset.saturating_add(length).min(len)).unwrap_or(0);
-        let got = s(blob.read(offset, length).await)?;
+        let got = read_range(&*blob, len, offset, length).await?;
         want(
             got == bytes[from..to],
             &format!("range ({offset}, {length}) is wrong"),
