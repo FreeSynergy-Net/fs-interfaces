@@ -174,6 +174,23 @@ impl World {
         }
     }
 
+    /// The owner of the target folder; the right to write there is checked (the mutant `skip` does not).
+    pub(super) fn target_owner(
+        &self,
+        a: &Actor,
+        to: &EntryId,
+        skip: Fault,
+    ) -> Result<fs_types::PersonRef> {
+        if a.fault == Some(skip) {
+            return self
+                .nodes
+                .get(to.as_str())
+                .map(|n| n.entry.owner.clone())
+                .ok_or_else(|| Error::NotFound(to.clone()));
+        }
+        Ok(self.folder_for_write(a, to)?.entry.owner.clone())
+    }
+
     pub(super) fn move_node(
         &mut self,
         a: &Actor,
@@ -185,7 +202,7 @@ impl World {
         if n.parent.is_none() || n.trashed_from.is_some() {
             return Err(bad("id", "root-or-trashed"));
         }
-        let owner = self.folder_for_write(a, to)?.entry.owner.clone();
+        let owner = self.target_owner(a, to, Fault::MoveIgnoresTarget)?;
         let mut up = Some(to.as_str().to_owned());
         while let Some(p) = up {
             if p == id.as_str() {
@@ -216,7 +233,14 @@ impl World {
         ctl: &Ctl,
     ) -> Result<Entry> {
         let src = self.node_for(a, id, Mode::Read)?.clone();
-        let owner = self.folder_for_write(a, to)?.entry.owner.clone();
+        let owner = self.target_owner(a, to, Fault::CopyIgnoresTarget)?;
+        let mut up = Some(to.as_str().to_owned());
+        while let Some(p) = up {
+            if p == id.as_str() {
+                return Err(Error::Cycle(id.clone()));
+            }
+            up = self.nodes.get(&p).and_then(|x| x.parent.clone());
+        }
         let name = self.free_name(a, to.as_str(), &src.entry.name, on, None)?;
         let new = self.copy_rec(&src, id.as_str(), to.as_str(), &name, &owner, ctl)?;
         self.log_change(&new, ChangeKind::Created);

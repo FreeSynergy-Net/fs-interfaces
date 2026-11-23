@@ -33,6 +33,7 @@ pub(super) async fn stranger_read(fx: &Fixture) -> Check {
 }
 
 pub(super) async fn stranger_write(fx: &Fixture) -> Check {
+    super::changes::own_into_foreign(&*fx.fremd, &*fx.anna, "stranger").await?;
     let before = walk(&*fx.anna).await?;
     for (path, e) in before.iter().filter(|(p, _)| !p.starts_with("Papierkorb")) {
         let w = format!("stranger changes {path}");
@@ -87,6 +88,7 @@ pub(super) async fn stranger_write(fx: &Fixture) -> Check {
 }
 
 pub(super) async fn member_readonly(fx: &Fixture) -> Check {
+    super::changes::own_into_foreign(&*fx.ben, &*fx.anna, "member").await?;
     let all = walk(&*fx.anna).await?;
     let (_, file) = all
         .iter()

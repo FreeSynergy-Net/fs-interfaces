@@ -56,13 +56,19 @@ impl World {
             .clone()
             .ok_or_else(|| Error::NotFound(id.clone()))?;
         let dest = to.cloned().unwrap_or(EntryId(from));
-        self.folder_for_write(a, &dest).map_err(|e| {
-            if matches!(e, Error::NotFound(_)) {
-                bad("to", "gone")
-            } else {
-                e
-            }
-        })?;
+        if a.fault == Some(Fault::RestoreIgnoresTarget) {
+            self.nodes
+                .get(dest.as_str())
+                .ok_or_else(|| bad("to", "gone"))?;
+        } else {
+            self.folder_for_write(a, &dest).map_err(|e| {
+                if matches!(e, Error::NotFound(_)) {
+                    bad("to", "gone")
+                } else {
+                    e
+                }
+            })?;
+        }
         let name = self.nodes[id.as_str()].entry.name.clone();
         let name = self.free_name(a, dest.as_str(), &name, on, Some(id.as_str()))?;
         let n = self
