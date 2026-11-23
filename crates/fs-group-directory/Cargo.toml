@@ -1,6 +1,6 @@
 [package]
 name = "fs-group-directory"
-description = "Test providers, conformance rules and fixed sample data of FreeSynergy groups: a fake of the locked Groups trait (groups_v1)"
+description = "Test providers, conformance rules and fixed sample data of FreeSynergy groups: a fake of the `groups` contract"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
