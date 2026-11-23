@@ -31,7 +31,7 @@ fn the_builtin_file_parses_with_the_named_forms() {
     assert_eq!(required, ["items", "label"]);
     assert_eq!(
         tiles.channel("facts").unwrap().count,
-        Count::Range {
+        Count {
             min: 0,
             max: Some(4)
         }
@@ -91,7 +91,7 @@ fn every_form_is_consistent() {
             if c.required {
                 assert_ne!(
                     c.count,
-                    Count::Range { min: 0, max: None },
+                    Count { min: 0, max: None },
                     "{}.{}",
                     f.key(),
                     c.name
@@ -122,7 +122,7 @@ fn a_good_text_parses_and_blank_and_comment_lines_are_skipped() {
     assert_eq!(all.len(), 1);
     assert_eq!(
         all[0].channels[0].count,
-        Count::Range {
+        Count {
             min: 1,
             max: Some(1)
         }

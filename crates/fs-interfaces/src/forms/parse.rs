@@ -67,11 +67,8 @@ fn is_word_name(name: &str) -> bool {
 }
 
 fn parse_count(text: &str) -> Option<Count> {
-    if text == "?" {
-        return Some(Count::Open);
-    }
     if let Some(n) = number(text) {
-        return Some(Count::Range {
+        return Some(Count {
             min: n,
             max: Some(n),
         });
@@ -82,7 +79,7 @@ fn parse_count(text: &str) -> Option<Count> {
     if max.is_some_and(|m| m < min) {
         return None;
     }
-    Some(Count::Range { min, max })
+    Some(Count { min, max })
 }
 
 fn parse_form(fields: &[&str]) -> Result<Form, ErrorKind> {
@@ -139,7 +136,7 @@ fn parse_channel(fields: &[&str]) -> Result<Channel, ErrorKind> {
         _ => return Err(ErrorKind::Required),
     };
     let count = parse_count(count).ok_or(ErrorKind::Count)?;
-    if required && matches!(count, Count::Range { min: 0, .. }) {
+    if required && count.min == 0 {
         return Err(ErrorKind::RequiredButOptionalCount);
     }
     Ok(Channel {
