@@ -1,5 +1,5 @@
 [package]
-name = "fs-people-directory"
+name = "fs-person-directory"
 description = "The light consumer side of FreeSynergy.People: the locked trait person_directory_v1 (resolve, suggest, propose, excerpt, changes), an in-memory fake, a composite and conformance tests"
 version.workspace = true
 edition.workspace = true

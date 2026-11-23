@@ -2,15 +2,15 @@
 //!
 //! Pattern: Contract test (shared rules run against fake, composite and doubles).
 
-use fs_people_directory::conformance::{run_conformance, run_fixture_conformance};
-use fs_people_directory::{
+use fs_person_directory::conformance::{run_conformance, run_fixture_conformance};
+use fs_person_directory::{
     CompositeDirectory, EntryState, Error, ExcerptField, FailingDirectory, FakeDirectory,
     FakeFixture, Gate, PersonArt, PersonDirectory, ProposeEntry, Resolved, SlowDirectory, Suggest,
     sample, sample_ref,
 };
 use std::time::Duration;
 
-fn r(n: u8) -> fs_people_directory::PersonRef {
+fn r(n: u8) -> fs_person_directory::PersonRef {
     sample_ref(n).expect("a sample number")
 }
 
@@ -116,7 +116,7 @@ async fn composite_resolve_many_asks_each_member_once() {
 #[tokio::test]
 async fn composite_bad_limit_is_invalid_even_when_all_are_down() {
     let down = FailingDirectory::new(Error::Unavailable(
-        fs_people_directory::Unreachable::Timeout,
+        fs_person_directory::Unreachable::Timeout,
     ));
     let chain = CompositeDirectory::new(vec![Box::new(down)]);
     let q = Suggest {

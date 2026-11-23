@@ -3,7 +3,7 @@
 //! Pattern: Test double (Null Object defaults and an unavailable provider).
 
 use async_trait::async_trait;
-use fs_people_directory::{
+use fs_person_directory::{
     Candidate, Capabilities, ContactAddress, DirectoryChange, Page, PersonDirectory, PersonRef,
     PersonView, Place, Resolved, Result, Suggest,
 };

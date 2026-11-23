@@ -1,4 +1,4 @@
-//! `fs-people-directory`: the light consumer side of People (ADR 0087, plan O2).
+//! `fs-person-directory`: the light consumer side of People (ADR 0087, plan O2).
 //!
 //! Pattern: Facade (one crate door for the locked trait, a fake, a composite and the conformance tests).
 //!

@@ -4,8 +4,8 @@
 
 mod common;
 use common::ReadOnly;
-use fs_people_directory::conformance::{run_conformance, run_unsupported};
-use fs_people_directory::{
+use fs_person_directory::conformance::{run_conformance, run_unsupported};
+use fs_person_directory::{
     ChangeKind, CompositeDirectory, ContactAddress, Entry, EntryState, Error, Excerpt,
     ExcerptField, ExcerptValue, FailingDirectory, FakeDirectory, NoExcerptReason, PersonArt,
     PersonDirectory, PersonRef, Place, Resolved, Result, Suggest, Unreachable,
@@ -160,7 +160,7 @@ async fn closed_batch_is_refused() {
     let d = FakeDirectory::new();
     let origin = Reference::parse("urn:uuid:00000000-0000-7000-8000-00000000abcd").expect("ref");
     let b = d.open_batch(&origin).await.expect("batch");
-    let e = fs_people_directory::ProposeEntry {
+    let e = fs_person_directory::ProposeEntry {
         display_hint: "X".into(),
         address: None,
         origin: None,
@@ -234,7 +234,7 @@ async fn composite_chain_rules() {
     // person.propose goes to the first member that offers it (the fake), batch ids stay with their issuer.
     let origin = Reference::parse("urn:uuid:00000000-0000-7000-8000-00000000abcd").expect("ref");
     let b = chain.open_batch(&origin).await.expect("batch");
-    let e = fs_people_directory::ProposeEntry {
+    let e = fs_person_directory::ProposeEntry {
         display_hint: "New".into(),
         address: None,
         origin: None,
