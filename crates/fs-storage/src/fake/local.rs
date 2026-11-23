@@ -19,6 +19,7 @@ use fs_types::{MediaType, Page, PersonRef};
 #[derive(Clone, Debug, Default)]
 pub struct FakeLocal {
     write_bug: bool,
+    accepts: Option<&'static str>,
 }
 
 impl FakeLocal {
@@ -26,6 +27,21 @@ impl FakeLocal {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// A mutant that accepts one change method (`create`, `rename`, `move_to`, `copy_to`, `delete`, `restore`).
+    #[must_use]
+    pub fn with_accepts(mut self, method: &'static str) -> Self {
+        self.accepts = Some(method);
+        self
+    }
+
+    fn accepted(&self, m: &str) -> Result<Entry> {
+        if self.accepts == Some(m) {
+            Ok(Self::entry("local:/new", "neu", Kind::File, &sample().anna))
+        } else {
+            crate::provider::not_possible("storage.change")
+        }
     }
 
     /// A mutant that saves into the foreign tree.
@@ -113,5 +129,50 @@ impl StorageProvider for FakeLocal {
         }
         let _ = (at, src);
         Ok(Self::entry("local:/new", name, Kind::File, &sample().anna))
+    }
+    async fn create(
+        &self,
+        _at: &EntryId,
+        _n: &str,
+        _k: Kind,
+        _on: crate::entry::OnConflict,
+    ) -> Result<Entry> {
+        self.accepted("create")
+    }
+    async fn rename(
+        &self,
+        _id: &EntryId,
+        _n: &str,
+        _on: crate::entry::OnConflict,
+    ) -> Result<Entry> {
+        self.accepted("rename")
+    }
+    async fn move_to(
+        &self,
+        _id: &EntryId,
+        _to: &EntryId,
+        _on: crate::entry::OnConflict,
+    ) -> Result<Entry> {
+        self.accepted("move_to")
+    }
+    async fn copy_to(
+        &self,
+        _id: &EntryId,
+        _to: &EntryId,
+        _on: crate::entry::OnConflict,
+        _c: &Ctl,
+    ) -> Result<Entry> {
+        self.accepted("copy_to")
+    }
+    async fn delete(&self, _id: &EntryId, _h: crate::entry::Delete) -> Result<()> {
+        self.accepted("delete").map(|_| ())
+    }
+    async fn restore(
+        &self,
+        _id: &EntryId,
+        _to: Option<&EntryId>,
+        _on: crate::entry::OnConflict,
+    ) -> Result<Entry> {
+        self.accepted("restore")
     }
 }

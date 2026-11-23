@@ -5,7 +5,7 @@
 use super::access::{Actor, Mode};
 use super::state::{Fault, Node, World};
 use crate::ctl::Blob;
-use crate::entry::{Entry, Kind, PageReq, Root, RootKind, Sort, Usage};
+use crate::entry::{Change, ChangeKind, Entry, Kind, PageReq, Root, RootKind, Sort, Usage};
 use crate::error::{Error, Result};
 use crate::ids::EntryId;
 use async_trait::async_trait;
@@ -127,7 +127,7 @@ impl World {
             .filter(|_| !bot)
             .cloned()
             .map(|mut r| {
-                r.usage = Some(self.usage_of(r.id.as_str()));
+                r.usage = (a.fault != Some(Fault::NoUsage)).then(|| self.usage_of(r.id.as_str()));
                 r
             })
             .collect();
@@ -145,7 +145,7 @@ impl World {
 
     pub(super) fn stat_of(&self, a: &Actor, id: &EntryId) -> Result<Entry> {
         if id.as_str() == TRASH {
-            if self.is_bot(a) {
+            if self.is_bot(a) && a.fault != Some(Fault::BotTrash) {
                 return Err(Error::Forbidden {
                     capability: "storage.read".to_owned(),
                 });
@@ -163,6 +163,15 @@ impl World {
                 link_target: None,
                 generator: None,
             });
+        }
+        if a.fault == Some(Fault::StatTrashLeak) {
+            if let Some(n) = self
+                .nodes
+                .get(id.as_str())
+                .filter(|n| n.trashed_from.is_some())
+            {
+                return Ok(Self::present(a, n));
+            }
         }
         self.node_for(a, id, Mode::Structure)
             .map(|n| Self::present(a, n))
@@ -182,6 +191,11 @@ impl World {
         }
         let mut dir = at.clone();
         let in_trash = at.as_str() == TRASH;
+        if in_trash && self.is_bot(a) && a.fault != Some(Fault::BotTrash) {
+            return Err(Error::Forbidden {
+                capability: "storage.read".to_owned(),
+            });
+        }
         if !in_trash {
             let n = self.node_for(a, at, Mode::Structure)?;
             match (n.entry.kind, &n.entry.link_target) {
@@ -238,7 +252,23 @@ impl World {
 
     /// The entry and its bytes (the fake keeps them in a map, content-addressed by the reference).
     pub(super) fn open_of(&self, a: &Actor, id: &EntryId) -> Result<(Entry, Vec<u8>)> {
-        let n = self.node_for(a, id, Mode::Read)?;
+        let id = &self.deref(id, a.fault == Some(Fault::FollowLinksOpen));
+        let n = if a.fault == Some(Fault::OpenTrashLeak)
+            && self
+                .nodes
+                .get(id.as_str())
+                .is_some_and(|n| n.trashed_from.is_some())
+        {
+            &self.nodes[id.as_str()]
+        } else {
+            self.node_for(a, id, Mode::Read)?
+        };
+        if self.in_trash(id.as_str()) {
+            return Err(Error::Invalid(vec![Problem {
+                field: "id".into(),
+                reason: "trashed".into(),
+            }]));
+        }
         match (n.entry.kind, &n.entry.file_ref) {
             (Kind::File, Some(f)) => {
                 let bytes = self
@@ -263,6 +293,11 @@ impl World {
         generator: &str,
         page: &PageReq,
     ) -> Result<(Vec<Entry>, Option<PageCursor>)> {
+        if self.is_bot(a) {
+            return Err(Error::Forbidden {
+                capability: "storage.read".to_owned(),
+            });
+        }
         if page.size == 0 || page.size > 1000 {
             return Err(Error::Invalid(vec![Problem {
                 field: "size".into(),
@@ -272,7 +307,10 @@ impl World {
         let mut hits: Vec<&Node> = self
             .nodes
             .values()
-            .filter(|n| n.trashed_from.is_none() && n.entry.generator.as_deref() == Some(generator))
+            .filter(|n| {
+                (n.trashed_from.is_none() || a.fault == Some(Fault::ScopeTrash))
+                    && n.entry.generator.as_deref() == Some(generator)
+            })
             .filter(|n| {
                 a.fault == Some(Fault::ScopeLeak) || self.allowed(a, &n.entry.owner, Mode::Read)
             })
@@ -291,5 +329,26 @@ impl World {
             .map(|n| Self::present(a, n))
             .collect();
         Ok((out, (end < hits.len()).then(|| PageCursor(end.to_string()))))
+    }
+
+    /// Decision 16.2: when the operator opens or copies foreign content, the owner gets an entry. Information only: it
+    /// records access through the program and protects nothing (whoever is root can read past it).
+    pub(super) fn log_operator_read(&mut self, a: &Actor, id: &EntryId) {
+        let Some(n) = self.nodes.get(id.as_str()) else {
+            return;
+        };
+        if self.is_operator(a)
+            && n.entry.owner.id != a.who.id
+            && a.fault != Some(Fault::NoOperatorLog)
+        {
+            let owner = n.entry.owner.clone();
+            self.log.push((
+                Change {
+                    id: id.clone(),
+                    kind: ChangeKind::OpenedByOperator,
+                },
+                owner,
+            ));
+        }
     }
 }

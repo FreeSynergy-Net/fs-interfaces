@@ -41,7 +41,7 @@ impl StorageProvider for FakeStorage {
             write: true,
             rename: true,
             move_to: true,
-            copy: true,
+            copy: self.fault != Some(Fault::CapsLie),
             trash: true,
             restore: true,
             range: true,
@@ -64,7 +64,15 @@ impl StorageProvider for FakeStorage {
     }
     async fn open(&self, id: &EntryId, ctl: &Ctl) -> Result<Box<dyn Blob>> {
         ctl.check()?;
-        let (entry, data) = self.run(|w, a| w.open_of(a, id))?;
+        let (entry, data) = self.run(|w, a| {
+            let r = w.open_of(a, id)?;
+            w.log_operator_read(a, id);
+            Ok(r)
+        })?;
+        let mut entry = entry;
+        if self.fault == Some(Fault::BlobEntryWrong) {
+            entry.name.push('x');
+        }
         let mut b = MemBlob::new(entry, data);
         b.bad_range = self.fault == Some(Fault::BadRange);
         b.zero = self.fault == Some(Fault::ZeroRead);
@@ -84,6 +92,9 @@ impl StorageProvider for FakeStorage {
         o: WriteOpts,
         ctl: &Ctl,
     ) -> Result<Entry> {
+        if self.fault != Some(Fault::BodyBeforeRights) {
+            self.run(|w, a| w.check_write_at(a, at))?;
+        }
         let mut bytes = Vec::new();
         loop {
             if self.fault != Some(Fault::NoCancel) {

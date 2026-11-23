@@ -62,7 +62,11 @@ impl World {
         let member = g.owners.iter().chain(&g.members).any(|p| p.id == a.who.id);
         let owner_of = g.owners.iter().any(|p| p.id == a.who.id);
         match mode {
-            Mode::Write => owner_of || (a.fault == Some(Fault::ManagerChanges) && self.is_admin(a)),
+            Mode::Write => {
+                owner_of
+                    || (a.fault == Some(Fault::ManagerChanges) && self.is_admin(a))
+                    || (a.fault == Some(Fault::MemberWritesGroup) && member)
+            }
             Mode::Read => member,
             Mode::Structure => member || self.is_admin(a),
         }
