@@ -433,6 +433,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs-group-directory"
+version = "0.0.30"
+dependencies = [
+ "async-trait",
+ "fs-types",
+ "tokio",
+]
+
+[[package]]
 name = "fs-interfaces"
 version = "0.0.30"
 dependencies = [
