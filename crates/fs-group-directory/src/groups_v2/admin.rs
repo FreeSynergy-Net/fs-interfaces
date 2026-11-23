@@ -5,7 +5,7 @@
 
 use super::Scope;
 use crate::groups_v1::HistoryKind;
-use crate::groups_v1::shared::{ObjectId, PersonRef, Revision, Utc};
+use crate::groups_v1::shared::{ObjectId, PersonRef, Reference, Revision, Utc};
 
 /// Ein Eingriff schließt nach einer Stunde von selbst (ADR 0095 Entschieden 11).
 pub const INTERVENTION_MS: i64 = 60 * 60 * 1000;
@@ -23,11 +23,28 @@ pub struct ScopeGrant {
     pub granted: Utc,
 }
 
+/// Was mit einem Zusatz geschah (v2-eigene Handlung: `HistoryKind` aus `groups_v1` ist gesperrt).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AddonVerb {
+    Attached,
+    Updated,
+    Detached,
+}
+
+/// Die Art einer Handlung innerhalb eines Eingriffs.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ActKind {
+    /// Eine Handlung, die auch das Gruppen-Protokoll kennt.
+    History(HistoryKind),
+    /// Ein Zusatz (`iri` = seine Art) wurde angehängt, geändert oder gelöst (ADR 0095 Pkt. 7, kein stiller Weg).
+    Addon { verb: AddonVerb, iri: Reference },
+}
+
 /// Eine Handlung innerhalb eines Eingriffs.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct InterventionAct {
     pub at: Utc,
-    pub kind: HistoryKind,
+    pub kind: ActKind,
 }
 
 /// Ein Eingriff von oben in eine Gruppe: Grund Pflicht, sichtbar für jede Person, die die Gruppe lesen darf.

@@ -102,6 +102,22 @@ impl State {
     /// A log entry written while the asker acts ONLY through an open intervention (no right of her own) is also an
     /// act of that intervention: visible to every reader of the group (ADR 0095 Pkt. 7, no silent way).
     pub(crate) fn note_intervention(&mut self, g: ObjectId, kind: crate::groups_v1::HistoryKind) {
+        self.note_act(g, crate::groups_v2::ActKind::History(kind));
+    }
+
+    /// An addon change (attach, update, detach): in the change stream, and an act of the open intervention when the
+    /// asker has no right of her own (the same rule as `note_intervention`).
+    pub(crate) fn note_addon(
+        &mut self,
+        g: ObjectId,
+        verb: crate::groups_v2::AddonVerb,
+        iri: crate::groups_v1::shared::Reference,
+    ) {
+        self.change(crate::groups_v1::ChangeKind::Group(g));
+        self.note_act(g, crate::groups_v2::ActKind::Addon { verb, iri });
+    }
+
+    fn note_act(&mut self, g: ObjectId, kind: crate::groups_v2::ActKind) {
         let who = self.asker.clone();
         if self
             .decide_base(g, &who, crate::groups_v1::Right::Manage)
