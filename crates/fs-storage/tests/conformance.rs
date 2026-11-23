@@ -51,6 +51,10 @@ async fn every_mutant_is_caught_by_its_rule() {
         (Fault::BotAllowed, "rights.bot"),
         (Fault::AdminReadsAll, "rights.manager.no-server"),
         (Fault::OperatorBlocked, "rights.operator.reads-all"),
+        (Fault::OperatorChanges, "rights.operator.reads-all"),
+        (Fault::ManagerChanges, "rights.manager.no-server"),
+        (Fault::ZeroRead, "blob.range"),
+        (Fault::ReadsTooMuch, "blob.range"),
         (Fault::PathTraversal, "path.traversal"),
         (Fault::BadRange, "blob.range"),
         (Fault::ScopeLeak, "scope.generator"),
@@ -69,4 +73,24 @@ async fn every_mutant_is_caught_by_its_rule() {
 async fn a_local_tree_that_saves_is_caught() {
     let r = report(None, FakeLocal::new().with_write_bug()).await;
     assert!(r.failed_rule("local.import-only"), "failed: {:?}", r.failed);
+}
+
+#[tokio::test]
+async fn a_provider_with_short_reads_passes_every_rule() {
+    let s = sample();
+    let make = || {
+        let base = FakeStorage::new(&s.anna).with_read_limit(3);
+        Fixture {
+            ben: Box::new(base.as_person(&s.ben).with_read_limit(3)),
+            fremd: Box::new(base.as_person(&s.fremd).with_read_limit(3)),
+            admin: Box::new(base.as_person(&s.admin).with_read_limit(3)),
+            operator: Box::new(base.as_person(&s.operator).with_read_limit(3)),
+            bot: Box::new(base.as_person(&s.bot).with_read_limit(3)),
+            anna: Box::new(base),
+            local: Box::new(FakeLocal::new()),
+            bot_ref: s.bot.clone(),
+        }
+    };
+    let r = run(&make).await;
+    assert!(r.failed.is_empty(), "failed: {:?}", r.failed);
 }

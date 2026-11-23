@@ -81,7 +81,7 @@ pub(super) async fn admin(fx: &Fixture) -> Check {
             forbidden,
         )?;
     }
-    Ok(())
+    super::changes::none_allowed(p, &*fx.anna, "manager").await
 }
 
 pub(super) async fn operator(fx: &Fixture) -> Check {
@@ -146,7 +146,8 @@ pub(super) async fn operator(fx: &Fixture) -> Check {
     want(
         walk(&*fx.anna).await? == before,
         "the operator changed the tree",
-    )
+    )?;
+    super::changes::none_allowed(p, &*fx.anna, "operator").await
 }
 
 pub(super) async fn bot(fx: &Fixture) -> Check {

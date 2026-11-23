@@ -34,6 +34,14 @@ pub enum Fault {
     OperatorBlocked,
     /// `resolve_path` interprets `..` and empty segments (path traversal).
     PathTraversal,
+    /// The operator may also change foreign entries (without an intervention).
+    OperatorChanges,
+    /// A manager may also change content in a group folder (without an intervention).
+    ManagerChanges,
+    /// A read answers nothing before the end.
+    ZeroRead,
+    /// A read ignores the length asked and answers more.
+    ReadsTooMuch,
     /// A range read ignores its offset.
     BadRange,
     /// `scope` shows entries the asker may not read.
@@ -80,6 +88,7 @@ pub struct FakeStorage {
     pub(super) world: Arc<Mutex<World>>,
     pub(super) asker: PersonRef,
     pub(super) fault: Option<Fault>,
+    pub(super) read_limit: u64,
 }
 
 impl FakeStorage {
@@ -90,6 +99,7 @@ impl FakeStorage {
             world: Arc::new(Mutex::new(super::sample::build())),
             asker: asker.clone(),
             fault: None,
+            read_limit: crate::ctl::MAX_READ,
         }
     }
 
@@ -100,7 +110,15 @@ impl FakeStorage {
             world: Arc::clone(&self.world),
             asker: who.clone(),
             fault: self.fault,
+            read_limit: self.read_limit,
         }
+    }
+
+    /// A provider that answers at most `limit` bytes per read (a short read, as the contract allows).
+    #[must_use]
+    pub fn with_read_limit(mut self, limit: u64) -> Self {
+        self.read_limit = limit;
+        self
     }
 
     /// Switch a defect on (mutant).
