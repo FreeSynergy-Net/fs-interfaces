@@ -81,7 +81,7 @@ pub trait StorageProvider: Send + Sync {
     ) -> Result<Entry> {
         not_possible("storage.write")
     }
-    /// Create a folder (or link) below `at`.
+    /// Create a folder below `at` (links come only from an import; there is no parameter for a link target).
     async fn create(
         &self,
         _at: &EntryId,

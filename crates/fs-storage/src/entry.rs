@@ -205,6 +205,9 @@ pub enum ChangeKind {
     Restored,
     /// Gone for good.
     Purged,
+    /// The operator opened or copied the entry through the program (decision 16.2). Information for the owner only: it
+    /// records access through the program and protects nothing (whoever is root can read past it).
+    OpenedByOperator,
 }
 
 impl ChangeKind {
@@ -217,6 +220,7 @@ impl ChangeKind {
             Self::Moved => "Add",
             Self::Trashed | Self::Purged => "Delete",
             Self::Restored => "Undo",
+            Self::OpenedByOperator => "View",
         }
     }
 }

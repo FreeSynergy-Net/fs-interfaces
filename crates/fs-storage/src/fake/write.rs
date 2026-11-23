@@ -40,10 +40,45 @@ impl World {
         }
     }
 
+    /// `id` or one of its ancestors is in the trash.
+    pub(super) fn in_trash(&self, id: &str) -> bool {
+        let mut cur = Some(id.to_owned());
+        while let Some(c) = cur {
+            let Some(n) = self.nodes.get(&c) else {
+                return false;
+            };
+            if n.trashed_from.is_some() {
+                return true;
+            }
+            cur = n.parent.clone();
+        }
+        false
+    }
+
+    /// The entry a link points to (only for the mutants that follow links).
+    pub(super) fn deref(&self, id: &EntryId, on: bool) -> EntryId {
+        match self.nodes.get(id.as_str()) {
+            Some(n) if on && n.entry.kind == Kind::Link => {
+                n.entry.link_target.clone().unwrap_or_else(|| id.clone())
+            }
+            _ => id.clone(),
+        }
+    }
+
     pub(super) fn folder_for_write(&self, a: &Actor, at: &EntryId) -> Result<&Node> {
+        if at.as_str() == "trash" && self.is_bot(a) {
+            return Err(Error::Forbidden {
+                capability: "storage.write".to_owned(),
+            });
+        }
         let n = self.node_for(a, at, Mode::Write)?;
+        let trashed = if a.fault == Some(Fault::WriteBelowTrashed) {
+            n.trashed_from.is_some()
+        } else {
+            self.in_trash(at.as_str())
+        };
         match n.entry.kind {
-            Kind::Folder if n.trashed_from.is_none() => Ok(n),
+            Kind::Folder if !trashed => Ok(n),
             Kind::Link => Err(Error::LinkNotFollowed(at.clone())),
             _ => Err(Error::NotAFolder(at.clone())),
         }
@@ -92,6 +127,24 @@ impl World {
         }
     }
 
+    /// The folder a write goes to: the mutants `FollowLinksWrite` and `WriteIntoTrash` bend it.
+    fn write_target(&self, a: &Actor, at: &EntryId) -> EntryId {
+        if a.fault == Some(Fault::WriteIntoTrash) && at.as_str() == "trash" {
+            return self
+                .roots
+                .iter()
+                .find(|r| r.kind == crate::entry::RootKind::Mine && r.owner.id == a.who.id)
+                .map_or_else(|| at.clone(), |r| r.id.clone());
+        }
+        self.deref(at, a.fault == Some(Fault::FollowLinksWrite))
+    }
+
+    /// Only the right on the target folder (a write checks it before it reads the body).
+    pub(super) fn check_write_at(&self, a: &Actor, at: &EntryId) -> Result<()> {
+        let at = self.write_target(a, at);
+        self.folder_for_write(a, &at).map(|_| ())
+    }
+
     pub(super) fn write_file(
         &mut self,
         a: &Actor,
@@ -100,6 +153,7 @@ impl World {
         bytes: &[u8],
         o: &WriteOpts,
     ) -> Result<Entry> {
+        let at = &self.write_target(a, at);
         let owner = self.folder_for_write(a, at)?.entry.owner.clone();
         let name = self.free_name(a, at.as_str(), name, o.on_conflict, None)?;
         let media = o
@@ -126,10 +180,14 @@ impl World {
         kind: Kind,
         on: OnConflict,
     ) -> Result<Entry> {
+        if kind != Kind::Folder && a.fault == Some(Fault::ValidityBeforeRights) {
+            return Err(bad("kind", "only-folder"));
+        }
+        let at = &self.write_target(a, at);
+        let owner = self.folder_for_write(a, at)?.entry.owner.clone();
         if kind != Kind::Folder {
             return Err(bad("kind", "only-folder"));
         }
-        let owner = self.folder_for_write(a, at)?.entry.owner.clone();
         let name = self.free_name(a, at.as_str(), name, on, None)?;
         let id = self.next_id("n");
         self.add_folder(&id, Some(at.as_str()), &name, &owner);
@@ -145,8 +203,35 @@ impl World {
         on: OnConflict,
     ) -> Result<Entry> {
         let n = self.node_for(a, id, Mode::Write)?;
-        let parent = n.parent.clone().ok_or_else(|| bad("id", "root"))?;
-        let name = self.free_name(a, &parent, name, on, Some(id.as_str()))?;
+        let parent = match (&n.parent, a.fault) {
+            (Some(p), _) => p.clone(),
+            (None, Some(Fault::RootMutable)) => String::new(),
+            (None, _) => return Err(bad("id", "root")),
+        };
+        if self.in_trash(id.as_str()) {
+            return Err(bad("id", "trashed"));
+        }
+        let name = if a.fault == Some(Fault::RenameReplaces) {
+            self.free_name(a, &parent, name, OnConflict::KeepBoth, Some(id.as_str()))
+                .and_then(|_| {
+                    validate_name(name)?;
+                    let old = self
+                        .nodes
+                        .iter()
+                        .find(|(k, c)| {
+                            c.parent.as_deref() == Some(parent.as_str())
+                                && c.entry.name == name
+                                && k.as_str() != id.as_str()
+                        })
+                        .map(|(k, _)| k.clone());
+                    if let Some(o) = old {
+                        self.nodes.remove(&o);
+                    }
+                    Ok(name.to_owned())
+                })?
+        } else {
+            self.free_name(a, &parent, name, on, Some(id.as_str()))?
+        };
         let t = self.now();
         let n = self
             .nodes
@@ -199,13 +284,14 @@ impl World {
         on: OnConflict,
     ) -> Result<Entry> {
         let n = self.node_for(a, id, Mode::Write)?;
-        if n.parent.is_none() || n.trashed_from.is_some() {
+        let (rootish, trashed) = (n.parent.is_none(), n.trashed_from.is_some());
+        let owner = self.target_owner(a, to, Fault::MoveIgnoresTarget)?;
+        if (rootish && a.fault != Some(Fault::RootMutable)) || trashed {
             return Err(bad("id", "root-or-trashed"));
         }
-        let owner = self.target_owner(a, to, Fault::MoveIgnoresTarget)?;
         let mut up = Some(to.as_str().to_owned());
         while let Some(p) = up {
-            if p == id.as_str() {
+            if p == id.as_str() && a.fault != Some(Fault::NoCycle) {
                 return Err(Error::Cycle(id.clone()));
             }
             up = self.nodes.get(&p).and_then(|x| x.parent.clone());
@@ -232,17 +318,22 @@ impl World {
         on: OnConflict,
         ctl: &Ctl,
     ) -> Result<Entry> {
+        let id = &self.deref(id, a.fault == Some(Fault::CopyFollowsLink));
         let src = self.node_for(a, id, Mode::Read)?.clone();
         let owner = self.target_owner(a, to, Fault::CopyIgnoresTarget)?;
+        if self.in_trash(id.as_str()) {
+            return Err(bad("id", "trashed"));
+        }
         let mut up = Some(to.as_str().to_owned());
         while let Some(p) = up {
-            if p == id.as_str() {
+            if p == id.as_str() && a.fault != Some(Fault::NoCycle) {
                 return Err(Error::Cycle(id.clone()));
             }
             up = self.nodes.get(&p).and_then(|x| x.parent.clone());
         }
         let name = self.free_name(a, to.as_str(), &src.entry.name, on, None)?;
         let new = self.copy_rec(&src, id.as_str(), to.as_str(), &name, &owner, ctl)?;
+        self.log_operator_read(a, id);
         self.log_change(&new, ChangeKind::Created);
         Ok(self.nodes[&new].entry.clone())
     }
@@ -257,6 +348,9 @@ impl World {
         ctl: &Ctl,
     ) -> Result<String> {
         ctl.check()?;
+        if depth_guard(self.nodes.len()) {
+            return Err(Error::BackendFailed("copy loop".into()));
+        }
         let id = self.next_id("n");
         let mut node = src.clone();
         node.parent = Some(to.to_owned());
@@ -282,4 +376,9 @@ impl World {
         }
         Ok(id)
     }
+}
+
+/// A copy into itself (the `NoCycle` mutant) must not loop for ever.
+fn depth_guard(nodes: usize) -> bool {
+    nodes > 2000
 }

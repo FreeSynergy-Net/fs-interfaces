@@ -11,8 +11,13 @@ use crate::ids::EntryId;
 
 impl World {
     pub(super) fn delete_node(&mut self, a: &Actor, id: &EntryId, how: Delete) -> Result<()> {
+        let id = &self.deref(id, a.fault == Some(Fault::DeleteFollowsLink));
         let n = self.node_for(a, id, Mode::Write)?;
-        let parent = n.parent.clone().ok_or_else(|| bad("id", "root"))?;
+        let parent = match (&n.parent, a.fault) {
+            (Some(p), _) => p.clone(),
+            (None, Some(Fault::RootMutable)) => String::new(),
+            (None, _) => return Err(bad("id", "root")),
+        };
         let trashed = n.trashed_from.is_some();
         let how = if a.fault == Some(Fault::PurgeOnTrash) {
             Delete::Purge
@@ -50,7 +55,12 @@ impl World {
         to: Option<&EntryId>,
         on: OnConflict,
     ) -> Result<Entry> {
-        let n = self.node_for(a, id, Mode::Write)?;
+        let mode = if a.fault == Some(Fault::RestoreNotOwner) {
+            Mode::Read
+        } else {
+            Mode::Write
+        };
+        let n = self.node_for(a, id, mode)?;
         let from = n
             .trashed_from
             .clone()
@@ -84,6 +94,11 @@ impl World {
     }
 
     pub(super) fn changes_since(&self, a: &Actor, since: Option<&Token>) -> Result<ChangeSet> {
+        if self.is_bot(a) {
+            return Err(Error::Forbidden {
+                capability: "storage.read".to_owned(),
+            });
+        }
         let from = match since {
             None => self.log.len(),
             Some(t) => {
@@ -95,7 +110,7 @@ impl World {
         };
         let changes = self.log[from..]
             .iter()
-            .filter(|(_, o)| self.allowed(a, o, Mode::Read))
+            .filter(|(_, o)| a.fault == Some(Fault::ChangesLeak) || self.allowed(a, o, Mode::Read))
             .map(|(c, _)| c.clone())
             .collect();
         Ok(ChangeSet {

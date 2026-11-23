@@ -44,6 +44,50 @@ pub enum Fault {
     CopyIgnoresTarget,
     /// `restore` to another folder does not check the right on it.
     RestoreIgnoresTarget,
+    /// A member may change content in a group folder.
+    MemberWritesGroup,
+    /// `restore` of a group's trashed entry works for a member (not only the owner).
+    RestoreNotOwner,
+    /// A root folder can be renamed or deleted.
+    RootMutable,
+    /// A write into the trash root works.
+    WriteIntoTrash,
+    /// Below a trashed folder one can still write.
+    WriteBelowTrashed,
+    /// Moves and copies into oneself are not refused.
+    NoCycle,
+    /// `create` checks the kind before the right.
+    ValidityBeforeRights,
+    /// A bot gets the trash (stat an entry, list empty).
+    BotTrash,
+    /// Roots carry no `usage`.
+    NoUsage,
+    /// A capability flag says no while the method works.
+    CapsLie,
+    /// `changes` shows changes of entries the asker may not read.
+    ChangesLeak,
+    /// `scope` returns trashed entries.
+    ScopeTrash,
+    /// `Blob::entry` is not the opened entry.
+    BlobEntryWrong,
+    /// A foreign trashed entry can be opened.
+    OpenTrashLeak,
+    /// A foreign trashed entry can be stat'ed.
+    StatTrashLeak,
+    /// `open` follows a link.
+    FollowLinksOpen,
+    /// A write goes through a link into its target.
+    FollowLinksWrite,
+    /// A copy of a link copies the target.
+    CopyFollowsLink,
+    /// A delete of a link deletes the target.
+    DeleteFollowsLink,
+    /// A rename onto a taken name replaces the old entry.
+    RenameReplaces,
+    /// The body of a write is read before the right is checked.
+    BodyBeforeRights,
+    /// The operator's reads and copies leave no log entry for the owner.
+    NoOperatorLog,
     /// A manager may write and create in the root folder of a group.
     ManagerGroupRoot,
     /// The operator may write and create in a root folder ("My files" of others, group roots).
