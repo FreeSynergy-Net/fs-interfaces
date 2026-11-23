@@ -81,7 +81,10 @@ fn existing_methods_keep_their_ordinals_and_the_new_ones_are_appended() {
         ("dependents", 15),
         ("createRelationWithGap", 16),
     ];
-    assert_eq!(methods("Items"), named(&items_before));
+    let mut items_now = items_before.to_vec();
+    // SW-1: appended at the end, nothing before moved
+    items_now.extend([("claim", 17), ("release", 18)]);
+    assert_eq!(methods("Items"), named(&items_now));
     // `Boards` had no method: all five are new, from 0 on, in this order
     assert_eq!(
         methods("Boards"),

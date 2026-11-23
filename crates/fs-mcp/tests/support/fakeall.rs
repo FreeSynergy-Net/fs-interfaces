@@ -51,6 +51,8 @@ impl items::Server for AllItems {
         items::CreateRelationWithGapParams,
         items::CreateRelationWithGapResults
     );
+    plain!(claim, items::ClaimParams, items::ClaimResults);
+    plain!(release, items::ReleaseParams, items::ReleaseResults);
 
     fn list(
         self: capnp::capability::Rc<Self>,

@@ -7,3 +7,4 @@
 
 [format]
 "Value.text" = "field value as text (plain text of a record field of a module); a display format, not a secret field; it can still hold what a person wrote"
+"WriteResult.text" = "short text of what a write made or changed (plain text; a code or a title taken from a record); a display format, not a secret field; it can still hold what a person wrote"

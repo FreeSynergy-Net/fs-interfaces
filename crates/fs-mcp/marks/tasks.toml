@@ -5,6 +5,7 @@
 assign = "acts-in-name"
 assignLabel = "change"
 blockedBy = "read"
+claim = "acts-in-name"
 create = "add"
 createRelation = "add"
 createRelationWithGap = "add"
@@ -19,6 +20,7 @@ importIcs = "add"
 list = "read"
 query = "read"
 readiness = "read"
+release = "change"
 
 [Boards]
 create = "add"
