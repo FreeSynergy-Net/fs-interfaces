@@ -91,8 +91,9 @@ pub enum Count {
 pub struct Channel {
     /// The channel name (`items`, `label` ...).
     pub name: String,
-    /// What kind of value it takes.
-    pub art: Art,
+    /// The kinds of value the channel takes: a set of 1 to 7 different arts (one element for most channels, `text|number|time|flag`
+    /// for `facts`). A field fits when its art is in the set: [`Channel::accepts`].
+    pub arts: Vec<Art>,
     /// A module must fill it (`!` in the file).
     pub required: bool,
     /// How many values.
@@ -142,6 +143,22 @@ pub struct Form {
     pub description: String,
     /// The channels in file order.
     pub channels: Vec<Channel>,
+}
+
+impl Channel {
+    /// Whether a field of this art may fill the channel (`art` is in the set).
+    #[must_use]
+    pub fn accepts(&self, art: Art) -> bool {
+        self.arts.contains(&art)
+    }
+
+    /// Whether a field of this fs-types basic type (name as in `Art::allowed_basics`) may fill the channel: some art of the set lists it.
+    #[must_use]
+    pub fn accepts_basic(&self, basic: &str) -> bool {
+        self.arts
+            .iter()
+            .any(|a| a.allowed_basics().contains(&basic))
+    }
 }
 
 impl Form {

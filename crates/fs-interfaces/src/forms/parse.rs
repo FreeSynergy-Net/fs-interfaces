@@ -23,8 +23,10 @@ pub enum ErrorKind {
     ChannelName,
     /// The same channel twice in one form.
     DuplicateChannel,
-    /// The art is not one of the known words.
+    /// The art is not one of the seven words (or the set is empty or has a blank element).
     Art,
+    /// The same art twice in one set.
+    ArtDuplicate,
     /// The required mark is neither `!` nor `-`.
     Required,
     /// The count is not `1`, `a..b`, `a..n` or `?`.
@@ -110,6 +112,19 @@ fn parse_form(fields: &[&str]) -> Result<Form, ErrorKind> {
     })
 }
 
+/// `text` or a set `text|number|time` (no spaces, only the seven arts, no duplicate, not empty).
+fn parse_arts(text: &str) -> Result<Vec<Art>, ErrorKind> {
+    let mut arts: Vec<Art> = Vec::new();
+    for word in text.split('|') {
+        let art = Art::parse(word).ok_or(ErrorKind::Art)?;
+        if arts.contains(&art) {
+            return Err(ErrorKind::ArtDuplicate);
+        }
+        arts.push(art);
+    }
+    Ok(arts)
+}
+
 fn parse_channel(fields: &[&str]) -> Result<Channel, ErrorKind> {
     let [name, art, required, count] = fields else {
         return Err(ErrorKind::Shape);
@@ -117,7 +132,7 @@ fn parse_channel(fields: &[&str]) -> Result<Channel, ErrorKind> {
     if !is_word_name(name) {
         return Err(ErrorKind::ChannelName);
     }
-    let art = Art::parse(art).ok_or(ErrorKind::Art)?;
+    let arts = parse_arts(art)?;
     let required = match *required {
         "!" => true,
         "-" => false,
@@ -129,7 +144,7 @@ fn parse_channel(fields: &[&str]) -> Result<Channel, ErrorKind> {
     }
     Ok(Channel {
         name: (*name).to_owned(),
-        art,
+        arts,
         required,
         count,
     })
@@ -151,7 +166,7 @@ pub fn parse(text: &str) -> Result<Vec<Form>, ParseError> {
         }
         let err = |kind| ParseError { line, kind };
         if let Some(rest) = trimmed.strip_prefix('>') {
-            let fields: Vec<&str> = rest.split('|').map(str::trim).collect();
+            let fields: Vec<&str> = rest.trim().split(" | ").map(str::trim).collect();
             let channel = parse_channel(&fields).map_err(err)?;
             let form = forms
                 .last_mut()

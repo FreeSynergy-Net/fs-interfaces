@@ -55,19 +55,29 @@ fn only_the_seven_arts_are_used() {
     ];
     for f in forms::catalog() {
         for c in &f.channels {
-            assert!(seven.contains(&c.art.name()), "{}.{}", f.key(), c.name);
+            for a in &c.arts {
+                assert!(seven.contains(&a.name()), "{}.{}", f.key(), c.name);
+            }
         }
     }
     let tree = forms::find_key("cards-in-columns@1.0").unwrap();
-    assert_eq!(tree.channel("column").unwrap().art, Art::Text);
-    assert_eq!(tree.channel("facts").unwrap().art, Art::Text);
+    assert_eq!(tree.channel("column").unwrap().arts, [Art::Text]);
+    let facts = tree.channel("facts").unwrap();
+    assert_eq!(facts.arts, [Art::Text, Art::Number, Art::Time, Art::Flag]);
+    assert!(facts.accepts(Art::Time) && !facts.accepts(Art::Records));
+    assert!(
+        facts.accepts_basic("DateTime")
+            && facts.accepts_basic("Bool")
+            && !facts.accepts_basic("Image")
+    );
+    assert!(!tree.channel("title").unwrap().accepts_basic("Number"));
     assert_eq!(
         forms::find_key("checklist@1.0")
             .unwrap()
             .channel("order")
             .unwrap()
-            .art,
-        Art::Number
+            .arts,
+        [Art::Number]
     );
 }
 
@@ -90,7 +100,7 @@ fn every_form_is_consistent() {
         }
         let items = f.channels.first().unwrap();
         assert!(
-            items.art == Art::Records && items.required,
+            items.arts == [Art::Records] && items.required,
             "{}: first channel is the record set",
             f.key()
         );
@@ -100,7 +110,7 @@ fn every_form_is_consistent() {
 #[test]
 fn the_art_table_names_basics() {
     assert_eq!(Art::Time.allowed_basics(), ["Date", "DateTime"]);
-    assert!(Art::Records.allowed_basics().is_empty());
+    assert_eq!(Art::Records.allowed_basics(), [] as [&str; 0]);
     assert_eq!(Art::Flag.allowed_basics(), ["Bool"]);
     assert_eq!(Art::Number.allowed_basics(), ["Number"]);
     assert!(Art::Text.allowed_basics().contains(&"Choice"));
@@ -117,7 +127,7 @@ fn a_good_text_parses_and_blank_and_comment_lines_are_skipped() {
             max: Some(1)
         }
     );
-    assert!(parse("").unwrap().is_empty());
+    assert_eq!(parse("").unwrap(), []);
 }
 
 #[test]
@@ -146,6 +156,32 @@ fn bad_files_are_refused_with_the_line() {
         ErrorKind::ChannelName
     );
     assert_eq!(kind(&format!("{GOOD}> x | blob | - | 1\n")), ErrorKind::Art);
+    assert_eq!(
+        kind(&format!("{GOOD}> x | text|text | - | 1\n")),
+        ErrorKind::ArtDuplicate
+    );
+    assert_eq!(
+        kind(&format!("{GOOD}> x | text|blob | - | 1\n")),
+        ErrorKind::Art
+    );
+    for blank in ["text|", "|text", "text||number"] {
+        assert_eq!(
+            kind(&format!("{GOOD}> x | {blank} | - | 1\n")),
+            ErrorKind::Art,
+            "{blank}"
+        );
+    }
+    assert_eq!(kind(&format!("{GOOD}> x |  | - | 1\n")), ErrorKind::Art);
+    assert_eq!(
+        kind(&format!("{GOOD}> x | text| number | - | 1\n")),
+        ErrorKind::Art
+    );
+    assert_eq!(
+        kind(&format!("{GOOD}> x |text|number| - | 1\n")),
+        ErrorKind::Shape
+    );
+    let e = parse(&format!("{GOOD}> x | text|text | - | 1\n")).unwrap_err();
+    assert_eq!(e.line, 3);
     for old in ["grouping", "order", "any"] {
         assert_eq!(
             kind(&format!("{GOOD}> x | {old} | - | 1\n")),
