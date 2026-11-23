@@ -109,7 +109,14 @@ impl World {
             up = self.nodes.get(&p).and_then(|x| x.parent.clone());
         }
         let name = self.free_name(a, to.as_str(), &src.entry.name, on, None)?;
-        let new = self.copy_rec(&src, id.as_str(), to.as_str(), &name, &owner, ctl)?;
+        let new = self.copy_rec(
+            &src,
+            id.as_str(),
+            to.as_str(),
+            &name,
+            &Env { owner: &owner, ctl },
+            0,
+        )?;
         self.log_operator_read(a, id);
         self.log_change(&new, ChangeKind::Created);
         Ok(self.nodes[&new].entry.clone())
@@ -121,11 +128,11 @@ impl World {
         src_id: &str,
         to: &str,
         name: &str,
-        owner: &fs_types::PersonRef,
-        ctl: &Ctl,
+        env: &Env<'_>,
+        depth: usize,
     ) -> Result<String> {
-        ctl.check()?;
-        if depth_guard(self.nodes.len()) {
+        env.ctl.check()?;
+        if depth > MAX_COPY_DEPTH || depth_guard(self.nodes.len()) {
             return Err(Error::BackendFailed("copy loop".into()));
         }
         let id = self.next_id("n");
@@ -134,7 +141,7 @@ impl World {
         node.trashed_from = None;
         node.entry.id = EntryId(id.clone());
         name.clone_into(&mut node.entry.name);
-        node.entry.owner = owner.clone();
+        node.entry.owner = env.owner.clone();
         node.entry.modified = Some(self.now());
         self.nodes.insert(id.clone(), node);
         if src.entry.kind == Kind::Folder {
@@ -148,7 +155,7 @@ impl World {
                 .collect();
             for k in kids {
                 let (kid, kname) = (k.entry.id.0.clone(), k.entry.name.clone());
-                self.copy_rec(&k, &kid, &id, &kname, owner, ctl)?;
+                self.copy_rec(&k, &kid, &id, &kname, env, depth + 1)?;
             }
         }
         Ok(id)
@@ -158,4 +165,14 @@ impl World {
 /// A copy into itself (the `NoCycle` mutant) must not loop for ever.
 fn depth_guard(nodes: usize) -> bool {
     nodes > 400
+}
+
+/// The deepest folder nesting a copy follows. A copy into its own subtree (the `NoCycle` mutant) reaches it and ends
+/// with an error instead of a stack overflow.
+const MAX_COPY_DEPTH: usize = 64;
+
+/// What a copy carries down unchanged: the new owner and the cancel/time limit.
+struct Env<'a> {
+    owner: &'a fs_types::PersonRef,
+    ctl: &'a Ctl,
 }
