@@ -32,7 +32,7 @@ impl State {
             .edges
             .iter()
             .filter(|e| Some(e.id) != replacing)
-            .map(|e| self.logic_edge(e))
+            .map(Self::logic_edge)
             .collect();
         if let Some(path) = find_cycle(&others, &new) {
             return Err(Error::Cycle { path });
@@ -105,7 +105,7 @@ impl State {
             .edges
             .iter()
             .filter(|e| Some(e.id) != existing.map(|x| x.id))
-            .map(|e| self.logic_edge(e))
+            .map(Self::logic_edge)
             .collect();
         after_edges.push(Self::raw_edge(child, parent, mode));
         let (before, after) = (

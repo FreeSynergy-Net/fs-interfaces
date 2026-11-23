@@ -45,11 +45,7 @@ async fn trash(cx: &mut Cx<'_>) {
         member: None,
         include_deleted: true,
     };
-    let page =
-        cx.g.list(&all, None, 50)
-            .await
-            .map(|p| p.items)
-            .unwrap_or_default();
+    let page = cx.g.list(&all, None, 50).await.map_or_default(|p| p.items);
     cx.ensure(
         page.iter()
             .any(|s| s.id == g.id && s.restorable_until == Some(gone.restorable_until)),
@@ -65,8 +61,7 @@ async fn trash(cx: &mut Cx<'_>) {
             50,
         )
         .await
-        .map(|p| p.items)
-        .unwrap_or_default();
+        .map_or_default(|p| p.items);
     cx.ensure(
         page.iter().all(|s| s.id != g.id),
         "delete: the default list leaves it out",
@@ -178,8 +173,7 @@ async fn trash_edges(cx: &mut Cx<'_>) {
     let h =
         cx.g.history(b.id, None, 50)
             .await
-            .map(|p| p.items)
-            .unwrap_or_default();
+            .map_or_default(|p| p.items);
     cx.ensure(
         h.iter()
             .any(|e| matches!(e.kind, HistoryKind::NestingRemoved { .. })),
