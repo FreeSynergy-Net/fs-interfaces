@@ -94,6 +94,24 @@ pub enum Fault {
     OperatorRoot,
     /// The operator may change links of others.
     OperatorLink,
+    /// A move or trash works below a trashed folder (only the entry itself counts as trashed).
+    MoveOutOfTrashed,
+    /// `delete` to the trash works below a trashed folder.
+    TrashBelowTrashed,
+    /// `open` works in the trash (a trashed entry or one below a trashed folder).
+    OpenInTrash,
+    /// `rename` works in the trash.
+    RenameInTrash,
+    /// `copy_to` works from the trash.
+    CopyInTrash,
+    /// A bot gets an empty answer from `scope` instead of Forbidden.
+    BotScopeEmpty,
+    /// A bot gets an empty answer from `changes` instead of Forbidden.
+    BotChangesEmpty,
+    /// `move_to` checks "source is a root or trashed" before the right on the target (the old order).
+    MoveValidityFirst,
+    /// Every read of foreign content (not only the operator's) writes a view entry for the owner.
+    LogAll,
     /// The cap of one read is not kept.
     NoReadCap,
     /// A read answers nothing before the end.

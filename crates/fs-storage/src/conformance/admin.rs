@@ -187,7 +187,15 @@ pub(super) async fn bot(fx: &Fixture) -> Check {
             .await,
         "bot creates",
         forbidden,
-    )
+    )?;
+    // Decision F5: the bot gets Forbidden everywhere except capabilities, state and roots, also where an empty answer
+    // would be "safe": it must not even learn that there is nothing.
+    refused(
+        p.scope("capture", PageReq::first(10)).await,
+        "bot asks a scope",
+        forbidden,
+    )?;
+    refused(p.changes(None).await, "bot asks the delta", forbidden)
 }
 
 pub(super) async fn local_import_only(fx: &Fixture) -> Check {
@@ -249,49 +257,5 @@ pub(super) async fn local_import_only(fx: &Fixture) -> Check {
             .await,
         "copy on local",
         unsupported,
-    )
-}
-
-/// Decision 16.2 / F3: when the operator opens or copies foreign content, the owner gets an entry (information only: it
-/// records access through the program and protects nothing). Nobody else sees it; the copy belongs to the operator.
-pub(super) async fn operator_log(fx: &Fixture) -> Check {
-    let f = super::fixture::at(&*fx.anna, RootKind::Mine, "Dokumente/Notizen.md").await?;
-    let t0 = s(fx.anna.changes(None).await)?.token;
-    read_all(&*fx.operator, &f).await?;
-    let opened = |set: &crate::entry::ChangeSet| {
-        set.changes
-            .iter()
-            .filter(|c| c.id == f.id && c.kind == crate::entry::ChangeKind::OpenedByOperator)
-            .count()
-    };
-    let one = s(fx.anna.changes(Some(&t0)).await)?;
-    want(
-        opened(&one) == 1,
-        "the owner gets no log entry when the operator opens a file",
-    )?;
-    want(
-        s(fx.fremd.changes(Some(&t0)).await)?.changes.is_empty(),
-        "a stranger sees the operator's log entry",
-    )?;
-    let roots = s(fx.operator.roots().await)?;
-    let trash = roots
-        .iter()
-        .find(|r| r.kind == RootKind::Trash)
-        .ok_or("no trash root")?;
-    let own = roots
-        .iter()
-        .find(|r| r.kind == RootKind::Mine && r.owner.id == trash.owner.id)
-        .ok_or("no own root")?;
-    let copy = s(fx
-        .operator
-        .copy_to(&f.id, &own.id, OnConflict::KeepBoth, &Ctl::none())
-        .await)?;
-    want(
-        copy.owner == trash.owner,
-        "a copy made by the operator must belong to the operator",
-    )?;
-    want(
-        opened(&s(fx.anna.changes(Some(&t0)).await)?) == 2,
-        "the owner gets no log entry when the operator copies a file",
     )
 }

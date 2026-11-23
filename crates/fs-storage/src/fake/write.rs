@@ -127,7 +127,7 @@ impl World {
     }
 
     /// The folder a write goes to: the mutants `FollowLinksWrite` and `WriteIntoTrash` bend it.
-    fn write_target(&self, a: &Actor, at: &EntryId) -> EntryId {
+    pub(super) fn write_target(&self, a: &Actor, at: &EntryId) -> EntryId {
         if a.fault == Some(Fault::WriteIntoTrash) && at.as_str() == "trash" {
             return self
                 .roots
@@ -207,7 +207,7 @@ impl World {
             (None, Some(Fault::RootMutable)) => String::new(),
             (None, _) => return Err(bad("id", "root")),
         };
-        if self.in_trash(id.as_str()) {
+        if self.in_trash(id.as_str()) && a.fault != Some(Fault::RenameInTrash) {
             return Err(bad("id", "trashed"));
         }
         let name = if a.fault == Some(Fault::RenameReplaces) {

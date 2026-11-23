@@ -18,6 +18,9 @@ impl World {
         page: &PageReq,
     ) -> Result<(Vec<Entry>, Option<PageCursor>)> {
         if self.is_bot(a) {
+            if a.fault == Some(Fault::BotScopeEmpty) {
+                return Ok((Vec::new(), None));
+            }
             return Err(Error::Forbidden {
                 capability: "storage.read".to_owned(),
             });
@@ -61,7 +64,7 @@ impl World {
         let Some(n) = self.nodes.get(id.as_str()) else {
             return;
         };
-        if self.is_operator(a)
+        if (self.is_operator(a) || a.fault == Some(Fault::LogAll))
             && n.entry.owner.id != a.who.id
             && a.fault != Some(Fault::NoOperatorLog)
         {
@@ -69,7 +72,7 @@ impl World {
             self.log.push((
                 Change {
                     id: id.clone(),
-                    kind: ChangeKind::OpenedByOperator,
+                    kind: ChangeKind::Viewed,
                 },
                 owner,
             ));

@@ -87,3 +87,20 @@ async fn a_provider_with_short_reads_passes_every_rule() {
     let r = report(None, FakeLocal::new(), Some(3)).await;
     assert!(r.failed.is_empty(), "failed: {:?}", r.failed);
 }
+
+/// Every fault a row names must break THAT row (not just some other rule). The table's column is a claim; this proves it.
+#[tokio::test]
+async fn every_named_fault_breaks_its_row() {
+    let rows = fs_storage::conformance::matrix::rows();
+    let mut false_claims = Vec::new();
+    for &fault in ALL_FAULTS {
+        let r = report(Some(fault), FakeLocal::new(), None).await;
+        for row in &rows {
+            let broken = r.failed_rule(&row.rule());
+            if row.faults.contains(&fault) && !broken {
+                false_claims.push(format!("{fault:?} does not break {}", row.rule()));
+            }
+        }
+    }
+    assert!(false_claims.is_empty(), "false claims: {false_claims:#?}");
+}

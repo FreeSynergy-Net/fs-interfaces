@@ -19,6 +19,17 @@ pub(super) async fn none_allowed(
     who: &str,
 ) -> Check {
     let before = walk(anna).await?;
+    let actor_roots = actor.roots().await.map_err(|e| e.to_string())?;
+    let own_root = actor_roots
+        .iter()
+        .find(|t| t.kind == RootKind::Trash)
+        .and_then(|tr| {
+            actor_roots
+                .iter()
+                .find(|r| r.kind == RootKind::Mine && r.owner.id == tr.owner.id)
+        })
+        .map(|r| r.id.clone())
+        .ok_or("the actor has no own root")?;
     let mut roots = Vec::new();
     for r in anna.roots().await.map_err(|e| e.to_string())? {
         let own_trash = actor
@@ -56,8 +67,11 @@ pub(super) async fn none_allowed(
         )?;
         refused(actor.delete(&e.id, Delete::Trash).await, &w, forbidden)?;
         refused(actor.delete(&e.id, Delete::Purge).await, &w, forbidden)?;
+        // The target is the actor's own folder, so only the right on the SOURCE can refuse (it is never masked).
         refused(
-            actor.restore(&e.id, None, OnConflict::Fail).await,
+            actor
+                .restore(&e.id, Some(&own_root), OnConflict::Fail)
+                .await,
             &w,
             forbidden,
         )?;

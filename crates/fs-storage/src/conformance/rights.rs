@@ -172,7 +172,13 @@ pub(super) async fn trash_private(fx: &Fixture) -> Check {
         .find(|(p, _)| p == "Papierkorb/Alt.txt")
         .ok_or("no Alt.txt")?;
     refused(
-        fx.fremd.restore(&alt.id, None, OnConflict::Fail).await,
+        fx.fremd
+            .restore(
+                &alt.id,
+                Some(&EntryId("mine-fremd".into())),
+                OnConflict::Fail,
+            )
+            .await,
         "stranger restores",
         forbidden,
     )
