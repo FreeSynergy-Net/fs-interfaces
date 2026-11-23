@@ -9,10 +9,12 @@ mod admin;
 mod big;
 mod changes;
 mod fixture;
+pub mod matrix;
 mod names;
 mod read;
 mod rights;
 mod run;
+mod scope;
 mod write;
 
 pub use fixture::{Fixture, Report};

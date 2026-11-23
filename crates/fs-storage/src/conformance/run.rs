@@ -3,7 +3,7 @@
 //! Pattern: Template method.
 
 use super::fixture::{Fixture, Report};
-use super::{admin, names, read, rights, write};
+use super::{admin, names, read, rights, scope, write};
 
 /// Run all rules. `make` builds a fresh fixture (a fresh sample world) for every rule, so no rule sees the changes of
 /// another.
@@ -14,7 +14,7 @@ pub async fn run(make: &dyn Fn() -> Fixture) -> Report {
     r.record("tree.files", read::tree_files(&make()).await);
     r.record("file.sha256", read::file_sha256(&make()).await);
     r.record("blob.range", read::blob_range(&make()).await);
-    r.record("scope.generator", read::scope_generator(&make()).await);
+    r.record("scope.generator", scope::scope_generator(&make()).await);
     r.record("owner.kinds", read::owner_kinds(&make()).await);
     r.record("stat.matches-list", read::stat_matches(&make()).await);
     r.record("caps.honest", read::caps_honest(&make()).await);
@@ -45,5 +45,8 @@ pub async fn run(make: &dyn Fn() -> Fixture) -> Report {
     r.record("move.cycle-copy", write::move_copy(&make()).await);
     r.record("changes.delta", write::delta(&make()).await);
     r.record("write.cancel", write::cancel(&make()).await);
+    r.record("conflict.rename", write::rename_conflict(&make()).await);
+    r.record("operator.log", admin::operator_log(&make()).await);
+    super::matrix::run_rows(&mut r, make, &super::matrix::rows()).await;
     r
 }

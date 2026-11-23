@@ -36,13 +36,14 @@ pub struct Fixture {
 #[derive(Debug, Default)]
 pub struct Report {
     /// Rules that held.
-    pub passed: Vec<&'static str>,
+    pub passed: Vec<String>,
     /// Rules that did not, with the reason.
-    pub failed: Vec<(&'static str, String)>,
+    pub failed: Vec<(String, String)>,
 }
 
 impl Report {
-    pub(super) fn record(&mut self, id: &'static str, c: Check) {
+    pub(super) fn record(&mut self, id: impl Into<String>, c: Check) {
+        let id = id.into();
         match c {
             Ok(()) => self.passed.push(id),
             Err(why) => self.failed.push((id, why)),
@@ -51,7 +52,7 @@ impl Report {
     /// Whether the rule `id` failed.
     #[must_use]
     pub fn failed_rule(&self, id: &str) -> bool {
-        self.failed.iter().any(|(r, _)| *r == id)
+        self.failed.iter().any(|(r, _)| r == id)
     }
 }
 

@@ -227,3 +227,31 @@ pub(super) async fn cancel(fx: &Fixture) -> Check {
         "a cancelled write left a file",
     )
 }
+
+/// A rename onto a taken name never replaces: `Fail` is a conflict, `KeepBoth` numbers the name.
+pub(super) async fn rename_conflict(fx: &Fixture) -> Check {
+    let p = &*fx.anna;
+    let taken = at(p, RootKind::Mine, "Dokumente/Notizen.md").await?;
+    let before = read_all(p, &taken).await?;
+    let other = at(p, RootKind::Mine, "Dokumente/Lebenslauf.pdf").await?;
+    refused(
+        p.rename(&other.id, "Notizen.md", OnConflict::Fail).await,
+        "rename onto a taken name",
+        conflict,
+    )?;
+    want(
+        read_all(p, &at(p, RootKind::Mine, "Dokumente/Notizen.md").await?).await? == before,
+        "the taken file was replaced",
+    )?;
+    want(
+        s(p.stat(&other.id).await)?.name == "Lebenslauf.pdf",
+        "a refused rename changed the name",
+    )?;
+    let kept = s(p
+        .rename(&other.id, "Notizen.md", OnConflict::KeepBoth)
+        .await)?;
+    want(
+        kept.name == "Notizen (2).md",
+        &format!("keepBoth gave {:?}", kept.name),
+    )
+}
