@@ -460,34 +460,34 @@ dependencies = [
 
 [[package]]
 name = "fs-events"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "async-trait",
  "chrono",
  "chrono-tz",
  "fs-jscalendar",
- "fs-types",
+ "fs-types 0.0.5",
  "tokio",
 ]
 
 [[package]]
 name = "fs-group-directory"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "async-trait",
- "fs-types",
+ "fs-types 0.0.5",
  "tokio",
 ]
 
 [[package]]
 name = "fs-interfaces"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "capnp",
  "capnp-compiler",
  "capnpc",
  "capnpc-embedded",
- "fs-types",
+ "fs-types 0.0.5",
  "semver",
 ]
 
@@ -498,7 +498,7 @@ source = "git+https://github.com/FreeSynergy/fs-jscalendar?tag=v0.0.5#8806df53f2
 dependencies = [
  "calcard",
  "chrono",
- "fs-types",
+ "fs-types 0.0.4",
  "jiff",
  "jiff-tzdb",
  "serde",
@@ -509,13 +509,13 @@ dependencies = [
 
 [[package]]
 name = "fs-mcp"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "capnp",
  "capnp-compiler",
  "capnp-rpc",
  "fs-interfaces",
- "fs-types",
+ "fs-types 0.0.5",
  "futures",
  "jsonschema",
  "serde_json",
@@ -524,10 +524,10 @@ dependencies = [
 
 [[package]]
 name = "fs-person-directory"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "async-trait",
- "fs-types",
+ "fs-types 0.0.5",
  "tokio",
 ]
 
@@ -544,10 +544,10 @@ dependencies = [
 
 [[package]]
 name = "fs-storage"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "async-trait",
- "fs-types",
+ "fs-types 0.0.5",
  "sha2",
  "tokio",
 ]
@@ -564,6 +564,22 @@ dependencies = [
  "iri-string",
  "oxilangtag",
  "unicode-normalization",
+]
+
+[[package]]
+name = "fs-types"
+version = "0.0.5"
+source = "git+https://github.com/FreeSynergy/fs-types?tag=v0.0.6#2f45110417cf42311d5dee72287b7644312d4bc4"
+dependencies = [
+ "capnp",
+ "chrono",
+ "geo-uri",
+ "idna",
+ "iri-string",
+ "oxilangtag",
+ "semver",
+ "unicode-normalization",
+ "zeroize",
 ]
 
 [[package]]
@@ -1446,12 +1462,12 @@ dependencies = [
 
 [[package]]
 name = "regenerate"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "capnp-compiler",
  "capnpc",
  "fs-mcp",
- "fs-types",
+ "fs-types 0.0.5",
 ]
 
 [[package]]
@@ -2550,6 +2566,12 @@ dependencies = [
  "syn 3.0.9",
  "synstructure",
 ]
+
+[[package]]
+name = "zeroize"
+version = "1.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85ccff8a4805aba1eaa4cd4afcd49f7557dd2cf5fd79ffc37f8959466effc5aa"
 
 [[package]]
 name = "zerotrie"
