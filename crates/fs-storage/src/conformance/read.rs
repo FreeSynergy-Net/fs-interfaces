@@ -247,6 +247,13 @@ pub(super) async fn scope_generator(fx: &Fixture) -> Check {
         s(fx.admin.scope("capture", PageReq::first(5)).await)?
             .items
             .is_empty(),
-        "an admin sees private content through scope",
+        "a manager sees private content through scope",
+    )?;
+    want(
+        s(fx.operator.scope("capture", PageReq::first(5)).await)?
+            .items
+            .len()
+            == 3,
+        "the operator must see all 3 captures",
     )
 }
