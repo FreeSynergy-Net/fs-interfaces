@@ -169,7 +169,7 @@ fn depth_guard(nodes: usize) -> bool {
 
 /// The deepest folder nesting a copy follows. A copy into its own subtree (the `NoCycle` mutant) reaches it and ends
 /// with an error instead of a stack overflow.
-const MAX_COPY_DEPTH: usize = 64;
+const MAX_COPY_DEPTH: usize = 16;
 
 /// What a copy carries down unchanged: the new owner and the cancel/time limit.
 struct Env<'a> {
