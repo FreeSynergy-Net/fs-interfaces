@@ -5,7 +5,7 @@
 use crate::fake::FakeGroups;
 use crate::groups::shared::{ObjectId, PersonRef, Revision};
 use crate::groups::{
-    Addon, AddonKind, GroupGovernance, Intervention, Level, Result, Scope, ScopeGrant,
+    Addon, AddonKind, GroupGovernance, Intervention, Level, OperatorList, Result, Scope, ScopeGrant,
 };
 use crate::groups::{Membership, NestOutcome};
 use async_trait::async_trait;
@@ -61,6 +61,9 @@ impl GroupGovernance for FakeGroups {
     }
     async fn interventions(&self, group: ObjectId) -> Result<Vec<Intervention>> {
         self.lock().interventions(group)
+    }
+    async fn operators(&self) -> Result<OperatorList> {
+        Ok(self.lock().operators())
     }
     async fn addons(&self, group: ObjectId) -> Result<Vec<Addon>> {
         self.lock().addons(group)

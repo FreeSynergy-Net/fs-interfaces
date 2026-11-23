@@ -115,6 +115,15 @@ impl State {
     ) -> Result<NestOutcome> {
         self.visible(child)?;
         self.visible(parent)?;
+        // The group "Betreiber" takes no edge on any path (members and rights would flow over it): `Forbidden`.
+        for side in [child, parent] {
+            if self.is_operator_group(side) {
+                return Err(Error::Forbidden {
+                    group: side,
+                    right: Right::Manage,
+                });
+            }
+        }
         let (mc, mp) = (
             self.may_ask(child, Right::Manage),
             self.may_ask(parent, Right::Manage),

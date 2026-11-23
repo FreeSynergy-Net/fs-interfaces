@@ -6,13 +6,14 @@ use async_trait::async_trait;
 use fs_group_directory::conformance::{ByHand, ConformanceFixture, Kind};
 use fs_group_directory::groups::shared::{ObjectId, PersonRef, Utc};
 use fs_group_directory::groups::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
-use fs_group_directory::groups::{GroupGovernance, role_manager, role_owner};
+use fs_group_directory::groups::{GroupGovernance, LocalOperator, role_manager, role_owner};
 use fs_group_directory::{FakeGroups, FakeMirror};
 use std::sync::Arc;
 
 pub struct Fx {
     pub fake: Arc<FakeGroups>,
     gov: Option<Box<dyn GroupGovernance>>,
+    local: Arc<dyn LocalOperator>,
     provider: Box<dyn Groups>,
     mirror: FakeMirror,
     roles: (RoleRef, RoleRef),
@@ -39,6 +40,7 @@ impl Fx {
         );
         Self {
             gov: None,
+            local: Arc::clone(&fake) as Arc<dyn LocalOperator>,
             fake,
             provider,
             mirror: FakeMirror::new(),
@@ -48,6 +50,12 @@ impl Fx {
 }
 
 impl Fx {
+    /// Another way in for the local command (a mutant in front of the fake).
+    pub fn with_local(mut self, local: Arc<dyn LocalOperator>) -> Self {
+        self.local = local;
+        self
+    }
+
     /// Offer a `GroupGovernance` view (the fake itself or a mutant in front of it).
     pub fn with_governance(mut self, gov: Box<dyn GroupGovernance>) -> Self {
         self.gov = Some(gov);
@@ -62,6 +70,9 @@ impl ConformanceFixture for Fx {
     }
     fn governance(&self) -> Option<&dyn GroupGovernance> {
         self.gov.as_deref()
+    }
+    fn local_operator(&self) -> Option<&dyn LocalOperator> {
+        Some(self.local.as_ref())
     }
     fn facade(&self) -> Option<&dyn GroupMembers> {
         Some(self.fake.as_ref())
@@ -87,6 +98,9 @@ impl ConformanceFixture for Fx {
             Kind::Unknown => None,
         };
         self.fake.people().mark(person, mark)
+    }
+    async fn supervise(&self, person: &PersonRef, on: bool) -> bool {
+        self.fake.people().supervise(person, Some(on))
     }
     async fn roles(&self) -> Option<(RoleRef, RoleRef)> {
         Some(self.roles.clone())

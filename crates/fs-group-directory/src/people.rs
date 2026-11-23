@@ -23,6 +23,8 @@ struct Entry {
     address: Option<String>,
     /// `Some(true)` an AI account, `Some(false)` a human, `None` not known.
     agent: Option<bool>,
+    /// `Some(true)` a supervised account (ADR 0095 Pkt. 14), `Some(false)` not, `None` not known.
+    supervised: Option<bool>,
 }
 
 #[derive(Debug, Default)]
@@ -65,6 +67,7 @@ impl FakePeople {
             display: display.to_owned(),
             address: address.map(str::to_owned),
             agent,
+            supervised: (agent == Some(false)).then_some(false),
         };
         book.persons.insert(key(&person), entry);
         person
@@ -111,6 +114,25 @@ impl FakePeople {
         self.lock().persons.get(&key(person)).and_then(|e| e.agent)
     }
 
+    /// Set the supervision mark: `Some(true)` supervised, `Some(false)` not, `None` not known. `false` when the person
+    /// is not known here.
+    pub fn supervise(&self, person: &PersonRef, supervised: Option<bool>) -> bool {
+        self.lock()
+            .persons
+            .get_mut(&key(person))
+            .map(|e| e.supervised = supervised)
+            .is_some()
+    }
+
+    /// The supervision mark of `person` (`None` not known or not marked).
+    #[must_use]
+    pub fn supervised(&self, person: &PersonRef) -> Option<bool> {
+        self.lock()
+            .persons
+            .get(&key(person))
+            .and_then(|e| e.supervised)
+    }
+
     /// A new role in the book; `admin` marks an admin role.
     pub fn add_role(&self, label: &str, admin: bool) -> RoleRef {
         let mut book = self.lock();
@@ -138,6 +160,7 @@ impl FakePeople {
             display: display.to_owned(),
             address: None,
             agent,
+            supervised: (agent == Some(false)).then_some(false),
         };
         self.lock().persons.insert(at, entry);
     }
@@ -183,6 +206,9 @@ impl PersonDirectory for FakePeople {
 impl PersonFacts for FakePeople {
     async fn is_agent(&self, person: &PersonRef) -> Result<Option<bool>> {
         Ok(self.status(person))
+    }
+    async fn is_supervised(&self, person: &PersonRef) -> Result<Option<bool>> {
+        Ok(self.supervised(person))
     }
 }
 

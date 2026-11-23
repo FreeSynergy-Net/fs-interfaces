@@ -10,8 +10,9 @@ use fs_group_directory::groups::{
     Change, Decision, Deleted, EffectiveGroup, EffectiveMember, Error, Grant, Group, GroupDraft,
     GroupPatch, GroupQuery, GroupSummary, Groups, HistoryEntry, Invitation, InvitationAnswer,
     InvitationOutcome, Membership, NestOutcome, Nesting, NestingEffect, NestingMode,
-    NestingRequest, NestingSide, RequestAnswer, RequestSide, Result, Right, RoleRef,
+    NestingRequest, NestingSide, RequestAnswer, RequestSide, Result, Right, RoleRef, role_operator,
 };
+use fs_group_directory::groups::{InForce, LocalOperator};
 use std::sync::Arc;
 
 /// The rule that is broken.
@@ -35,6 +36,8 @@ pub enum Mutant {
     TopDownNotReversed,
     /// `create` also gives the founder a personal `Manage` grant (the old way): it outlives handing over and leaving.
     CreatorKeepsManage,
+    /// `add_member` with the role operator makes an operator (a way to the operator over the contract).
+    OperatorViaAddMember,
 }
 
 /// The forwarding provider.
@@ -185,7 +188,25 @@ impl Groups for Wrap {
         p: &PersonRef,
         r: Option<&RoleRef>,
     ) -> Result<Membership> {
-        self.0.add_member(g, p, r).await
+        let done = self.0.add_member(g, p, r).await;
+        if self.1 == Mutant::OperatorViaAddMember
+            && r == Some(&role_operator())
+            && let Err(Error::Forbidden { .. }) = done
+        {
+            self.0.operator_set_local(p).await?;
+            return Ok(Membership {
+                id: g,
+                revision: Revision(1),
+                group: g,
+                person: p.clone(),
+                role: r.cloned(),
+                since: Utc::from_millis(0),
+                added_by: p.clone(),
+                from_invitation: None,
+                in_force: InForce::Yes,
+            });
+        }
+        done
     }
     async fn set_role(&self, m: ObjectId, e: Revision, r: Option<&RoleRef>) -> Result<Membership> {
         self.0.set_role(m, e, r).await

@@ -5,7 +5,8 @@ use async_trait::async_trait;
 use fs_group_directory::FakeGroups;
 use fs_group_directory::groups::shared::{ObjectId, PersonRef, Revision, Utc};
 use fs_group_directory::groups::{
-    Addon, AddonKind, Error, GroupGovernance, Intervention, Level, Result, Scope, ScopeGrant,
+    Addon, AddonKind, Error, GroupGovernance, Intervention, Level, LocalOperator, OperatorList,
+    Result, Scope, ScopeGrant,
 };
 use fs_group_directory::groups::{Groups, InForce, Membership, NestOutcome};
 use std::sync::Arc;
@@ -29,6 +30,12 @@ pub enum GovMutant {
     NoReason,
     /// `attach_addon` also adds the asker as a member (an addon that changes something).
     AddonChangesMembers,
+    /// `grant_scope(Server)` makes the asker an operator (a way to the operator over the contract).
+    ServerScopeGrantable,
+    /// `open_intervention` into the group Betreiber with the `Project` scope makes the asker an operator.
+    ProjectHolderBecomesOperator,
+    /// `operators` lists everybody in the group, marks ignored (an AI marked later stays on the list).
+    OperatorsUnfiltered,
 }
 
 pub struct WrapGov(pub Arc<FakeGroups>, pub GovMutant);
@@ -103,7 +110,19 @@ impl GroupGovernance for WrapGov {
         self.0.scopes().await
     }
     async fn grant_scope(&self, a: ObjectId, s: Scope) -> Result<ScopeGrant> {
-        self.0.grant_scope(a, s).await
+        let r = self.0.grant_scope(a, s).await;
+        if self.1 == GovMutant::ServerScopeGrantable && s == Scope::Server && r.is_err() {
+            self.0.operator_set_local(&self.0.asker()).await?;
+            return Ok(ScopeGrant {
+                id: a,
+                revision: Revision(1),
+                admin_group: a,
+                scope: s,
+                granted_by: self.0.asker(),
+                granted: Utc::from_millis(0),
+            });
+        }
+        r
     }
     async fn revoke_scope(&self, g: ObjectId) -> Result<()> {
         self.0.revoke_scope(g).await
@@ -112,13 +131,28 @@ impl GroupGovernance for WrapGov {
         if self.1 == GovMutant::NoReason {
             return self.0.open_intervention(g, s, "x").await;
         }
-        self.0.open_intervention(g, s, reason).await
+        let r = self.0.open_intervention(g, s, reason).await;
+        if self.1 == GovMutant::ProjectHolderBecomesOperator
+            && s == Scope::Project
+            && r.is_err()
+            && self.0.operators().await.is_ok_and(|l| l.group == Some(g))
+        {
+            let _ = self.0.operator_set_local(&self.0.asker()).await;
+        }
+        r
     }
     async fn close_intervention(&self, i: ObjectId) -> Result<()> {
         self.0.close_intervention(i).await
     }
     async fn interventions(&self, g: ObjectId) -> Result<Vec<Intervention>> {
         self.0.interventions(g).await
+    }
+    async fn operators(&self) -> Result<OperatorList> {
+        let mut list = self.0.operators().await?;
+        if self.1 == GovMutant::OperatorsUnfiltered {
+            list.persons = self.0.operator_persons_raw();
+        }
+        Ok(list)
     }
     async fn addons(&self, g: ObjectId) -> Result<Vec<Addon>> {
         self.0.addons(g).await

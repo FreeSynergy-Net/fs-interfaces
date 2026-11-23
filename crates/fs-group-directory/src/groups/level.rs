@@ -18,6 +18,13 @@ pub fn role_owner() -> RoleRef {
     role("owner")
 }
 
+/// Die Rolle Betreiber (Bereich `Server`, ADR 0095 Nachtrag): nur der lokale Befehl auf dem Server vergibt sie
+/// (`LocalOperator`, `operator.rs`), nie ein Weg dieses Vertrags.
+#[must_use]
+pub fn role_operator() -> RoleRef {
+    role("operator")
+}
+
 /// Die Rolle Verwalter: gibt `Manage`.
 #[must_use]
 pub fn role_manager() -> RoleRef {
@@ -37,7 +44,10 @@ pub enum Level {
     Owner,
 }
 
-/// Geltungsbereich eines Rechts (ADR 0095 Pkt. 5).
+/// Name der Gruppe, die den Bereich `Server` hält (Mitglieder = die Betreiber, immer sichtbar).
+pub const OPERATOR_GROUP_NAME: &str = "Betreiber";
+
+/// Geltungsbereich eines Rechts (ADR 0095 Pkt. 5; `Server` nach Nutzerentscheid 16, 23.11.2026).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Scope {
     /// (a) Projekt-Verwaltung: alles.
@@ -46,15 +56,23 @@ pub enum Scope {
     AllGroups,
     /// (c) Selbstverwaltung: nur diese Gruppe (nie vergeben, nur genannt).
     Group(ObjectId),
+    /// Betreiber: wer Server-/root-Zugriff hat. Kein Eingriff-Bereich (der Betreiber liest ohne Eingriff, ändert aber nur
+    /// über einen Eingriff der Stufen (a)/(b)). NIE über den Vertrag vergebbar: `grant_scope` sagt `ScopeDenied`, kein
+    /// anderer Bereich deckt ihn ab; gesetzt wird er nur vom lokalen Befehl (`LocalOperator`).
+    Server,
 }
 
 impl Scope {
-    /// Ob ein gehaltener Bereich den gewünschten abdeckt (`Project` alles, `AllGroups` jede Gruppe).
+    /// Ob ein gehaltener Bereich den gewünschten abdeckt (`Project` alles außer `Server`, `AllGroups` jede Gruppe;
+    /// `Server` deckt nur sich selbst und wird von keinem anderen Bereich gedeckt).
     #[must_use]
     pub fn covers(self, wanted: Scope) -> bool {
         matches!(
             (self, wanted),
-            (Scope::Project, _) | (Scope::AllGroups, Scope::AllGroups | Scope::Group(_))
+            (
+                Scope::Project,
+                Scope::Project | Scope::AllGroups | Scope::Group(_)
+            ) | (Scope::AllGroups, Scope::AllGroups | Scope::Group(_))
         ) || self == wanted
     }
 }

@@ -218,6 +218,7 @@ impl State {
     ) -> Result<Membership> {
         let m = self.member_by_id(id)?;
         self.need(m.group, Right::Manage)?;
+        self.guard_operator_membership(&m)?;
         self.guard_owner_membership(&m)?;
         Self::cas(m.revision, expected)?;
         self.guard_role_grant(m.group, role, true)?;
@@ -253,6 +254,7 @@ impl State {
         if m.person != self.asker {
             self.need(m.group, Right::RemoveMembers)?;
         }
+        self.guard_operator_membership(&m)?;
         self.guard_owner_membership(&m)?;
         Self::cas(m.revision, expected)?;
         let all: Vec<ObjectId> = self.groups.keys().copied().collect();

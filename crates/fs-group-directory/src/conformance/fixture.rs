@@ -3,9 +3,9 @@
 //! Pattern: Strategy / Test fixture (the rules are written once; each provider says how to make a person of a kind,
 //! who asks and how the clock moves, so the same rules run against the fake and later against `LocalGroups`).
 
-use crate::groups::GroupGovernance;
 use crate::groups::shared::{ObjectId, PersonRef};
 use crate::groups::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
+use crate::groups::{GroupGovernance, LocalOperator};
 use async_trait::async_trait;
 
 /// What people say about a person's account.
@@ -43,6 +43,12 @@ pub trait ConformanceFixture: Send + Sync {
         None
     }
 
+    /// The LOCAL entry of the operator command (`LocalOperator`); `None` skips the operator rules. It is the server
+    /// program's way in, never a path of the contract.
+    fn local_operator(&self) -> Option<&dyn LocalOperator> {
+        None
+    }
+
     /// The `GroupMembers` view of the same provider.
     fn facade(&self) -> Option<&dyn GroupMembers> {
         None
@@ -65,6 +71,11 @@ pub trait ConformanceFixture: Send + Sync {
 
     /// Change what people say about an existing person (the mark changes after the fact).
     async fn mark(&self, _person: &PersonRef, _kind: Kind) -> bool {
+        false
+    }
+
+    /// Mark an account as supervised (`true`) or not (ADR 0095 Pkt. 14). `true` when done.
+    async fn supervise(&self, _person: &PersonRef, _on: bool) -> bool {
         false
     }
 

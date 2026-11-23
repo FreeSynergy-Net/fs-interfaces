@@ -180,6 +180,8 @@ pub enum Error {
     ScopeDenied(Scope),
     /// Der letzte Bereich `Project` lässt sich nicht entziehen.
     LastScope,
+    /// Ein betreutes Konto (oder ein Konto, von dem nicht bekannt ist, ob es betreut ist) wird nie Betreiber.
+    SupervisedCannotOperate,
     /// Ein Eingriff braucht einen Grund.
     ReasonMissing,
     /// Der Eingriff ist unbekannt, fremd oder schon zu.

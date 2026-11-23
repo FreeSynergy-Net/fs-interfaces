@@ -101,6 +101,7 @@ async fn a_provider_without_compare_and_set_fails() {
 
 // ---- groups
 
+mod operator;
 mod wrap_governance;
 use fs_group_directory::conformance::run_conformance_governance;
 use wrap_governance::{GovMutant, WrapGov};

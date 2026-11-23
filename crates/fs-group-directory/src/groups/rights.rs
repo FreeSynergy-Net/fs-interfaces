@@ -57,6 +57,9 @@ pub enum Reason {
         holder: Option<ObjectId>,
     },
     NoGrant,
+    /// Die Gruppe "Betreiber" (Bereich `Server`): kein Schreibrecht auf keinem Weg des Vertrags, auch nicht über
+    /// einen Eingriff; nur der lokale Befehl ändert sie (`operator.rs`).
+    OperatorGroup,
     /// Als KI markiert: nie `Manage` (ADR 0056 Punkt 6). Ein Recht, das ihr nach Neumarkierung noch anhängt (`InForce::KindMismatch`), ergibt `Agent`. An einer Gruppe mit
     /// Admin-Recht (Admin-Rolle vergeben) und an einer sensiblen Gruppe hat eine KI gar keinen Zugriff, auch nicht
     /// lesend; sie sieht die Gruppe nicht einmal (jede Methode: wie für eine nicht vorhandene Id, `nesting.rs`).

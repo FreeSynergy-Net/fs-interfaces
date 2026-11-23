@@ -5,7 +5,7 @@
 //!
 //! Pattern: Repository + Port (Trait; alle Methoden Pflicht). Wer handelt, ist die Verbindung, nie ein Parameter.
 
-use super::{Addon, AddonKind, Intervention, Level, Result, Scope, ScopeGrant};
+use super::{Addon, AddonKind, Intervention, Level, OperatorList, Result, Scope, ScopeGrant};
 use crate::groups::shared::{ObjectId, PersonRef, Revision};
 use crate::groups::{Membership, NestOutcome};
 use async_trait::async_trait;
@@ -59,6 +59,11 @@ pub trait GroupGovernance: Send + Sync {
     async fn close_intervention(&self, intervention: ObjectId) -> Result<()>;
     /// Die Eingriffe in eine Gruppe mit ihren Handlungen; für jede Person, die die Gruppe lesen darf (`Withheld` sonst).
     async fn interventions(&self, group: ObjectId) -> Result<Vec<Intervention>>;
+
+    // ---- Betreiber (Bereich `Server`, nur lokal vergebbar: `LocalOperator`)
+    /// Die Betreiber des Servers, für JEDE fragende Person lesbar (auch eine KI; nie `Withheld`). Nur lesen: der Vertrag
+    /// hat keinen Weg, jemanden zum Betreiber zu machen.
+    async fn operators(&self) -> Result<OperatorList>;
 
     // ---- Zusätze (Komposition)
     /// Die Zusätze einer Gruppe (`Withheld`, wenn die fragende Person die Gruppe nicht lesen darf).

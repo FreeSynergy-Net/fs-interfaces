@@ -7,7 +7,7 @@
 //! <= 300 Zeilen, ADR 0043): `mod.rs` (dieser Kopf), `shared.rs` (`pub use` der Basistypen aus `fs-types`), `group.rs`,
 //! `nesting.rs` (Kante, Modus, Zustimmung, Regel der wirksamen Mitglieder), `members.rs`, `rights.rs`, `errors.rs`,
 //! `api.rs` (Trait `Groups`), `api_governance.rs` (Trait `GroupGovernance`), `level.rs` (Stufen, Rollen-IRIs, Bereich),
-//! `admin.rs` (Bereich, Eingriff), `addon.rs` (Zusätze), `mirror.rs` (Trait `Mirroring`, verbrauchter Trait
+//! `admin.rs` (Bereich, Eingriff), `operator.rs` (Betreiber, Bereich `Server`, nur lokal vergebbar), `addon.rs` (Zusätze), `mirror.rs` (Trait `Mirroring`, verbrauchter Trait
 //! `GroupDirectory`), `provided.rs` (Trait `GroupMembers` für Kalender und Tasks), `consumed.rs` (die Ports
 //! `PersonDirectory`, `PersonFacts`, `RoleBook`, die der Gruppen-Vertrag selbst führt).
 //!
@@ -43,6 +43,8 @@
 //!   Baum, nichts fließt (in Kanidm flach, nicht gespiegelt). Ebenen (lokal, regional, ...) sind Kanten, kein Typ.
 //! - Drei Stufen (ADR 0095): (c) jede Gruppe verwaltet sich selbst; (b)/(a) Gruppen mit einem `Scope` greifen nur
 //!   über einen `Intervention` mit Grund ein (sichtbar im Protokoll, endet nach einer Stunde).
+//! - Betreiber (Nutzerentscheid 16): die Gruppe mit dem Bereich `Server` (`operator.rs`). Kein Weg dieses Vertrags
+//!   vergibt sie (nur `LocalOperator`, der lokale Befehl); `GroupGovernance::operators` zeigt sie jeder Person.
 //! - Zusätze (`Addon`) per Komposition: die Gruppe ist der Kern; "Organisation" (W3C ORG `org:FormalOrganization`)
 //!   ist ein angehängter Zusatz, keine Art der Gruppe. Nichts im Vertrag hängt von einem Zusatz ab.
 //! - Eine KI hat an Gruppen mit Admin-Recht und an sensiblen Gruppen gar keinen Zugriff und sieht sie nicht
@@ -76,6 +78,7 @@ mod level;
 mod members;
 mod mirror;
 mod nesting;
+mod operator;
 mod provided;
 mod rights;
 pub mod shared;
@@ -91,6 +94,7 @@ pub use level::*;
 pub use members::*;
 pub use mirror::*;
 pub use nesting::*;
+pub use operator::*;
 pub use provided::*;
 pub use rights::*;
 pub use shared::*;

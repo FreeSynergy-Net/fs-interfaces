@@ -4,7 +4,9 @@
 //! Pattern: Specification (levels and interventions as questions on the state; `decide` in `access.rs` asks them).
 
 use crate::groups::shared::{ObjectId, PersonRef, Utc};
-use crate::groups::{Addon, Intervention, Level, ScopeGrant, role_manager, role_owner};
+use crate::groups::{
+    Addon, Intervention, Level, ScopeGrant, role_manager, role_operator, role_owner,
+};
 use crate::groups::{Membership, RoleRef};
 use crate::state::State;
 
@@ -14,6 +16,8 @@ pub(crate) struct GovernState {
     pub addons: Vec<Addon>,
     pub scopes: Vec<ScopeGrant>,
     pub interventions: Vec<Intervention>,
+    /// The group "Betreiber" (scope `Server`), made by the first local command.
+    pub operator_group: Option<ObjectId>,
 }
 
 impl State {
@@ -158,6 +162,19 @@ impl State {
         Ok(())
     }
 
+    /// A membership that carries the role `operator`, or sits in the group "Betreiber", is never changed or removed
+    /// over a member path (only the local command does that), not even by the person herself.
+    pub(crate) fn guard_operator_membership(&self, m: &Membership) -> crate::groups::Result<()> {
+        use crate::groups::{Error, Right};
+        if self.is_operator_group(m.group) || m.role.as_ref() == Some(&role_operator()) {
+            return Err(Error::Forbidden {
+                group: m.group,
+                right: Right::Manage,
+            });
+        }
+        Ok(())
+    }
+
     /// Giving a role over a member path (`add_member`, `set_role`, `invite`): the owner role is only made by the governance operations
     /// operations (`create`, `appoint_owner`, `transfer_ownership`), the manager role needs `Manage`
     /// (ADR 0095 Pkt. 3). `granting` is false when the invitee accepts (the right was checked at `invite`).
@@ -169,7 +186,7 @@ impl State {
     ) -> crate::groups::Result<()> {
         use crate::groups::{Error, Right};
         match role {
-            Some(r) if *r == role_owner() => Err(Error::Forbidden {
+            Some(r) if *r == role_owner() || *r == role_operator() => Err(Error::Forbidden {
                 group: g,
                 right: Right::Manage,
             }),

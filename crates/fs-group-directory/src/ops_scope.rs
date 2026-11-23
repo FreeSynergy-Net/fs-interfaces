@@ -38,7 +38,7 @@ impl State {
     }
 
     pub(crate) fn grant_scope(&mut self, admin: ObjectId, scope: Scope) -> Result<ScopeGrant> {
-        if matches!(scope, Scope::Group(_)) || !self.may_hand_out() {
+        if matches!(scope, Scope::Group(_) | Scope::Server) || !self.may_hand_out() {
             return Err(Error::ScopeDenied(scope));
         }
         self.visible(admin)?;
@@ -72,7 +72,7 @@ impl State {
             .find(|s| s.id == id)
             .cloned()
             .ok_or_else(missing)?;
-        if !self.may_hand_out() {
+        if g.scope == Scope::Server || !self.may_hand_out() {
             return Err(Error::ScopeDenied(g.scope));
         }
         let projects = self
@@ -103,7 +103,7 @@ impl State {
         reason: &str,
     ) -> Result<Intervention> {
         self.visible(group)?;
-        if matches!(scope, Scope::Group(_)) {
+        if matches!(scope, Scope::Group(_) | Scope::Server) || self.is_operator_group(group) {
             return Err(Error::ScopeDenied(scope));
         }
         if reason.trim().is_empty() {

@@ -152,6 +152,7 @@ impl State {
     pub(crate) fn decide(&self, g: ObjectId, who: &PersonRef, right: Right) -> Decision {
         let base = self.decide_base(g, who, right);
         if !base.allowed
+            && base.reason != Reason::OperatorGroup
             && self.people.status(who) == Some(false)
             && let Some(i) = self.open_iv(g, who)
         {
@@ -169,6 +170,10 @@ impl State {
             allowed: false,
             reason,
         };
+        if right != Right::Read && self.is_operator_group(g) {
+            // The group "Betreiber" is written by the local command only: no grant, no role, no intervention.
+            return no(Reason::OperatorGroup);
+        }
         let status = self.people.status(who);
         if status == Some(true) {
             let closed =

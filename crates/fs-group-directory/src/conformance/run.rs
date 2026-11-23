@@ -46,6 +46,7 @@ pub async fn run_conformance_governance(fixture: &dyn ConformanceFixture) -> Rep
     super::rules_owner::rules(&mut cx).await;
     super::rules_addon::rules(&mut cx).await;
     super::rules_scope::rules(&mut cx).await;
+    super::rules_operator::rules(&mut cx).await;
     cx.act_me().await;
     cx.report
 }

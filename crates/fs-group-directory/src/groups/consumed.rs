@@ -29,6 +29,9 @@ pub trait PersonDirectory: Send + Sync {
 #[async_trait]
 pub trait PersonFacts: Send + Sync {
     async fn is_agent(&self, person: &PersonRef) -> Result<Option<bool>>;
+    /// Ob das Konto betreut ist (ADR 0095 Pkt. 14, Betreuung liefert fs-people). `None` = unbekannt oder nicht
+    /// lesbar: wird für Betreiber und Eigentümer wie `Some(true)` behandelt (im Zweifel nein).
+    async fn is_supervised(&self, person: &PersonRef) -> Result<Option<bool>>;
 }
 
 /// Eine Rolle aus dem Rollenbuch (SKOS / `org:Role`, ADR 0052).
