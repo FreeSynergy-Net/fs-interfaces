@@ -2,7 +2,7 @@
 #   form line:    name@Major.Minor | display name | status | description        (status: stable | planned)
 #   channel line: > channel | art | required | count                            (belongs to the form line above it)
 # required: `!` = required, `-` = optional. count: `1`, `0..1`, `0..4`, `0..n`, or `?` = not decided yet.
-# art: records text number flag time reference command (the seven basic kinds; the reader refuses any other word). The reader holds the fixed table art -> allowed fs-types basic types.
+# art: one of records text number flag time reference command (the seven basic kinds), or a set `text|number|time|flag` (no spaces, no duplicate, not empty): the field may have any art of the set. The reader refuses any other word. The reader holds the fixed table art -> allowed fs-types basic types.
 # Versions: Minor = an optional channel comes; Major = a channel goes or changes meaning. Only append, never rename or remove.
 # Sources of the entries: see the comment lines below (E = ENTSCHEID-form.md, K = kalender, C = fs-capture, F = fs-files, W = fs-components, S = groups). Open points: README of the draft.
 checklist@1.0 | Checklist | planned | A list of items that can be ticked off (Entscheid §3)
@@ -15,7 +15,7 @@ cards-in-columns@1.0 | Cards in columns | planned | Cards sorted into columns, e
 > cards | records | ! | ?
 > column | text | ! | ?
 > title | text | ! | ?
-> facts | text | - | 0..4
+> facts | text|number|time|flag | - | 0..4
 > lane | text | - | ?
 > move | command | - | ?
 
@@ -45,7 +45,7 @@ tiles@1.0 | Tiles | planned | A grid of tiles with a preview picture, name and a
 > kind | text | - | 0..1
 > time | time | - | 0..1
 > size | number | - | 0..1
-> facts | text | - | 0..4
+> facts | text|number|time|flag | - | 0..4
 > order | number | - | 0..1
 > open | command | - | 0..1
 #   Why: the two sources share name, a point in time, a kind and a few facts; they differ in preview (capture has the picture, files has none) and size (files only). So preview/size/time/kind are optional and facts takes the rest. Only `items` and `label` are required, so every module with a name per record can fill the form.
