@@ -22,7 +22,7 @@ pub enum Visibility {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Group {
     pub id: ObjectId,
-    /// `urn:uuid:<id>`; Ziel jedes `PersonRef { art: Group }` auf diese Gruppe| Organization }` auf diese Gruppe.
+    /// `urn:uuid:<id>`; Ziel jedes `PersonRef { art: Group }` auf diese Gruppe.
     pub reference: Reference,
     pub revision: Revision,
     /// Anzeigename, nicht leer.

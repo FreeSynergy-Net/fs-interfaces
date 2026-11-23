@@ -39,14 +39,13 @@ impl State {
             return Err(Error::WrongArt {
                 field: Field::Person,
                 got: p.art,
-            }
-            .into());
+            });
         }
         self.check_person(p)?;
         match self.people.status(p) {
             Some(false) => Ok(()),
-            Some(true) => Err(Error::AgentNotAdmin.into()),
-            None => Err(Error::AiStatusUnknown.into()),
+            Some(true) => Err(Error::AgentNotAdmin),
+            None => Err(Error::AiStatusUnknown),
         }
     }
 
@@ -103,7 +102,7 @@ impl State {
             .into_iter()
             .find(|m| &m.person == person)
         {
-            return Err(Error::AlreadyThere(m.id).into());
+            return Err(Error::AlreadyThere(m.id));
         }
         Ok(self.make_owner(g, person))
     }
@@ -208,8 +207,7 @@ impl State {
             PersonArt::Organization => Err(Error::WrongArt {
                 field: Field::Holder,
                 got: owner.art,
-            }
-            .into()),
+            }),
         }
     }
 
@@ -219,7 +217,7 @@ impl State {
         parent: ObjectId,
     ) -> Result<NestOutcome> {
         let mode = self.visible(parent)?.default_mode;
-        Ok(self.request_nesting(child, parent, mode)?)
+        self.request_nesting(child, parent, mode)
     }
 
     /// Whether the asker holds at least `level` in `g`, else `NeedsLevel`.

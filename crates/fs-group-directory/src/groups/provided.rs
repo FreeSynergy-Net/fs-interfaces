@@ -1,5 +1,5 @@
-//! ANGEBOTEN für andere Programme: wie Kalender, Tasks, Files und Surveys einen `PersonRef { art: Group }`|
-//! Organization }` auflösen (ADR 0085 §3: Teilnehmer oder Zuständige können Gruppen sein). Schmal gehalten
+//! ANGEBOTEN für andere Programme: wie Kalender, Tasks, Files und Surveys einen `PersonRef { art: Group }`
+//! auflösen (ADR 0085 §3: Teilnehmer oder Zuständige können Gruppen sein). Schmal gehalten
 //! (Interface Segregation): wer nur Mitglieder braucht, hängt nicht am ganzen `Groups`.
 //!
 //! Pattern: Facade (schmale Sicht auf `Groups` für Verbraucher).

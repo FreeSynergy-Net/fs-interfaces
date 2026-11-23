@@ -183,5 +183,8 @@ async fn both_trees_give_the_member_tree_in_the_directory_with_the_company_rever
         nested("Abteilung Entwicklung"),
         ids(&["Beispiel Maschinenbau"])
     );
-    assert!(nested("Beispiel Maschinenbau").is_empty());
+    assert_eq!(
+        nested("Beispiel Maschinenbau"),
+        [] as [fs_group_directory::groups::ObjectId; 0]
+    );
 }

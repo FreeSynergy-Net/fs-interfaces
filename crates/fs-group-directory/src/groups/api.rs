@@ -48,16 +48,16 @@ pub trait Groups: Send + Sync {
     /// Über den Verweis (`urn:uuid:…`), z. B. aus einem `PersonRef { art: Group }` des Kalenders.
     async fn get_by_reference(&self, reference: &Reference) -> Result<Option<Group>>;
     /// Die fragende Person bekommt `Manage` an der neuen Gruppe; ist sie eine KI: `AgentNotAdmin`, nichts
-    /// geschrieben. `ai` setzt, wer `Manage` hat, also nie eine KI.
+    /// geschrieben.
     async fn create(&self, draft: GroupDraft) -> Result<Group>;
     async fn update(&self, id: ObjectId, expected: Revision, patch: GroupPatch) -> Result<Group>;
     /// In den Papierkorb, mit Mitgliedschaften, Einladungen, Rechten, Kanten und offenen Anfragen (Kinder
     /// bleiben, verlieren diese Eltern). Spiegel: beim nächsten Abgleich entfernt.
     async fn delete(&self, id: ObjectId, expected: Revision) -> Result<Deleted>;
     /// Bis `restorable_until`; holt alles zurück, was `delete` mitnahm. Eine Kante, die inzwischen einen Kreis
-    /// schlösse (oder zu tief, oder sensibel unverträglich wäre, oder die KI-Regel verletzte), bleibt weg und
+    /// schlösse (oder zu tief, oder sensibel unverträglich wäre, ), bleibt weg und
     /// steht als `NestingRemoved` im Protokoll; Mitgliedschaften, die die KI-Regel inzwischen verletzen (Person
-    /// inzwischen als KI markiert, Gruppe inzwischen `ai`), kommen zurück und zählen nicht
+    /// inzwischen als KI markiert), kommen zurück und zählen nicht
     /// (`InForce::KindMismatch`); offene Anfragen von `delete` sind `Withdrawn` und kommen nicht zurück.
     async fn restore(&self, id: ObjectId) -> Result<Group>;
 
@@ -67,8 +67,7 @@ pub trait Groups: Send + Sync {
     /// (Chefs in `member` von Vizechefs: Chefs dürfen, was die Vizechefs dürfen, und sind auch deren wirksame
     /// Mitglieder). Die fragende Person braucht `Manage` an mindestens einer Seite; an beiden: `Linked`, sonst
     /// `Requested` an die andere Seite. Geprüft (auch beim Zustimmen erneut): `Cycle` (auch Selbstkante und
-    /// umgekehrtes Paar), `TooDeep`, `ModeConflict` (sensibel, beide Richtungen), `AiNesting` (KI-Gruppe nur als
-    /// `Single`-Blatt, nie Eltern, nie `BottomUp`/`TopDown`); `Single` ist nur Anzeige, nicht gespiegelt; schon
+    /// umgekehrtes Paar), `TooDeep`, `ModeConflict` (sensibel, beide Richtungen), `Single` ist nur Anzeige, nicht gespiegelt; schon
     /// da: `AlreadyThere` (Kante in gleichem oder anderem Modus, oder offene Anfrage; trägt die Id).
     async fn request_nesting(
         &self,
@@ -111,7 +110,7 @@ pub trait Groups: Send + Sync {
     ) -> Result<NestingRequest>;
     /// Modus einer Kante ändern. Zu `Single` (Abschwächen) genügt `Manage` an einer Seite und gilt sofort;
     /// Verstärken oder Richtungswechsel braucht beide Seiten wie `request_nesting`, mit den gleichen Prüfungen
-    /// (auch `AiNesting`). Gleicher Modus: `AlreadyThere`.
+    /// . Gleicher Modus: `AlreadyThere`.
     async fn change_nesting_mode(
         &self,
         nesting: ObjectId,
@@ -145,11 +144,9 @@ pub trait Groups: Send + Sync {
         size: usize,
     ) -> Result<Page<EffectiveMember>>;
     /// `AddMembers` nötig. Gleiche Person mit gleicher Rolle: `AlreadyThere`. Gruppe als Person: `WrongArt`.
-    /// KI-Konto in einer Menschengruppe, Mensch in einer KI-Gruppe: `AiNesting { group, path: [group] }`;
-    /// Person mit unbekanntem KI-Status in einer KI-Gruppe: `AiStatusUnknown` (in Menschengruppen erlaubt).
+    /// KI-Konto: `AiNotMember { group }`; Person mit unbekanntem KI-Status mit Admin-Rolle: `AiStatusUnknown`.
     /// Gilt auch für `invite` und Annehmen. Wird eine Person erst später als KI markiert, bleibt die
-    /// Mitgliedschaft stehen und zählt nicht (`InForce::KindMismatch`, `nesting.rs`; auch die umgekehrte
-    /// Neumarkierung in einer KI-Gruppe).
+    /// Mitgliedschaft stehen und zählt nicht (`InForce::KindMismatch`, `nesting.rs`; auch die umgekehrte).
     async fn add_member(
         &self,
         group: ObjectId,

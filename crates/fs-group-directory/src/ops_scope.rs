@@ -48,7 +48,7 @@ impl State {
             .iter()
             .find(|s| s.admin_group == admin && s.scope == scope)
         {
-            return Err(Error::AlreadyThere(s.id).into());
+            return Err(Error::AlreadyThere(s.id));
         }
         let now = self.tick();
         let grant = ScopeGrant {
