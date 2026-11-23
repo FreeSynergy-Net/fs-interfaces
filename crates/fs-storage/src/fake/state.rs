@@ -28,8 +28,10 @@ pub enum Fault {
     NoCancel,
     /// A bot gets rights like a person.
     BotAllowed,
-    /// An admin reads the content of every folder.
+    /// A manager (admin without server access) reads the content of every folder.
     AdminReadsAll,
+    /// The operator is treated like any other asker (gets 403 or only `usage`).
+    OperatorBlocked,
     /// `resolve_path` interprets `..` and empty segments (path traversal).
     PathTraversal,
     /// A range read ignores its offset.
@@ -59,7 +61,11 @@ pub(super) struct Group {
 pub(super) struct World {
     /// Content-addressed bytes by `urn:sha256:` reference (the shape of the v5 `FileStore`, here in a plain map).
     pub blobs: std::collections::HashMap<String, Vec<u8>>,
+    /// Managers: admin level (a)/(b) without server access (structure of groups, `usage` of private folders).
     pub admins: Vec<PersonRef>,
+    /// Operators: whoever has server (root) access. In the fake only a list the test sets; assigning it is no business of this
+    /// contract (the group contract, scope `Server`, local command only).
+    pub operators: Vec<PersonRef>,
     pub bots: Vec<PersonRef>,
     pub nodes: BTreeMap<String, Node>,
     pub roots: Vec<Root>,

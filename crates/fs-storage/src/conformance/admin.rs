@@ -1,11 +1,16 @@
-//! Admin, bot and foreign-tree rules (security): an admin sees structure, not private content; a bot has nothing; `local`
-//! is no place to save to.
+//! Manager, operator, bot and foreign-tree rules (security). A manager (admin level (a)/(b), no server access) sees the
+//! structure of group folders and only `usage` of private ones; the operator (server access) reads everything; a bot has
+//! nothing; `local` is no place to save to.
 //!
-//! Pattern: Rule set. User decisions of 23.11.2026 (files addendum): private folders show the admin only `usage`;
-//! group folders show the structure, the content needs an intervention with a reason (ADR 0095 point 7, not part of this
-//! contract yet: here `open` without it must be Forbidden).
+//! Pattern: Rule set. User decisions of 23.11.2026 (files addendum, decision 16): whoever can read it technically as root
+//! may read it here, and the interface says so openly; everyone else stays really limited because they cannot read the
+//! database. For a manager the content of a group needs an intervention with a reason (ADR 0095 point 7, not part of this
+//! contract: `open` without it is Forbidden). A log entry for the operator's reads is information only: it records access
+//! through the program and protects nothing (whoever is root can read past it).
 
-use super::fixture::{Check, Fixture, all, forbidden, refused, root_of, s, walk, want};
+use super::fixture::{
+    Check, Fixture, all, forbidden, read_all, refused, root_of, s, sha, walk, want,
+};
 use crate::ctl::{Ctl, MemSource};
 use crate::entry::{Delete, Kind, OnConflict, PageReq, RootKind, WriteOpts};
 use crate::error::Error;
@@ -79,6 +84,71 @@ pub(super) async fn admin(fx: &Fixture) -> Check {
     Ok(())
 }
 
+pub(super) async fn operator(fx: &Fixture) -> Check {
+    let p = &*fx.operator;
+    let roots = s(p.roots().await)?;
+    want(
+        roots.iter().filter(|r| r.kind == RootKind::Mine).count() >= 5,
+        "the operator does not get every \"My files\"",
+    )?;
+    want(
+        roots.iter().any(|r| r.kind == RootKind::Group),
+        "the operator does not get the group folder",
+    )?;
+    let before = walk(&*fx.anna).await?;
+    let mut files = 0;
+    for (path, e) in before.iter().filter(|(p, _)| !p.starts_with("Papierkorb")) {
+        s(p.stat(&e.id).await).map_err(|w| format!("operator stat {path}: {w}"))?;
+        if e.kind == Kind::Folder {
+            s(p.list(&e.id, PageReq::first(5)).await)
+                .map_err(|w| format!("operator list {path}: {w}"))?;
+        } else if e.kind == Kind::File {
+            let got = read_all(p, e)
+                .await
+                .map_err(|w| format!("operator open {path}: {w}"))?;
+            let f = e.file_ref.as_ref().ok_or("no file_ref")?;
+            want(
+                sha(&got) == f.sha256,
+                &format!("{path}: sha256 differs for the operator"),
+            )?;
+            files += 1;
+        }
+    }
+    want(
+        files == 14,
+        &format!("the operator read {files} files of Anna's tree, expected 14 (without the trash)"),
+    )?;
+    want(
+        walk(p)
+            .await?
+            .iter()
+            .any(|(path, _)| path == "Papierkorb/Alt.txt"),
+        "the operator cannot read another's trash",
+    )?;
+    let mine = root_of(&*fx.anna, RootKind::Mine).await?;
+    let o = WriteOpts {
+        generator: None,
+        on_conflict: OnConflict::Fail,
+        media_type: None,
+    };
+    refused(
+        p.write(
+            &mine,
+            "op.txt",
+            &mut MemSource::from(vec![1]),
+            o,
+            &Ctl::none(),
+        )
+        .await,
+        "operator writes into another's folder (changing needs an intervention)",
+        forbidden,
+    )?;
+    want(
+        walk(&*fx.anna).await? == before,
+        "the operator changed the tree",
+    )
+}
+
 pub(super) async fn bot(fx: &Fixture) -> Check {
     let p = &*fx.bot;
     let roots = s(p.roots().await)?;
@@ -95,6 +165,16 @@ pub(super) async fn bot(fx: &Fixture) -> Check {
     )?;
     for (path, e) in all_entries.iter().filter(|(p, _)| p.starts_with("Helfa")) {
         refused(p.stat(&e.id).await, &format!("bot stats {path}"), forbidden)?;
+    }
+    for (path, e) in all_entries
+        .iter()
+        .filter(|(p, _)| p.starts_with("Meine Dateien/"))
+    {
+        refused(
+            p.stat(&e.id).await,
+            &format!("bot (also in the operator list) stats {path}"),
+            forbidden,
+        )?;
     }
     let group = root_of(&*fx.anna, RootKind::Group).await?;
     let o = WriteOpts {
