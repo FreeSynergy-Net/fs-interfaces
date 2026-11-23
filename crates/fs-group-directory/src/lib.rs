@@ -25,6 +25,8 @@ mod decorate;
 mod decorate_groups;
 mod decorate_other;
 mod doubles;
+mod example;
+mod example_data;
 mod fake;
 mod fake_governance;
 mod fake_impl;
@@ -61,6 +63,8 @@ mod validate;
 
 pub use decorate::{Decorated, Gate, Op, Provider};
 pub use doubles::{Clock, FailGate, FailingGroups, SlowGate, SlowGroups, forbidden, unavailable};
+pub use example::{EXAMPLE_LOCAL_MEMBERS, Example, example};
+pub use example_data::{EXAMPLE_MARK, ROLE_TEMPLATES, RoleTemplate};
 pub use fake::{DECISIONS, EmptyGroups, FakeGroups, START_MS};
 pub use fake_mirror::FakeMirror;
 pub use ids::{group_ref, id_of_reference, object_id, object_number, person, reference_of};

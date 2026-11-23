@@ -1,13 +1,14 @@
 # fs-group-directory (design)
 
 Step K0 of the pilot `programm-grundgeruest` for groups. The crate holds everything a frontend or a provider needs
-to work against the locked trait `groups_v1` before the real provider (`LocalGroups`, step K1) exists:
+to work against the contract `groups` (ONE contract, no versions side by side; handshake number 1) before the real provider (`LocalGroups`, step K1) exists:
 
 | Part | What it is |
 |---|---|
-| `groups_v1/` | The LOCKED trait folder, byte for byte (SHA-256 `91c0f8b0849d85b1038b8b09f511e27134c1ddfeb0ef2eae42dc8579b3d2faf3`, lock file `.scratch/sperren/groups_v1.sha256`). Never edited; a change is `groups_v2`. `lib.rs` carries the allows the 2024 workspace needs and `#[rustfmt::skip]`, outside the folder. |
-| `FakeGroups` | In memory, implements `Groups`, `GroupsV2`, `Mirroring` and `GroupMembers` completely. |
-| `groups_v2/` | The contract v2 (ADR 0095): owners and the three levels (c self, b `AllGroups`, a `Project`) with the intervention and its reason, `nest_default`, `resolve_owner` (object owner = person or group), and ADDONS by composition (`org:FormalOrganization` first, several per group, open by IRI; no rule depends on an addon). Ports `PersonDirectory`, `PersonFacts`, `RoleBook` stay in the groups contract. No AI groups. |
+| `groups/` | The contract (not locked: the lock of the old `groups_v1` was lifted by the user, 23.11.2026): members, edges with a mode per edge, rights, invitations, trash, mirror, the ports `PersonDirectory`, `PersonFacts`, `RoleBook`. No AI groups, no group art (an organisation is an ADDON, not a kind). |
+| `FakeGroups` | In memory, implements `Groups`, `GroupGovernance`, `Mirroring` and `GroupMembers` completely. |
+| `groups/api_governance.rs` and friends | ADR 0095: owners and the three levels (c self, b `AllGroups`, a `Project`) with the intervention and its reason, `nest_default`, `resolve_owner` (object owner = person or group), and ADDONS by composition (`org:FormalOrganization` first, several per group, open by IRI; no rule depends on an addon). `owner` over `add_member`, `set_role`, `invite` is `Forbidden`; `manager` needs `Manage`. |
+| `example.rs`, `example_data.rs` | Two invented example trees as fixture tables (provider fake, marked `Beispieldaten`): a network built from below (local seed, levels as edges, advisory group on a `Single` edge, moderator as a role TEMPLATE) and a company built from above (top-down, addon formal organisation); the count of the local group is a parameter (200). No operator rule is in the code. |
 | `FakePeople`, `FakeMirror` | The consumed sides: fs-people (`PersonDirectory`, `PersonFacts`, `RoleBook`) and Kanidm (`GroupDirectory`). |
 | `FailingGroups`, `SlowGroups` | Decorators over the fake (or any provider of the three traits): fail every method, chosen methods (`Op`) or every call that names a chosen group, `heal()`; or wait on the fake's clock (virtual, nobody sleeps). |
 | `sample()` | The fixed data set (PLAN section 6): 15 groups (one in the trash) and 20 invented persons on `example.org` (2 AI accounts, 1 unknown): a BottomUp tree, a TopDown chain of nine levels, a group with several parents (BottomUp and TopDown), a Single branch, an organisation, a sensitive, an admin and an AI group, two mirrored, one open edge request and one open mode-change request, invitations pending, accepted, declined and expired, rights through a holder group. |
@@ -74,11 +75,8 @@ never reaches the counting, and a human sees every group; the filter is a guard,
 
 ## For K1 (the move into the core)
 
-The trait folder lives here (`src/groups_v1/`) so the frontends can start. `LocalGroups` in `fs-groups-core` cannot
-depend on this crate, so at step K1 the folder moves BYTE FOR BYTE to `fs-groups-core/src/interface/groups_v1/`
-(check with `hash-ordner.sh`: the hash above before and after) and this crate re-exports it (`pub use
-fs_groups_core::interface::groups_v1`). The lines of the `mod` declaration (lock comment, `#[rustfmt::skip]`, allows)
-move with it. The fake's `nesting_logic` is replaced by the crate `group-nesting` at the same time (see below).
+The contract folder lives here (`src/groups/`) so the frontends can start. `LocalGroups` in `fs-groups-core` cannot
+depend on this crate, so at step K1 the folder moves to `fs-groups-core/src/interface/groups/` and this crate re-exports it. The fake's `nesting_logic` is replaced by the crate `group-nesting` at the same time (see below).
 
 ## Known deviations from `group-nesting` (decided at the switch)
 
