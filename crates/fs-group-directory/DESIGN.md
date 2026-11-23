@@ -1,4 +1,4 @@
-# fs-groups-testdata (design)
+# fs-group-directory (design)
 
 Step K0 of the pilot `programm-grundgeruest` for groups. The crate holds everything a frontend or a provider needs
 to work against the locked trait `groups_v1` before the real provider (`LocalGroups`, step K1) exists:

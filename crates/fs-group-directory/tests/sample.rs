@@ -1,12 +1,12 @@
 //! The fixed sample: its shape (sixteen groups, twenty persons, three modes, every case of the plan) and what the
 //! fake says about it.
 
-use fs_groups_testdata::groups_v1::shared::PersonArt;
-use fs_groups_testdata::groups_v1::{
+use fs_group_directory::groups_v1::shared::PersonArt;
+use fs_group_directory::groups_v1::{
     FindingKind, GroupMembers, GroupQuery, Groups, InvitationState, MirrorStep, Mirroring,
     NestingMode, NestingSide, ParentFilter, PersonDirectory, RequestSide, RequestState,
 };
-use fs_groups_testdata::{group_ref, sample};
+use fs_group_directory::{group_ref, sample};
 
 fn all() -> GroupQuery {
     GroupQuery {
