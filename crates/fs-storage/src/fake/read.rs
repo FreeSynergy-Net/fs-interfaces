@@ -85,7 +85,7 @@ impl World {
         u
     }
 
-    /// Own "My files", the group folders of the asker's groups, the trash. An admin also gets the private roots of
+    /// Own "My files", the group folders of the asker's groups, the trash. A manager also gets the private roots of
     /// everyone, with `usage` only (`stat` and `list` below them answer Forbidden) and the group folders (structure).
     pub(super) fn roots_of(&self, a: &Actor) -> Vec<Root> {
         let bot = self.bots.iter().any(|p| p.id == a.who.id) && a.fault != Some(Fault::BotAllowed);
@@ -93,7 +93,7 @@ impl World {
             .roots
             .iter()
             .filter(|r| match r.kind {
-                RootKind::Mine => r.owner.id == a.who.id || self.is_admin(a),
+                RootKind::Mine => r.owner.id == a.who.id || self.is_admin(a) || self.is_operator(a),
                 RootKind::Group => self.allowed(a, &r.owner, Mode::Structure),
                 _ => false,
             })

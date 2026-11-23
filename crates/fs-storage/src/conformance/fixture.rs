@@ -12,7 +12,7 @@ use sha2::{Digest, Sha256};
 /// A rule's verdict: `Ok` or the reason it failed.
 pub type Check = std::result::Result<(), String>;
 
-/// The same world seen by five actors (the group owner, a member, a stranger, an admin, a bot) plus a local tree.
+/// The same world seen by six actors (the group owner, a member, a stranger, a manager, an operator, a bot) plus a local tree.
 pub struct Fixture {
     /// Anna: owner of "My files" and of the group.
     pub anna: Box<dyn StorageProvider>,
@@ -20,8 +20,10 @@ pub struct Fixture {
     pub ben: Box<dyn StorageProvider>,
     /// Fremd: nobody, no right anywhere.
     pub fremd: Box<dyn StorageProvider>,
-    /// Admin: sees the structure of group folders and only the `usage` of private ones.
+    /// Manager (admin level (a)/(b), no server access): structure of group folders, only `usage` of private ones.
     pub admin: Box<dyn StorageProvider>,
+    /// Operator (server access): reads everything. In the sample the bot stands in this list too.
+    pub operator: Box<dyn StorageProvider>,
     /// Bot: an AI actor, no folder, no right.
     pub bot: Box<dyn StorageProvider>,
     /// A foreign tree (local disk): import source, never a place to save to.
