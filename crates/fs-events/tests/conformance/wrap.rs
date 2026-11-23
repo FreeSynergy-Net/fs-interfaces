@@ -100,11 +100,10 @@ impl Appointments for Wrap {
     }
     async fn get(&self, id: ObjectId) -> Result<Option<Appointment>> {
         let mut r = self.0.get(id).await;
-        if let (Ok(Some(a)), true) = (&mut r, is(self.1, Mutant::FeedInOrigin)) {
-            if let Some(o) = &mut a.origin {
-                o.source =
-                    fs_events::zone::reference("https://kalender.example.org/zzconf-feed.ics");
-            }
+        if let (Ok(Some(a)), true) = (&mut r, is(self.1, Mutant::FeedInOrigin))
+            && let Some(o) = &mut a.origin
+        {
+            o.source = fs_events::zone::reference("https://kalender.example.org/zzconf-feed.ics");
         }
         r
     }

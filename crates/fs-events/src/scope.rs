@@ -231,11 +231,11 @@ fn split(
     tail.overrides
         .retain(|o| naive(o.recurrence_id).is_some_and(|n| n >= at));
     for (t, r) in tail.recurrence.iter_mut().zip(&cur.recurrence) {
-        if let (Recurrence::Rule(t), Recurrence::Rule(r)) = (t, r) {
-            if let RuleEnd::Count(c) = t.end {
-                let before = occurrences(r, start, at - Duration::seconds(1)).len();
-                t.end = RuleEnd::Count(c.saturating_sub(u32::try_from(before).unwrap_or(u32::MAX)));
-            }
+        if let (Recurrence::Rule(t), Recurrence::Rule(r)) = (t, r)
+            && let RuleEnd::Count(c) = t.end
+        {
+            let before = occurrences(r, start, at - Duration::seconds(1)).len();
+            t.end = RuleEnd::Count(c.saturating_sub(u32::try_from(before).unwrap_or(u32::MAX)));
         }
     }
     tail.related.retain(|r| r.relation != Relation::First);
