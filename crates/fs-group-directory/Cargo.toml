@@ -1,0 +1,18 @@
+[package]
+name = "fs-groups-testdata"
+description = "Test providers, conformance rules and fixed sample data of FreeSynergy groups: a fake of the locked Groups trait (groups_v1)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+async-trait = "0.1"
+# Same pin as the locked trait folder (groups_v1): fs-types v0.0.22 = fs-interfaces 7743056.
+fs-types = { git = "https://github.com/FreeSynergy/fs-interfaces", tag = "v0.0.22" }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros"] }
