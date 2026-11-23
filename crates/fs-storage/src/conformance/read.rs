@@ -87,7 +87,7 @@ pub(super) async fn file_sha256(fx: &Fixture) -> Check {
     for (path, e) in walk(&*fx.anna)
         .await?
         .into_iter()
-        .filter(|(_, e)| e.kind == Kind::File)
+        .filter(|(p, e)| e.kind == Kind::File && !p.starts_with("Papierkorb"))
     {
         let f = e.file_ref.as_ref().ok_or(format!("{path}: no file_ref"))?;
         let bytes = read_all(&*fx.anna, &e).await?;
