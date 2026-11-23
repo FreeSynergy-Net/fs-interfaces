@@ -34,7 +34,13 @@ async fn the_topdown_chain_has_nine_levels_and_chiefs_are_members_of_every_level
             .iter()
             .find(|m| m.person == alice)
             .expect("Chiefs are members of the lower level");
-        assert_eq!(a.inherited[0].via, ids[..=level].to_vec(), "level {level}");
+        // Alice also founded every group (she owns each one), so she comes in over several ways: look at the one from Chiefs.
+        let from_chiefs = a
+            .inherited
+            .iter()
+            .find(|i| i.from == Some(ids[0]))
+            .expect("inherited from Chiefs");
+        assert_eq!(from_chiefs.via, ids[..=level].to_vec(), "level {level}");
     }
     let last = s.id("Newcomers").expect("group");
     let top = s
@@ -92,7 +98,10 @@ async fn the_sample_has_groups_with_several_parents_and_one_shorter_side_branch(
         .iter()
         .find(|m| m.person == alice)
         .expect("Chiefs flow into Outreach")
-        .inherited[0]
+        .inherited
+        .iter()
+        .find(|i| i.from == Some(of("Chiefs")))
+        .expect("inherited from Chiefs")
         .via;
     assert_eq!(
         via.len(),

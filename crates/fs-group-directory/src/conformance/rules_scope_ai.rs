@@ -18,7 +18,7 @@ pub(crate) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance, holder: &Per
     cx.act_me().await;
     let (Some(q), Some(target), Some(admin_c), Some(admin_d)) = (
         cx.person(Kind::Human).await,
-        owned(cx, v, "sc ai target").await,
+        owned(cx, "sc ai target").await,
         cx.group("sc ai admin c").await,
         cx.group("sc ai admin d").await,
     ) else {

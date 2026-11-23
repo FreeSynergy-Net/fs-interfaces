@@ -15,10 +15,7 @@ pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 }
 
 async fn independent(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let (Some(g), Some(p)) = (
-        owned(cx, v, "add indep").await,
-        cx.person(Kind::Human).await,
-    ) else {
+    let (Some(g), Some(p)) = (owned(cx, "add indep").await, cx.person(Kind::Human).await) else {
         return;
     };
     let Some(parent) = cx.group("add indep parent").await else {
@@ -43,7 +40,7 @@ async fn independent(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 }
 
 async fn self_managed(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let (Some(g), Some(p2)) = (owned(cx, v, "add self").await, cx.person(Kind::Human).await) else {
+    let (Some(g), Some(p2)) = (owned(cx, "add self").await, cx.person(Kind::Human).await) else {
         return;
     };
     cx.ensure(

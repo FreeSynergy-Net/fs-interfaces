@@ -226,6 +226,9 @@ impl State {
         if m.role.as_ref() == role {
             return Ok(self.member_view(&m));
         }
+        if self.would_orphan_role(m.group, id, role) {
+            return Err(Error::LastManager);
+        }
         self.tick();
         let mut done = m.clone();
         if let Some(row) = self.members.iter_mut().find(|x| x.id == id) {

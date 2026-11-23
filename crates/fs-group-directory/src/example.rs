@@ -85,7 +85,7 @@ fn make_groups(s: &mut State, out: &mut Book, nodes: &[Node]) {
             sensitive: false,
             mirror: true,
         };
-        let Some(g) = check(s.create_owned(draft), n.name, &mut out.problems) else {
+        let Some(g) = check(s.create(draft), n.name, &mut out.problems) else {
             continue;
         };
         out.ids.insert(n.name, g.id);

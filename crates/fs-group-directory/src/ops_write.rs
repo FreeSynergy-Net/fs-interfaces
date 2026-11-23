@@ -4,8 +4,8 @@
 
 use crate::groups::shared::{ObjectId, Revision};
 use crate::groups::{
-    ChangeKind, ConflictKind, Error, Field, FieldProblem, Grant, Group, GroupDraft, GroupField,
-    GroupPatch, HistoryKind, InForce, Result, Right,
+    ChangeKind, ConflictKind, Error, Field, FieldProblem, Group, GroupDraft, GroupField,
+    GroupPatch, HistoryKind, Result, Right, role_owner,
 };
 use crate::ids::reference_of;
 use crate::state::{Row, State};
@@ -56,19 +56,10 @@ impl State {
                 rev_at_delete: Revision(1),
             },
         );
-        let grant_id = self.fresh();
-        self.grants.push(Grant {
-            id: grant_id,
-            revision: Revision(1),
-            group: id,
-            holder: self.asker.clone(),
-            right: Right::Manage,
-            granted_by: self.asker.clone(),
-            granted: now,
-            in_force: InForce::Yes,
-        });
         self.log(id, HistoryKind::Created);
         self.change(ChangeKind::Group(id));
+        let me = self.asker.clone();
+        self.join(id, &me, Some(&role_owner()), &me, None);
         Ok(group)
     }
 

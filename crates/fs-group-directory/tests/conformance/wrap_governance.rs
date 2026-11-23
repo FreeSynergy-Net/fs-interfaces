@@ -7,7 +7,7 @@ use fs_group_directory::groups::shared::{ObjectId, PersonRef, Revision, Utc};
 use fs_group_directory::groups::{
     Addon, AddonKind, Error, GroupGovernance, Intervention, Level, Result, Scope, ScopeGrant,
 };
-use fs_group_directory::groups::{Group, GroupDraft, Groups, InForce, Membership, NestOutcome};
+use fs_group_directory::groups::{Groups, InForce, Membership, NestOutcome};
 use std::sync::Arc;
 
 /// The rule that is broken.
@@ -40,9 +40,6 @@ fn is(e: &Result<impl Sized>, f: impl Fn(&Error) -> bool) -> bool {
 
 #[async_trait]
 impl GroupGovernance for WrapGov {
-    async fn create_owned(&self, d: GroupDraft) -> Result<Group> {
-        self.0.create_owned(d).await
-    }
     async fn owners(&self, g: ObjectId) -> Result<Vec<Membership>> {
         let r = self.0.owners(g).await;
         if self.1 == GovMutant::EmptyForWithheld && is(&r, |e| matches!(e, Error::Withheld { .. }))

@@ -110,7 +110,11 @@ async fn plan_and_run(cx: &mut Cx<'_>, mir: &dyn Mirroring, dir: &dyn GroupDirec
     let held = dir.read(m.id).await.ok().flatten();
     cx.ensure(
         held.as_ref().is_some_and(|g| {
-            g.members == vec![p.clone()] && g.nested.contains(&c.id) && g.name == m.name
+            g.members.len() == 2
+                && g.members.contains(&p)
+                && g.members.contains(&cx.me)
+                && g.nested.contains(&c.id)
+                && g.name == m.name
         }),
         "mirror_apply: the directory holds the persons and the native nesting",
     );

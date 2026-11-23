@@ -47,7 +47,7 @@ async fn main() {
 
     // 1. Alice founds the club; she is its first owner, and only she.
     let club = fake
-        .create_owned(draft("Musterstadt Chor", NestingMode::BottomUp))
+        .create(draft("Musterstadt Chor", NestingMode::BottomUp))
         .await
         .expect("create");
     println!(
@@ -135,7 +135,7 @@ async fn federation_and_admin(
 ) {
     // 6. The club nests under a federation; the edge takes the federation's default_mode (TopDown here).
     let fed = fake
-        .create_owned(draft("Chorverband", NestingMode::TopDown))
+        .create(draft("Chorverband", NestingMode::TopDown))
         .await
         .expect("federation");
     match fake.nest_default(club, fed.id).await.expect("nest") {
@@ -147,7 +147,7 @@ async fn federation_and_admin(
 
     // 7. Level (a): Ida's admin group holds Project; she steps in WITH a reason; everyone who reads the club sees it.
     let admins = fake
-        .create_owned(draft("Project admins", NestingMode::Single))
+        .create(draft("Project admins", NestingMode::Single))
         .await
         .expect("admins");
     fake.add_member(admins.id, admin, None)

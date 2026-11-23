@@ -1,11 +1,11 @@
-//! Owners (ADR 0095): `create_owned`, `owners`, `my_level`, `appoint_owner`, `demote_owner`, `transfer_ownership`,
+//! Owners (ADR 0095): `owners`, `my_level`, `appoint_owner`, `demote_owner`, `transfer_ownership`,
 //! `resolve_owner`, and `nest_default`.
 //!
 //! Pattern: Command handlers on the state (visible, then the level, then the revision, then the input, then write and
-//! log). The owner role is written only here (and by `create_owned`), never over the role book.
+//! log). The owner role is written only here (and by `create`), never over the role book.
 
 use crate::groups::shared::{ObjectId, PersonArt, PersonRef, Revision};
-use crate::groups::{Error, Field, Group, GroupDraft, HistoryKind, Membership, NestOutcome, Right};
+use crate::groups::{Error, Field, HistoryKind, Membership, NestOutcome, Right};
 use crate::groups::{Level, Result, role_owner};
 use crate::ids::id_of_reference;
 use crate::state::State;
@@ -47,13 +47,6 @@ impl State {
             Some(true) => Err(Error::AgentNotAdmin),
             None => Err(Error::AiStatusUnknown),
         }
-    }
-
-    pub(crate) fn create_owned(&mut self, d: GroupDraft) -> Result<Group> {
-        let g = self.create(d)?;
-        let me = self.asker.clone();
-        self.join(g.id, &me, Some(&role_owner()), &me, None);
-        Ok(g)
     }
 
     pub(crate) fn owners(&self, g: ObjectId) -> Result<Vec<Membership>> {

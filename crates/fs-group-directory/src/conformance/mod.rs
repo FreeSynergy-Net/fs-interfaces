@@ -36,6 +36,7 @@ mod rules_mirror_trees;
 mod rules_nesting;
 mod rules_nesting_more;
 mod rules_owner;
+mod rules_owner_exit;
 mod rules_owner_more;
 mod rules_owner_roles;
 mod rules_requests;

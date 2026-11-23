@@ -31,8 +31,14 @@ async fn grants(cx: &mut Cx<'_>) {
     };
     let mine = cx.g.grants(g.id).await.unwrap_or_default();
     cx.ensure(
-        mine.len() == 1 && mine[0].right == Right::Manage && mine[0].holder == cx.me,
-        "grants: the creator holds Manage",
+        mine.is_empty(),
+        "grants: the creator holds NO personal grant (ADR 0095: she is the owner, nothing else)",
+    );
+    cx.ensure(
+        cx.g.my_rights(g.id)
+            .await
+            .is_ok_and(|r| r.contains(&Right::Manage)),
+        "grants: the creator holds Manage through the owner role",
     );
     let Ok(grant) = cx.g.grant(g.id, &p, Right::AddMembers).await else {
         cx.ensure(false, "grant: the manager grants");

@@ -44,7 +44,10 @@ async fn setup(cx: &mut Cx<'_>, admin: bool) -> Option<Hid> {
     let agent = cx.person(Kind::Agent).await?;
     let m = cx.g.add_member(group.id, &member, None).await.ok()?;
     let inv = cx.g.invite(group.id, &human, None, None).await.ok()?;
-    let grant = cx.g.grants(group.id).await.ok()?.into_iter().next()?;
+    let grant =
+        cx.g.grant(group.id, &member, Right::AddMembers)
+            .await
+            .ok()?;
     let neighbour = cx.group("hid plain").await?;
     let low = cx.group("hid low").await?;
     let mode = if admin {
