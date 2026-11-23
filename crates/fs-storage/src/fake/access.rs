@@ -3,7 +3,7 @@
 //!
 //! Pattern: Policy (one function per question; no rights model of its own, ADR 0095).
 
-use super::state::{Fault, World};
+use super::state::{Fault, Node, World};
 use fs_types::PersonRef;
 
 pub(super) struct Actor<'a> {
@@ -35,13 +35,12 @@ impl World {
         self.admins.iter().any(|p| p.id == a.who.id)
     }
 
-    /// Own entries: everything. A group's entries: owners everything, members read only; a manager (admin level (a)/(b),
-    /// no server access) sees the structure of
-    /// a group, never a private folder. The operator (server access) reads everything, private folders too, without an
-    /// intervention (user decision 16: whoever can read it technically as root may read it here, and the interface says so
-    /// openly); changing or deleting foreign entries is only for the owners; the operator and a manager change content only through an intervention with a reason (decision 16.3: an ordered procedure, traceability, never a technical lock against root). A log entry for the operator's reads is information only: it
-    /// records access through the program and protects nothing (whoever is root can read past it). A bot has no right at all, and never owns anything (the AI is an actor, not an
-    /// owner). Everyone else: nothing.
+    /// Own entries: everything. A group's entries: owners everything, members read only. A manager (admin level (a)/(b),
+    /// no server access) sees the structure of a group, never a private folder. The operator (server access) reads
+    /// everything without an intervention (user decision 16, said openly by the interface). Foreign entries are changed
+    /// only through an intervention with a reason (16.3: an ordered procedure and traceability, never a technical lock
+    /// against root), which is no part of this contract. A log of the operator's reads is information only: it protects
+    /// nothing (whoever is root can read past it). A bot has no right and never owns anything. Everyone else: nothing.
     pub(super) fn allowed(&self, a: &Actor, owner: &PersonRef, mode: Mode) -> bool {
         if a.fault == Some(Fault::IgnoreRights)
             || (a.fault == Some(Fault::AdminReadsAll) && self.is_admin(a))
@@ -66,6 +65,23 @@ impl World {
             Mode::Write => owner_of || (a.fault == Some(Fault::ManagerChanges) && self.is_admin(a)),
             Mode::Read => member,
             Mode::Structure => member || self.is_admin(a),
+        }
+    }
+
+    /// The finer mutants of the change rights: write exceptions at roots and links (never set in normal use).
+    pub(super) fn exception(&self, a: &Actor, n: &Node, mode: Mode) -> bool {
+        if mode != Mode::Write {
+            return false;
+        }
+        let root = n.parent.is_none();
+        let group_root = root && self.groups.iter().any(|g| g.who.id == n.entry.owner.id);
+        match a.fault {
+            Some(Fault::ManagerGroupRoot) => group_root && self.is_admin(a),
+            Some(Fault::OperatorRoot) => root && self.is_operator(a),
+            Some(Fault::OperatorLink) => {
+                n.entry.kind == crate::entry::Kind::Link && self.is_operator(a)
+            }
+            _ => false,
         }
     }
 }

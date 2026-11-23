@@ -71,7 +71,7 @@ impl World {
             .nodes
             .get(id.as_str())
             .ok_or_else(|| Error::NotFound(id.clone()))?;
-        if self.allowed(a, &n.entry.owner, mode) {
+        if self.allowed(a, &n.entry.owner, mode) || self.exception(a, n, mode) {
             Ok(n)
         } else {
             let capability = if mode == Mode::Write {

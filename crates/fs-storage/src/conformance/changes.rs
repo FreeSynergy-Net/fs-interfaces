@@ -6,22 +6,26 @@
 
 use super::fixture::{Check, forbidden, refused, walk, want};
 use crate::ctl::{Ctl, MemSource};
-use crate::entry::{Delete, Kind, OnConflict, WriteOpts};
+use crate::entry::{Delete, Kind, OnConflict, RootKind, WriteOpts};
 use crate::ids::EntryId;
 use crate::provider::StorageProvider;
 
-/// `actor` runs every change call on every entry of Anna's tree (private, group, trash). `anna` shows the tree before and
-/// after. `skip_private` is for a manager, who cannot even see private entries (Forbidden anyway, still checked).
+/// `actor` runs every change call on every entry of Anna's tree (the root folders, private, group, links, trash). `anna`
+/// shows the tree before and after.
 pub(super) async fn none_allowed(
     actor: &dyn StorageProvider,
     anna: &dyn StorageProvider,
     who: &str,
 ) -> Check {
     let before = walk(anna).await?;
-    let foreign: Vec<_> = before
-        .iter()
-        .filter(|(_, e)| e.id.as_str() != "l-helfa")
-        .collect();
+    let mut roots = Vec::new();
+    for r in anna.roots().await.map_err(|e| e.to_string())? {
+        if r.kind != RootKind::Trash {
+            let e = anna.stat(&r.id).await.map_err(|e| e.to_string())?;
+            roots.push((format!("root {}", r.name), e));
+        }
+    }
+    let foreign: Vec<_> = roots.iter().chain(before.iter()).collect();
     let target = foreign
         .iter()
         .find(|(p, e)| p == "Meine Dateien/Dokumente" && e.kind == Kind::Folder)

@@ -125,24 +125,6 @@ pub(super) async fn operator(fx: &Fixture) -> Check {
             .any(|(path, _)| path == "Papierkorb/Alt.txt"),
         "the operator cannot read another's trash",
     )?;
-    let mine = root_of(&*fx.anna, RootKind::Mine).await?;
-    let o = WriteOpts {
-        generator: None,
-        on_conflict: OnConflict::Fail,
-        media_type: None,
-    };
-    refused(
-        p.write(
-            &mine,
-            "op.txt",
-            &mut MemSource::from(vec![1]),
-            o,
-            &Ctl::none(),
-        )
-        .await,
-        "operator writes into another's folder (changing needs an intervention)",
-        forbidden,
-    )?;
     want(
         walk(&*fx.anna).await? == before,
         "the operator changed the tree",
@@ -152,6 +134,11 @@ pub(super) async fn operator(fx: &Fixture) -> Check {
 
 pub(super) async fn bot(fx: &Fixture) -> Check {
     let p = &*fx.bot;
+    refused(
+        p.stat(&crate::ids::EntryId("trash".into())).await,
+        "a bot stats the trash (it would own it)",
+        forbidden,
+    )?;
     let roots = s(p.roots().await)?;
     want(
         roots
