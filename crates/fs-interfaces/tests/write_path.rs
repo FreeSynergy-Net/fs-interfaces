@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 
 use fs_interfaces::capabilities::{self, name};
 use fs_interfaces::forms::{self, ErrorKind, parse};
+use fs_interfaces::formsource_capnp as new;
 
 #[path = "compat/formsource_v0_0_32_capnp.rs"]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
@@ -156,7 +157,7 @@ fn the_commands_of_1_1_0_write_what_the_schnitt_says() {
         w("create"),
         [s("title", true), s("column", true), s("lane", false)]
     );
-    assert!(w("remove").is_empty());
+    assert_eq!(w("remove"), Vec::<(String, bool)>::new());
     // the move target is the ID: the label is never written
     assert!(!w("move").iter().any(|(n, _)| n == "column-label"));
 }
@@ -178,7 +179,6 @@ fn every_writes_entry_of_the_builtin_file_is_a_data_channel_with_room_for_one() 
 
 #[test]
 fn record_page_may_is_slot_5_and_an_old_reader_still_reads_the_page() {
-    use fs_interfaces::formsource_capnp as new;
     let mut msg = capnp::message::Builder::new_default();
     {
         let mut page = msg.init_root::<new::record_page::Builder<'_>>();
@@ -213,7 +213,6 @@ fn record_page_may_is_slot_5_and_an_old_reader_still_reads_the_page() {
 
 #[test]
 fn an_old_page_has_an_empty_may() {
-    use fs_interfaces::formsource_capnp as new;
     let mut msg = capnp::message::Builder::new_default();
     msg.init_root::<formsource_capnp::record_page::Builder<'_>>()
         .set_total(1);
@@ -233,7 +232,6 @@ fn invoke_result_is_appended_after_failed_and_problem() {
     assert!(text.contains("invoke @3 (command :Text, record :Text, args :List(Value)) -> (failed :Bool, problem :Common.Problem, result :WriteResult);"));
     assert!(text.contains("struct WriteResult { record @0 :Text; text @1 :Text; }"));
     // an old service answers without `result`: the new reader sees an empty one
-    use fs_interfaces::formsource_capnp as new;
     let mut msg = capnp::message::Builder::new_default();
     {
         let mut r = msg.init_root::<new::write_result::Builder<'_>>();
