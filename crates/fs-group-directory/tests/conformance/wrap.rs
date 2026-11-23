@@ -91,9 +91,10 @@ impl Groups for Wrap {
     ) -> Result<NestOutcome> {
         let m = match (self.1, m) {
             (Mutant::SwapDirection, NestingMode::BottomUp) => NestingMode::TopDown,
-            (Mutant::SwapDirection, NestingMode::TopDown) => NestingMode::BottomUp,
-            (Mutant::SingleFlows, NestingMode::Single) => NestingMode::BottomUp,
-            (Mutant::TopDownNotReversed, NestingMode::TopDown) => NestingMode::BottomUp,
+            (Mutant::SingleFlows, NestingMode::Single)
+            | (Mutant::SwapDirection | Mutant::TopDownNotReversed, NestingMode::TopDown) => {
+                NestingMode::BottomUp
+            }
             (_, m) => m,
         };
         let r = self.0.request_nesting(c, p, m).await;
