@@ -5,6 +5,7 @@
 
 use crate::groups_v1::shared::{ObjectId, PersonRef};
 use crate::groups_v1::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
+use crate::groups_v2::GroupsV2;
 use async_trait::async_trait;
 
 /// What people say about a person's account.
@@ -35,6 +36,12 @@ pub enum ByHand {
 pub trait ConformanceFixture: Send + Sync {
     /// The provider under test.
     fn groups(&self) -> &dyn Groups;
+
+    /// The `GroupsV2` view of the same provider; `None` skips the rules of v2. For the scope rules the asking person at
+    /// the start of the run is the installer of the provider (she hands out the first `Project` scope).
+    fn groups_v2(&self) -> Option<&dyn GroupsV2> {
+        None
+    }
 
     /// The `GroupMembers` view of the same provider.
     fn facade(&self) -> Option<&dyn GroupMembers> {

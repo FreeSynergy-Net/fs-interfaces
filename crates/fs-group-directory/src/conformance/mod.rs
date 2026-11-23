@@ -17,6 +17,8 @@
 
 mod cx;
 mod fixture;
+mod rules_addon;
+mod rules_addon_more;
 mod rules_deep;
 mod rules_groups;
 mod rules_hidden;
@@ -30,12 +32,15 @@ mod rules_mirror;
 mod rules_mirror_more;
 mod rules_nesting;
 mod rules_nesting_more;
+mod rules_owner;
+mod rules_owner_more;
 mod rules_requests;
 mod rules_requests_more;
 mod rules_rights;
+mod rules_scope;
 mod rules_trash;
 mod run;
 
 pub use cx::Report;
 pub use fixture::{ByHand, ConformanceFixture, Kind};
-pub use run::run_conformance;
+pub use run::{run_conformance, run_conformance_v2};

@@ -24,6 +24,7 @@ pub struct Report {
 pub(crate) struct Cx<'a> {
     pub fx: &'a dyn ConformanceFixture,
     pub g: &'a dyn Groups,
+    pub v2: Option<&'a dyn crate::groups_v2::GroupsV2>,
     pub report: Report,
     pub me: PersonRef,
     n: u32,
@@ -40,6 +41,7 @@ impl<'a> Cx<'a> {
         Some(Cx {
             fx,
             g: fx.groups(),
+            v2: fx.groups_v2(),
             report: Report::default(),
             me,
             n: 0,
