@@ -156,6 +156,7 @@ impl State {
     ) -> Result<Membership> {
         let g = self.visible(group)?.clone();
         self.need(group, Right::AddMembers)?;
+        self.guard_role_grant(group, role, true)?;
         self.check_person(person)?;
         self.check_kind(&g, person, role)?;
         if let Some(m) = self
@@ -224,6 +225,7 @@ impl State {
         self.need(m.group, Right::Manage)?;
         self.guard_owner_membership(&m)?;
         Self::cas(m.revision, expected)?;
+        self.guard_role_grant(m.group, role, true)?;
         let g = self.alive(m.group)?.clone();
         self.check_kind(&g, &m.person, role)?;
         if m.role.as_ref() == role {

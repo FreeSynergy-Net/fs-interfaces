@@ -130,9 +130,9 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
                 l.iter().any(|i| {
                     i.id == iv.id
                         && i.reason.contains("Mitglied fehlt")
-                        && i.acts
-                            .iter()
-                            .any(|a| matches!(&a.kind, ActKind::History(HistoryKind::MemberAdded { .. })))
+                        && i.acts.iter().any(|a| {
+                            matches!(&a.kind, ActKind::History(HistoryKind::MemberAdded { .. }))
+                        })
                 })
             }),
             "interventions: the owner sees reason, actor and the act (every reader sees it)",
