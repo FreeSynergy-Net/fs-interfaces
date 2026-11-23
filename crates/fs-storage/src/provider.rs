@@ -131,7 +131,8 @@ pub trait StorageProvider: Send + Sync {
     async fn scope(&self, _generator: &str, _page: PageReq) -> Result<Page<Entry>> {
         not_possible("storage.scope")
     }
-    /// Delta since a token (`None` = from now).
+    /// Delta since a token (`None` = from now). Entries of kind `Viewed` change nothing (they only tell the owner who looked);
+    /// a client that mirrors the tree skips them.
     async fn changes(&self, _since: Option<&Token>) -> Result<ChangeSet> {
         not_possible("storage.delta")
     }

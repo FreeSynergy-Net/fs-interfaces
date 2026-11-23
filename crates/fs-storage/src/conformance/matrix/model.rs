@@ -1,9 +1,10 @@
-//! The vocabulary of the rights matrix (RECHTE-MATRIX.md section 1): actors, target kinds, expected results, methods.
+//! The vocabulary of the rights matrix (ADR 0070, rights matrix): actors, target kinds, expected results, methods.
 //!
 //! Pattern: Value objects and a parser for the cell strings of the table.
 
 use super::methods::Method;
 use crate::error::Error;
+use crate::fake::Fault;
 
 /// The six actors, in the order of the table columns.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -93,8 +94,12 @@ pub enum Op {
     Trash,
     /// `delete` for good.
     Purge,
-    /// `restore` of the target.
+    /// `restore` of the target into an own folder (the SOURCE right on its own: the target is always allowed).
     RestoreSrc,
+    /// `restore` of the target to its old place (`to = None`).
+    RestoreHome,
+    /// `move_to` of an own root into the target folder (the right on the target comes before "source is a root").
+    MoveRoot,
     /// `restore` of an own trashed file to the target.
     RestoreDst,
 }
@@ -121,6 +126,8 @@ impl Op {
             Self::Trash => "trash",
             Self::Purge => "purge",
             Self::RestoreSrc => "restore_src",
+            Self::RestoreHome => "restore_home",
+            Self::MoveRoot => "move_root",
             Self::RestoreDst => "restore_dst",
         }
     }
@@ -135,10 +142,10 @@ impl Op {
             Self::Write | Self::WriteCancelled => Method::Write,
             Self::Create | Self::CreateFile => Method::Create,
             Self::Rename => Method::Rename,
-            Self::MoveSrc | Self::MoveDst | Self::MoveCycle => Method::MoveTo,
+            Self::MoveSrc | Self::MoveDst | Self::MoveCycle | Self::MoveRoot => Method::MoveTo,
             Self::CopySrc | Self::CopyDst | Self::CopyCycle => Method::CopyTo,
             Self::Trash | Self::Purge => Method::Delete,
-            Self::RestoreSrc | Self::RestoreDst => Method::Restore,
+            Self::RestoreSrc | Self::RestoreHome | Self::RestoreDst => Method::Restore,
         }
     }
 }
@@ -173,14 +180,14 @@ pub enum Expect {
 }
 
 impl Expect {
-    /// Parse one cell token; a trailing `?` marks a provisional cell (decided by the strategy, 23.11.).
+    /// Parse one cell token. There are no provisional cells (every decision is made), so a `?` is refused like any
+    /// other unknown token.
     ///
     /// # Panics
     /// On an unknown token (the table is code, a typo must stop the tests).
     #[must_use]
-    pub fn parse(tok: &str) -> (Self, bool) {
-        let (t, prov) = tok.strip_suffix('?').map_or((tok, false), |t| (t, true));
-        let e = match t {
+    pub fn parse(tok: &str) -> Self {
+        match tok {
             "OK" => Self::Ok,
             "FB" => Self::Fb,
             "NF" => Self::Nf,
@@ -194,8 +201,7 @@ impl Expect {
             "REF" => Self::Ref,
             "NA" => Self::Na,
             other => panic!("unknown matrix code {other}"),
-        };
-        (e, prov)
+        }
     }
 
     /// Whether `r` (the outcome of the call) is what the cell expects.
@@ -228,8 +234,10 @@ pub struct Row {
     pub target: Target,
     /// Six cell tokens separated by blanks.
     pub cells: &'static str,
-    /// The `Fault` names that make this row fail, or `-: <reason>` for a row without a mutant.
-    pub mutant: &'static str,
+    /// The faults that make THIS row fail (the test `every_named_fault_breaks_its_row` proves each one).
+    pub faults: &'static [Fault],
+    /// Why the row has no fault (`faults` is empty), or the `FakeLocal` mutants that break it.
+    pub note: &'static str,
 }
 
 impl Row {
@@ -238,7 +246,7 @@ impl Row {
     /// # Panics
     /// When the row has not exactly six cells.
     #[must_use]
-    pub fn parsed(&self) -> Vec<(Expect, bool)> {
+    pub fn parsed(&self) -> Vec<Expect> {
         let v: Vec<_> = self.cells.split_whitespace().map(Expect::parse).collect();
         assert_eq!(v.len(), 6, "row {self:?} needs 6 cells");
         v

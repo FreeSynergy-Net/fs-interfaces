@@ -190,7 +190,7 @@ pub struct WriteOpts {
     pub generator: Option<String>,
 }
 
-/// The kind of a change; `as2` is the activity it is logged as (ADR 0020).
+/// The kind of a change; `as2` is the activity it is logged as (ADR 0020). `Viewed` is no change of the tree.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ChangeKind {
     /// New entry.
@@ -205,9 +205,12 @@ pub enum ChangeKind {
     Restored,
     /// Gone for good.
     Purged,
-    /// The operator opened or copied the entry through the program (decision 16.2). Information for the owner only: it
-    /// records access through the program and protects nothing (whoever is root can read past it).
-    OpenedByOperator,
+    /// The entry was viewed (opened or copied) through the program by someone who is not its owner (AS2 `View`). Today
+    /// only the operator's reads of foreign content are logged (decision 16.2); an intervention with a reason (5e-3) will
+    /// use the same kind. It changes nothing: a sync client skips it. Information for the owner (for group files the
+    /// group) only: it records access through the program and protects nothing (whoever is root can read past it).
+    /// Copying a folder logs the folder, not each file inside.
+    Viewed,
 }
 
 impl ChangeKind {
@@ -220,7 +223,7 @@ impl ChangeKind {
             Self::Moved => "Add",
             Self::Trashed | Self::Purged => "Delete",
             Self::Restored => "Undo",
-            Self::OpenedByOperator => "View",
+            Self::Viewed => "View",
         }
     }
 }

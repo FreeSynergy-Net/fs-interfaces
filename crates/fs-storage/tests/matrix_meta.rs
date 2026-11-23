@@ -1,7 +1,9 @@
 //! The meta test: every method of the traits is in the matrix (a table row or a named rule), the table is complete, and
 //! every fault has a rule. A new trait method or fault without an entry turns this red.
 
-use fs_storage::conformance::matrix::{COVERED_BY_RULES, METHODS, Method, Row, Target, rows};
+use fs_storage::conformance::matrix::{
+    COVERED_BY_RULES, Expect, METHODS, Method, Row, Target, rows,
+};
 use fs_storage::conformance::{Fixture, run};
 use fs_storage::{ALL_FAULTS, FakeLocal, FakeStorage, sample};
 use std::collections::BTreeSet;
@@ -91,12 +93,10 @@ async fn the_named_rules_exist() {
 
 fn row_ok(r: &Row) -> bool {
     let cells = r.parsed();
-    let same = r.target != Target::T13
-        || cells
-            .windows(2)
-            .all(|w| w[0].0 == w[1].0 || w[1].0 == fs_storage::conformance::matrix::Expect::Na);
-    same && !r.mutant.trim().is_empty()
-        && (r.mutant.starts_with("-:") && r.mutant.len() > 6 || !r.mutant.starts_with("-:"))
+    let same =
+        r.target != Target::T13 || cells.windows(2).all(|w| w[0] == w[1] || w[1] == Expect::Na);
+    // A row names faults, or says in `note` why it has none (a row with faults may still carry a note).
+    same && (!r.faults.is_empty() || r.note.trim().len() > 4)
 }
 
 #[test]
@@ -133,4 +133,17 @@ fn every_fault_is_listed() {
     );
     let unique: BTreeSet<String> = ALL_FAULTS.iter().map(|f| format!("{f:?}")).collect();
     assert_eq!(unique.len(), ALL_FAULTS.len());
+}
+
+#[test]
+#[should_panic(expected = "unknown matrix code")]
+fn a_provisional_cell_is_refused() {
+    let _ = Expect::parse("INV?");
+}
+
+#[test]
+fn no_cell_of_the_table_is_provisional() {
+    for r in rows() {
+        assert!(!r.cells.contains('?'), "provisional cell in {r:?}");
+    }
 }

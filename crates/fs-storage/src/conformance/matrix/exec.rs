@@ -20,6 +20,7 @@ fn folder_op(op: Op) -> bool {
             | Op::Create
             | Op::CreateFile
             | Op::MoveDst
+            | Op::MoveRoot
             | Op::CopyDst
             | Op::RestoreDst
     )
@@ -114,7 +115,15 @@ async fn call(
         }
         Op::Trash => p.delete(id, Delete::Trash).await,
         Op::Purge => p.delete(id, Delete::Purge).await,
-        Op::RestoreSrc => p.restore(id, None, OnConflict::Fail).await.map(|_| ()),
+        Op::RestoreSrc => p
+            .restore(id, Some(&own_folder), OnConflict::Fail)
+            .await
+            .map(|_| ()),
+        Op::RestoreHome => p.restore(id, None, OnConflict::Fail).await.map(|_| ()),
+        Op::MoveRoot => {
+            let root = own?.root.clone();
+            p.move_to(&root, id, OnConflict::Fail).await.map(|_| ())
+        }
         Op::RestoreDst => {
             let src = match (t, own) {
                 (Target::T13, _) => su.local_file.clone(),
@@ -174,7 +183,7 @@ pub(in crate::conformance) async fn run_rows(
     for row in rows {
         let cells = row.parsed();
         let mut verdict: Check = Ok(());
-        for (a, (want, _)) in ACTORS.into_iter().zip(cells) {
+        for (a, want) in ACTORS.into_iter().zip(cells) {
             if row.target == Target::T13 && a != Actor::E {
                 continue;
             }

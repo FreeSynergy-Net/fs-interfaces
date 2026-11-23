@@ -28,6 +28,9 @@ impl World {
             if trashed {
                 return Err(Error::NotFound(id.clone()));
             }
+            if self.in_trash(id.as_str()) && a.fault != Some(Fault::TrashBelowTrashed) {
+                return Err(bad("id", "trashed"));
+            }
             if let Some(n) = self.nodes.get_mut(id.as_str()) {
                 n.trashed_from = Some(parent);
             }
@@ -66,6 +69,7 @@ impl World {
             .clone()
             .ok_or_else(|| Error::NotFound(id.clone()))?;
         let dest = to.cloned().unwrap_or(EntryId(from));
+        let dest = self.write_target(a, &dest);
         if a.fault == Some(Fault::RestoreIgnoresTarget) {
             self.nodes
                 .get(dest.as_str())
@@ -95,6 +99,12 @@ impl World {
 
     pub(super) fn changes_since(&self, a: &Actor, since: Option<&Token>) -> Result<ChangeSet> {
         if self.is_bot(a) {
+            if a.fault == Some(Fault::BotChangesEmpty) {
+                return Ok(ChangeSet {
+                    changes: Vec::new(),
+                    token: Token(self.log.len().to_string()),
+                });
+            }
             return Err(Error::Forbidden {
                 capability: "storage.read".to_owned(),
             });

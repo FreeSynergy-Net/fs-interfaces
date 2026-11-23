@@ -51,9 +51,18 @@ impl World {
         on: OnConflict,
     ) -> Result<Entry> {
         let n = self.node_for(a, id, Mode::Write)?;
-        let (rootish, trashed) = (n.parent.is_none(), n.trashed_from.is_some());
+        let rootish = n.parent.is_none() && a.fault != Some(Fault::RootMutable);
+        let trashed = if a.fault == Some(Fault::MoveOutOfTrashed) {
+            n.trashed_from.is_some()
+        } else {
+            self.in_trash(id.as_str())
+        };
+        if (rootish || trashed) && a.fault == Some(Fault::MoveValidityFirst) {
+            return Err(bad("id", "root-or-trashed"));
+        }
+        let to = &self.write_target(a, to);
         let owner = self.target_owner(a, to, Fault::MoveIgnoresTarget)?;
-        if (rootish && a.fault != Some(Fault::RootMutable)) || trashed {
+        if rootish || trashed {
             return Err(bad("id", "root-or-trashed"));
         }
         let mut up = Some(to.as_str().to_owned());
@@ -87,8 +96,9 @@ impl World {
     ) -> Result<Entry> {
         let id = &self.deref(id, a.fault == Some(Fault::CopyFollowsLink));
         let src = self.node_for(a, id, Mode::Read)?.clone();
+        let to = &self.write_target(a, to);
         let owner = self.target_owner(a, to, Fault::CopyIgnoresTarget)?;
-        if self.in_trash(id.as_str()) {
+        if self.in_trash(id.as_str()) && a.fault != Some(Fault::CopyInTrash) {
             return Err(bad("id", "trashed"));
         }
         let mut up = Some(to.as_str().to_owned());
