@@ -11,8 +11,8 @@ publish = false
 
 [dependencies]
 async-trait = "0.1"
-# Same pin as the locked trait folder (groups_v1): fs-types v0.0.22 = fs-interfaces 7743056.
-fs-types = { git = "https://github.com/FreeSynergy/fs-interfaces", tag = "v0.0.22" }
+# Same fs-types tag as fs-interfaces and fs-person-directory.
+fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros"] }
