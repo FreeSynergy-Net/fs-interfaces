@@ -4,6 +4,7 @@
 
 mod access;
 mod local;
+mod naive;
 mod provider_impl;
 mod read;
 mod sample;
@@ -12,5 +13,5 @@ mod trash;
 mod write;
 
 pub use local::FakeLocal;
-pub use sample::{Sample, sample};
+pub use sample::{GROUP_NAME, Sample, sample};
 pub use state::{FakeStorage, Fault};

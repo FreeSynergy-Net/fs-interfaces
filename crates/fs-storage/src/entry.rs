@@ -44,6 +44,8 @@ pub struct Entry {
     pub etag: Option<String>,
     /// The target of a `Link`.
     pub link_target: Option<EntryId>,
+    /// What made it (AS2 `generator`), e.g. `capture`. A gallery is a `scope` over a generator, not a folder.
+    pub generator: Option<String>,
 }
 
 /// The kind of a root.
@@ -107,6 +109,8 @@ pub struct StorageCaps {
     pub watch: bool,
     /// `changes(since)` (delta).
     pub delta_since: bool,
+    /// `scope` (everything of one generator).
+    pub scope: bool,
 }
 
 /// State of the provider.
@@ -181,6 +185,8 @@ pub struct WriteOpts {
     pub on_conflict: OnConflict,
     /// Media type the caller knows.
     pub media_type: Option<MediaType>,
+    /// What makes the file (AS2 `generator`).
+    pub generator: Option<String>,
 }
 
 /// The kind of a change; `as2` is the activity it is logged as (ADR 0020).
