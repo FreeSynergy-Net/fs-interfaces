@@ -20,7 +20,8 @@ async fn lists(cx: &mut Cx<'_>, h: &Hid, name: &str) {
     let all =
         cx.g.list(&query(), None, 500)
             .await
-            .map_or_default(|p| p.items);
+            .map(|p| p.items)
+            .unwrap_or_default();
     cx.ensure(
         all.iter().all(|s| s.id != h.group) && all.iter().any(|s| s.id == h.neighbour),
         &format!("hidden {name}: list leaves it out and keeps the rest"),
@@ -41,7 +42,8 @@ async fn lists(cx: &mut Cx<'_>, h: &Hid, name: &str) {
             500,
         )
         .await
-        .map_or_default(|p| p.items);
+        .map(|p| p.items)
+        .unwrap_or_default();
     cx.ensure(
         roots.iter().any(|s| s.id == h.low),
         &format!("hidden {name}: Roots means no VISIBLE parent"),
@@ -109,7 +111,8 @@ async fn lists(cx: &mut Cx<'_>, h: &Hid, name: &str) {
     let eff =
         cx.g.effective_members(h.neighbour, None, 99)
             .await
-            .map_or_default(|p| p.items);
+            .map(|p| p.items)
+            .unwrap_or_default();
     cx.ensure(
         eff.iter().all(|m| {
             m.inherited

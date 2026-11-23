@@ -30,7 +30,8 @@ impl State {
     fn known_nests(&self, directory: &DirectoryId) -> Vec<(ObjectId, ObjectId)> {
         self.mirror
             .last(directory)
-            .map_or_default(|r| r.nests.clone())
+            .map(|r| r.nests.clone())
+            .unwrap_or_default()
     }
 
     pub(crate) fn mirror_plan(

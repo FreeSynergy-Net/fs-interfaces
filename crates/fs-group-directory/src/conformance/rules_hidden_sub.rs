@@ -97,7 +97,8 @@ pub(crate) async fn rules(cx: &mut Cx<'_>, h: &Hid, name: &str, before: Option<P
     let page =
         cx.g.changes(Some(&from), 500)
             .await
-            .map_or_default(|p| p.items);
+            .map(|p| p.items)
+            .unwrap_or_default();
     let names_hidden = |k: &ChangeKind| match k {
         ChangeKind::Group(x) | ChangeKind::Deleted(x) | ChangeKind::Restored(x) => *x == h.group,
         ChangeKind::Membership { group }
