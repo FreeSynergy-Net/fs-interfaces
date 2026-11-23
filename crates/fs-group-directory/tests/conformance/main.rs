@@ -4,8 +4,8 @@
 mod fx;
 mod wrap;
 
-use fs_groups_testdata::FakeGroups;
-use fs_groups_testdata::conformance::run_conformance;
+use fs_group_directory::FakeGroups;
+use fs_group_directory::conformance::run_conformance;
 use fx::Fx;
 use std::sync::Arc;
 use wrap::{Mutant, Wrap};
@@ -35,7 +35,7 @@ async fn the_fake_is_conformant_on_an_empty_provider() {
 
 #[tokio::test]
 async fn the_fake_is_conformant_on_the_sample() {
-    let sample = fs_groups_testdata::sample();
+    let sample = fs_group_directory::sample();
     assert!(
         sample.problems().is_empty(),
         "the sample build failed: {:#?}",

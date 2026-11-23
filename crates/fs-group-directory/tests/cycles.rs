@@ -1,9 +1,9 @@
 //! The nesting logic on awkward data: a cycle named the same way whatever the order of the edges, and a depth check
 //! that ends on old data with a cycle (the fake used to overflow its stack there).
 
-use fs_groups_testdata::FakeGroups;
-use fs_groups_testdata::groups_v1::shared::ObjectId;
-use fs_groups_testdata::groups_v1::{
+use fs_group_directory::FakeGroups;
+use fs_group_directory::groups_v1::shared::ObjectId;
+use fs_group_directory::groups_v1::{
     Error, GroupArt, GroupDraft, Groups, NestOutcome, NestingMode, Visibility,
 };
 

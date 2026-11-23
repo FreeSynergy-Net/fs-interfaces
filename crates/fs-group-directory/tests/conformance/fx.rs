@@ -3,10 +3,10 @@
 
 use crate::wrap::{Mutant, Wrap};
 use async_trait::async_trait;
-use fs_groups_testdata::conformance::{ByHand, ConformanceFixture, Kind};
-use fs_groups_testdata::groups_v1::shared::{ObjectId, PersonRef, Utc};
-use fs_groups_testdata::groups_v1::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
-use fs_groups_testdata::{FakeGroups, FakeMirror};
+use fs_group_directory::conformance::{ByHand, ConformanceFixture, Kind};
+use fs_group_directory::groups_v1::shared::{ObjectId, PersonRef, Utc};
+use fs_group_directory::groups_v1::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
+use fs_group_directory::{FakeGroups, FakeMirror};
 use std::sync::Arc;
 
 pub struct Fx {

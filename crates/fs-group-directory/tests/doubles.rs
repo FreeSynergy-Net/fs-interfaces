@@ -1,10 +1,10 @@
 //! `FailingGroups` and `SlowGroups`: the error, partly broken, disconnected and loading states of the frontends.
 
-use fs_groups_testdata::groups_v1::{
+use fs_group_directory::groups_v1::{
     Error, GroupArt, GroupDraft, GroupMembers, GroupQuery, Groups, Mirroring, NestingMode,
     ParentFilter, Unreachable, Visibility,
 };
-use fs_groups_testdata::{
+use fs_group_directory::{
     FailingGroups, Op, SlowGroups, forbidden, group_ref, sample, unavailable,
 };
 use std::sync::Arc;
