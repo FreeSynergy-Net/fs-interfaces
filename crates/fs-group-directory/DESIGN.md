@@ -6,7 +6,8 @@ to work against the locked trait `groups_v1` before the real provider (`LocalGro
 | Part | What it is |
 |---|---|
 | `groups_v1/` | The LOCKED trait folder, byte for byte (SHA-256 `91c0f8b0849d85b1038b8b09f511e27134c1ddfeb0ef2eae42dc8579b3d2faf3`, lock file `.scratch/sperren/groups_v1.sha256`). Never edited; a change is `groups_v2`. `lib.rs` carries the allows the 2024 workspace needs and `#[rustfmt::skip]`, outside the folder. |
-| `FakeGroups` | In memory, implements `Groups`, `Mirroring` and `GroupMembers` completely. |
+| `FakeGroups` | In memory, implements `Groups`, `GroupsV2`, `Mirroring` and `GroupMembers` completely. |
+| `groups_v2/` | The contract v2 (ADR 0095): owners and the three levels (c self, b `AllGroups`, a `Project`) with the intervention and its reason, `nest_default`, `resolve_owner` (object owner = person or group), and ADDONS by composition (`org:FormalOrganization` first, several per group, open by IRI; no rule depends on an addon). Ports `PersonDirectory`, `PersonFacts`, `RoleBook` stay in the groups contract. No AI groups. |
 | `FakePeople`, `FakeMirror` | The consumed sides: fs-people (`PersonDirectory`, `PersonFacts`, `RoleBook`) and Kanidm (`GroupDirectory`). |
 | `FailingGroups`, `SlowGroups` | Decorators over the fake (or any provider of the three traits): fail every method, chosen methods (`Op`) or every call that names a chosen group, `heal()`; or wait on the fake's clock (virtual, nobody sleeps). |
 | `sample()` | The fixed data set (PLAN section 6): 15 groups (one in the trash) and 20 invented persons on `example.org` (2 AI accounts, 1 unknown): a BottomUp tree, a TopDown chain of nine levels, a group with several parents (BottomUp and TopDown), a Single branch, an organisation, a sensitive, an admin and an AI group, two mirrored, one open edge request and one open mode-change request, invitations pending, accepted, declined and expired, rights through a holder group. |
