@@ -38,6 +38,12 @@ pub enum Fault {
     OperatorChanges,
     /// A manager may also change content in a group folder (without an intervention).
     ManagerChanges,
+    /// `move_to` does not check the right on the TARGET folder.
+    MoveIgnoresTarget,
+    /// `copy_to` does not check the right on the target folder.
+    CopyIgnoresTarget,
+    /// `restore` to another folder does not check the right on it.
+    RestoreIgnoresTarget,
     /// A manager may write and create in the root folder of a group.
     ManagerGroupRoot,
     /// The operator may write and create in a root folder ("My files" of others, group roots).
