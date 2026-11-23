@@ -27,7 +27,7 @@ pub(crate) const AGENTS: [&str; 2] = ["Assistant Bot", "Scribe Bot"];
 /// The person nobody knows to be human or AI.
 pub(crate) const UNKNOWN: &str = "Visitor Unknown";
 
-/// One group of the sample: name, kind, organisation, mirrored, sensitive, AI (a row of fixed data, so the flags stay plain).
+/// One group of the sample: name, kind, organisation, mirrored, sensitive (a row of fixed data, so the flags stay plain).
 #[allow(clippy::struct_excessive_bools)]
 pub(crate) struct GroupSpec {
     pub name: &'static str,
@@ -35,7 +35,6 @@ pub(crate) struct GroupSpec {
     pub organization: bool,
     pub mirror: bool,
     pub sensitive: bool,
-    pub ai: bool,
 }
 
 const fn spec(name: &'static str, kind: &'static str, mirror: bool) -> GroupSpec {
@@ -45,12 +44,11 @@ const fn spec(name: &'static str, kind: &'static str, mirror: bool) -> GroupSpec
         organization: false,
         mirror,
         sensitive: false,
-        ai: false,
     }
 }
 
-/// The sixteen groups (the last one goes to the trash). The `TopDown` chain Chiefs to Newcomers has nine levels.
-pub(crate) fn groups() -> [GroupSpec; 16] {
+/// The fifteen groups (the last one goes to the trash). The `TopDown` chain Chiefs to Newcomers has nine levels.
+pub(crate) fn groups() -> [GroupSpec; 15] {
     [
         GroupSpec {
             organization: true,
@@ -72,10 +70,6 @@ pub(crate) fn groups() -> [GroupSpec; 16] {
             sensitive: true,
             ..spec("Union members", "Gruppe", false)
         },
-        GroupSpec {
-            ai: true,
-            ..spec("Assistants", "KI-Gruppe", false)
-        },
         spec("Archive", "Gruppe", false),
     ]
 }
@@ -84,7 +78,7 @@ pub(crate) fn groups() -> [GroupSpec; 16] {
 /// Newcomers is `TopDown` over nine levels (Chiefs sit as a Single branch under the association). Outreach team has
 /// two parents (the association `BottomUp`, Deputies `TopDown`: a short side branch of the chain), Trainees two (the
 /// chain `TopDown`, the Events team `BottomUp`: a mixed node, its people count up and the chiefs' people flow in).
-pub(crate) const EDGES: [(&str, &str, char); 14] = [
+pub(crate) const EDGES: [(&str, &str, char); 13] = [
     ("Outreach team", "Association", 'b'),
     ("Events team", "Association", 'b'),
     ("Chiefs", "Association", 's'),
@@ -98,11 +92,10 @@ pub(crate) const EDGES: [(&str, &str, char); 14] = [
     ("Newcomers", "Trainees", 't'),
     ("Outreach team", "Deputies", 't'),
     ("Trainees", "Events team", 'b'),
-    ("Assistants", "Association", 's'),
 ];
 
 /// Direct members: group, person, role label (`None` = plain member).
-pub(crate) const MEMBERS: [(&str, &str, Option<&str>); 20] = [
+pub(crate) const MEMBERS: [(&str, &str, Option<&str>); 18] = [
     ("Chiefs", "Alice Chair", Some("Chair")),
     ("Deputies", "Bob Deputy", None),
     ("Team leads", "Carol Lead", None),
@@ -120,7 +113,5 @@ pub(crate) const MEMBERS: [(&str, &str, Option<&str>); 20] = [
     ("Administrators", "Ida Admin", None),
     ("Union members", "Hank Union", None),
     ("Union members", "Ida Admin", None),
-    ("Assistants", "Assistant Bot", None),
-    ("Assistants", "Scribe Bot", None),
     ("Archive", "Quinn Archive", None),
 ];

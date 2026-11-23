@@ -1,4 +1,4 @@
-//! The fixed sample: sixteen groups and twenty persons in one tree with all three modes, built through the fake's own
+//! The fixed sample: fifteen groups and twenty persons in one tree with all three modes, built through the fake's own
 //! operations, so it
 //! stands for what a provider can reach (nothing is put in raw).
 //!
@@ -126,7 +126,7 @@ fn build_groups(s: &mut State, out: &mut Book) {
             default_mode: NestingMode::BottomUp,
             visibility,
             sensitive: g.sensitive,
-            ai: g.ai,
+            ai: false,
             mirror: g.mirror,
         };
         if let Some(made) = check(s.create(draft), g.name, &mut out.problems) {

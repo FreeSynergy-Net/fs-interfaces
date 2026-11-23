@@ -17,12 +17,11 @@ pub(crate) fn build_activity(s: &mut State, out: &mut Book) {
     let ids = |n: &str| out.id(n).unwrap_or_else(|| object_id(0));
     let fallback = s.asker.clone();
     let who = |n: &str| out.person(n).unwrap_or_else(|| fallback.clone());
-    let (assoc, events, outreach, chiefs, assistants, trainees) = (
+    let (assoc, events, outreach, chiefs, trainees) = (
         ids("Association"),
         ids("Events team"),
         ids("Outreach team"),
         ids("Chiefs"),
-        ids("Assistants"),
         ids("Trainees"),
     );
     let alice = who("Alice Chair");
@@ -40,11 +39,6 @@ pub(crate) fn build_activity(s: &mut State, out: &mut Book) {
     check(
         s.grant(assoc, &group_ref(chiefs), Right::RemoveMembers),
         "grant Chiefs",
-        &mut problems,
-    );
-    check(
-        s.grant(outreach, &group_ref(assistants), Right::Read),
-        "grant Assistants",
         &mut problems,
     );
     let at = |ms: i64| Some(Utc::from_millis(s.now.millis() + ms));

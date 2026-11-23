@@ -47,18 +47,9 @@ impl State {
         let on = |g: &ObjectId| {
             self.groups
                 .get(g)
-                .is_some_and(|r| r.group.mirror && !r.group.sensitive && !r.group.ai)
+                .is_some_and(|r| r.group.mirror && !r.group.sensitive)
         };
-        let ai = |g: ObjectId| self.groups.get(&g).is_some_and(|r| r.group.ai);
         let mut findings: Vec<Raw> = Vec::new();
-        for id in self.groups.keys().filter(|id| live(id) && ai(**id)) {
-            findings.push((Some(*id), FindingKind::AiGroupExcluded(*id), false));
-        }
-        for e in self.edges.iter().filter(|e| {
-            (ai(e.child) || ai(e.parent)) && e.mode != crate::groups_v1::NestingMode::Single
-        }) {
-            findings.push((Some(e.child), FindingKind::HeldBack(e.child), false));
-        }
         let pairs = arcs(&self.logic_edges());
         let mut wanted = BTreeMap::new();
         for (id, row) in self.groups.iter().filter(|(id, _)| live(id) && on(id)) {
@@ -77,16 +68,14 @@ impl State {
             let mut nested = Vec::new();
             for (inner, _) in pairs.iter().filter(|(_, outer)| outer == id) {
                 if !on(inner) {
-                    if !ai(*inner) {
-                        findings.push((
-                            Some(*id),
-                            FindingKind::NestedNotMirrored {
-                                outer: *id,
-                                inner: *inner,
-                            },
-                            false,
-                        ));
-                    }
+                    findings.push((
+                        Some(*id),
+                        FindingKind::NestedNotMirrored {
+                            outer: *id,
+                            inner: *inner,
+                        },
+                        false,
+                    ));
                     continue;
                 }
                 let odd: Vec<PersonRef> = self

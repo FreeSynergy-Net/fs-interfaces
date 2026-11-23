@@ -25,15 +25,20 @@ pub(crate) fn text(field: Field, value: &str, max: usize, out: &mut Vec<FieldPro
     out.extend(problem.map(|problem| FieldProblem { field, problem }));
 }
 
-/// `mirror` with `sensitive` or `ai` is refused.
-pub(crate) fn mirror(on: bool, sensitive: bool, ai: bool, out: &mut Vec<FieldProblem>) {
+/// `mirror` with `sensitive` is refused.
+pub(crate) fn mirror(on: bool, sensitive: bool, out: &mut Vec<FieldProblem>) {
     if on && sensitive {
         out.push(FieldProblem {
             field: Field::Mirror,
             problem: ProblemKind::SensitiveNotMirrored,
         });
     }
-    if on && ai {
+}
+
+/// There are no AI groups (ADR 0091, 0095): `ai = true` is refused. `groups_v1` keeps the field and has no problem of
+/// its own for it, so the one AI problem it has is used (`AiNotMirrored` at `Mirror`: an AI group is never kept).
+pub(crate) fn no_ai(ai: bool, out: &mut Vec<FieldProblem>) {
+    if ai {
         out.push(FieldProblem {
             field: Field::Mirror,
             problem: ProblemKind::AiNotMirrored,

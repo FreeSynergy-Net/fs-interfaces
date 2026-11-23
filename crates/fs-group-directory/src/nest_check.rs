@@ -27,14 +27,6 @@ impl State {
                 path: vec![child, child],
             });
         }
-        let ai = |g: ObjectId| self.groups.get(&g).is_some_and(|r| r.group.ai);
-        if ai(parent) || (ai(child) && mode != NestingMode::Single) {
-            let group = if ai(parent) { parent } else { child };
-            return Err(Error::AiNesting {
-                group,
-                path: vec![child, parent],
-            });
-        }
         let new = Self::raw_edge(child, parent, mode);
         let others: Vec<Edge<ObjectId>> = self
             .edges

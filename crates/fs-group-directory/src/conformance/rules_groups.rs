@@ -79,14 +79,14 @@ async fn create(cx: &mut Cx<'_>) {
         "create: mirror with sensitive is Invalid",
     );
     let mut d = cx.draft("bad");
-    (d.ai, d.mirror) = (true, true);
+    d.ai = true;
     cx.ensure(
         invalid(
             err(&cx.g.create(d).await),
             Field::Mirror,
             &ProblemKind::AiNotMirrored,
         ),
-        "create: mirror with ai is Invalid",
+        "create: an AI group is refused (no AI groups, ADR 0091)",
     );
 }
 

@@ -130,7 +130,7 @@ impl State {
     ) -> Result<Vec<(DirectoryId, GroupMirrorState)>> {
         self.mirror_gate()?;
         let g = self.visible(group)?;
-        let off = !g.mirror || g.sensitive || g.ai;
+        let off = !g.mirror || g.sensitive;
         let mut out: Vec<(DirectoryId, GroupMirrorState)> = Vec::new();
         for run in self.mirror.runs.iter().rev() {
             let dir = run.report.directory.clone();

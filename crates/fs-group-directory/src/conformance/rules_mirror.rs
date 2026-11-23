@@ -62,10 +62,9 @@ async fn plan_and_run(cx: &mut Cx<'_>, mir: &dyn Mirroring, dir: &dyn GroupDirec
     ) else {
         return;
     };
-    let (Some(plain), Some(sens), Some(ai), Some(p)) = (
+    let (Some(plain), Some(sens), Some(p)) = (
         cx.group("mi plain").await,
         cx.sensitive_group("mi sens").await,
-        cx.ai_group("mi ai").await,
         cx.person(Kind::Human).await,
     ) else {
         return;
@@ -84,12 +83,8 @@ async fn plan_and_run(cx: &mut Cx<'_>, mir: &dyn Mirroring, dir: &dyn GroupDirec
             .any(|x| matches!(x, MirrorStep::Create { group } if *group == g))
     };
     cx.ensure(
-        creates(m.id)
-            && creates(c.id)
-            && !creates(plain.id)
-            && !creates(sens.id)
-            && !creates(ai.id),
-        "mirror_plan: Create for mirrored groups only, never plain, sensitive or AI groups",
+        creates(m.id) && creates(c.id) && !creates(plain.id) && !creates(sens.id),
+        "mirror_plan: Create for mirrored groups only, never plain or sensitive groups",
     );
     cx.ensure(
         update_of(&plan, m.id)
@@ -99,10 +94,6 @@ async fn plan_and_run(cx: &mut Cx<'_>, mir: &dyn Mirroring, dir: &dyn GroupDirec
     cx.ensure(
         update_of(&plan, t2.id).is_some_and(|u| u.2.contains(&t1.id)),
         "mirror_plan: TopDown, the parent is nested in the child",
-    );
-    cx.ensure(
-        has(&plan, &FindingKind::AiGroupExcluded(ai.id)),
-        "mirror_plan: an AI group is named as AiGroupExcluded, never silently left out",
     );
     cx.ensure(
         dir.read(m.id).await.is_ok_and(|g| g.is_none()),
@@ -130,9 +121,8 @@ async fn plan_and_run(cx: &mut Cx<'_>, mir: &dyn Mirroring, dir: &dyn GroupDirec
         "mirror_apply: TopDown is native too",
     );
     cx.ensure(
-        dir.read(ai.id).await.is_ok_and(|g| g.is_none())
-            && dir.read(sens.id).await.is_ok_and(|g| g.is_none()),
-        "mirror_apply: AI and sensitive groups are not in the directory",
+        dir.read(sens.id).await.is_ok_and(|g| g.is_none()),
+        "mirror_apply: sensitive groups are not in the directory",
     );
     let again = mir.mirror_plan(dir).await;
     cx.ensure(

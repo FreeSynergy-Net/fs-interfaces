@@ -9,7 +9,7 @@ to work against the locked trait `groups_v1` before the real provider (`LocalGro
 | `FakeGroups` | In memory, implements `Groups`, `Mirroring` and `GroupMembers` completely. |
 | `FakePeople`, `FakeMirror` | The consumed sides: fs-people (`PersonDirectory`, `PersonFacts`, `RoleBook`) and Kanidm (`GroupDirectory`). |
 | `FailingGroups`, `SlowGroups` | Decorators over the fake (or any provider of the three traits): fail every method, chosen methods (`Op`) or every call that names a chosen group, `heal()`; or wait on the fake's clock (virtual, nobody sleeps). |
-| `sample()` | The fixed data set (PLAN section 6): 16 groups (one in the trash) and 20 invented persons on `example.org` (2 AI accounts, 1 unknown): a BottomUp tree, a TopDown chain of nine levels, a group with several parents (BottomUp and TopDown), a Single branch, an organisation, a sensitive, an admin and an AI group, two mirrored, one open edge request and one open mode-change request, invitations pending, accepted, declined and expired, rights through a holder group. |
+| `sample()` | The fixed data set (PLAN section 6): 15 groups (one in the trash) and 20 invented persons on `example.org` (2 AI accounts, 1 unknown): a BottomUp tree, a TopDown chain of nine levels, a group with several parents (BottomUp and TopDown), a Single branch, an organisation, a sensitive, an admin and an AI group, two mirrored, one open edge request and one open mode-change request, invitations pending, accepted, declined and expired, rights through a holder group. |
 | `conformance` | `run_conformance(&dyn ConformanceFixture)`: the rules every provider must pass. |
 
 Pins: `fs-types` v0.0.22 (= fs-interfaces `7743056396ffa80bc77d3af9d1946229dd1f6155`) as git tag, `async-trait`. Nothing
@@ -86,11 +86,7 @@ graph), depth 16/17, sensitive in both directions, AI parents and children, `Alr
 old edge, the hull backwards without `Single` and old edges. They differ at the edges, and the switch must settle each
 (the fake's answer stays what `DECISIONS` says until then):
 
-1. **A self edge at an AI group:** the fake says `Cycle [A, A]` (the plan: a self edge is a cycle), `group-nesting`
-   says `AiNesting` (its AI check runs first). Decide at the switch which one the trait promises.
-2. **Old edges at an AI group** (put in raw, never written by a provider): the fake treats them like `Single` in the
-   hull AND in the cycle and depth checks (nothing flows, nothing is counted); `group-nesting` treats them like `Single`
-   in the hull but counts them in the cycle and depth checks. The conformance rules do not reach old data.
+1. **AI groups are gone** (ADR 0091, 0095): the fake refuses `ai = true` and has no AI-group rule; the two former deviations (self edge, old edges at an AI group) no longer exist.
 3. **Cycle path:** of several equally short cycles the fake names the smallest in id order (tested); `group-nesting`
    names the first in its sorted order. The rules fix only `[A, A]` and the form (first group = last group).
 4. **`longest`** is safe on a cycle in the fake (it does not follow the way that closes one; iterative, no stack

@@ -124,15 +124,12 @@ impl State {
         role: Option<&RoleRef>,
     ) -> Result<()> {
         let status = self.people.status(p);
-        match (g.ai, status) {
-            (true, Some(false)) | (false, Some(true)) => {
-                return Err(Error::AiNesting {
-                    group: g.id,
-                    path: vec![g.id],
-                });
-            }
-            (true, None) => return Err(Error::AiStatusUnknown),
-            _ => {}
+        // An AI account is never a member (no AI groups, ADR 0091): `AiNesting` names the refusal.
+        if status == Some(true) {
+            return Err(Error::AiNesting {
+                group: g.id,
+                path: vec![g.id],
+            });
         }
         if let Some(role) = role {
             let info = self
