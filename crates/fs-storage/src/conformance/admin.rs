@@ -6,7 +6,7 @@
 //! contract yet: here `open` without it must be Forbidden).
 
 use super::fixture::{Check, Fixture, all, forbidden, refused, root_of, s, walk, want};
-use crate::ctl::Ctl;
+use crate::ctl::{Ctl, MemSource};
 use crate::entry::{Delete, Kind, OnConflict, PageReq, RootKind, WriteOpts};
 use crate::error::Error;
 
@@ -67,7 +67,7 @@ pub(super) async fn admin(fx: &Fixture) -> Check {
     for (path, e) in walk(&*fx.anna)
         .await?
         .iter()
-        .filter(|(p, e)| p.starts_with("Helfa/") && e.kind == Kind::File)
+        .filter(|(p, e)| p.starts_with("Helfa") && e.kind == Kind::File)
     {
         s(p.stat(&e.id).await)?;
         refused(
@@ -98,11 +98,19 @@ pub(super) async fn bot(fx: &Fixture) -> Check {
     }
     let group = root_of(&*fx.anna, RootKind::Group).await?;
     let o = WriteOpts {
+        generator: None,
         on_conflict: OnConflict::Fail,
         media_type: None,
     };
     refused(
-        p.write(&group, "bot.txt", vec![1], o, &Ctl::none()).await,
+        p.write(
+            &group,
+            "bot.txt",
+            &mut MemSource::from(vec![1]),
+            o,
+            &Ctl::none(),
+        )
+        .await,
         "bot writes",
         forbidden,
     )?;
@@ -136,11 +144,19 @@ pub(super) async fn local_import_only(fx: &Fixture) -> Check {
         "a local file cannot be read (import source)",
     )?;
     let o = || WriteOpts {
+        generator: None,
         on_conflict: OnConflict::Fail,
         media_type: None,
     };
     refused(
-        p.write(&root.id, "x.txt", vec![1], o(), &Ctl::none()).await,
+        p.write(
+            &root.id,
+            "x.txt",
+            &mut MemSource::from(vec![1]),
+            o(),
+            &Ctl::none(),
+        )
+        .await,
         "write to local",
         unsupported,
     )?;

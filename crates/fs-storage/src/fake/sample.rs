@@ -1,18 +1,40 @@
-//! The sample tree: "My files" of Anna, ONE group folder (Helfa) with the usual shape, 12 files of mixed types, a trash.
+//! The sample tree: "My files" of Anna, ONE group folder (an example local group of Helfa), 15 files of mixed types, a trash.
 //!
-//! Pattern: Builder (fixed sample data, deterministic ids and times; the bytes go through `fs-objects` `MemoryFiles`).
+//! Pattern: Builder (fixed sample data, deterministic ids and times).
 //!
 //! Anna owns the group, Ben is a member, Fremd is nobody, Admin administers (structure of groups, only `usage` of private
-//! folders), Bot is an AI actor (member of the group on paper, no right, no folder). Every person has "My files" (Ben's holds
-//! one file, for the admin test). Anna's "Aufnahmen" is a gallery of 3 `Image` files owned by the file module's rule (F-N2
-//! recommendation: files in "My files", not a program tree). Layout (the Helfa shape is an assumption: protocols, photos,
-//! the statutes; no reference structure was found in the docs): Mine = Dokumente (3 files), Bilder (2), Musik (1), a
-//! link to the group folder; Helfa = Protokolle (2), Fotos (2), Satzung.pdf; Trash = Alt.txt. 15 files in Anna's tree (12 plus the 3 images).
+//! folders), Bot is an AI actor (member on paper, no right, no folder). Every person has "My files" (Ben's holds one file,
+//! for the admin test).
+//!
+//! The group follows `helfa/UMFRAGE-ergebnis.md` (23.11.2026) and nothing else of Helfa: a local group ("Ortsgruppe") with
+//! the 4+1 rules, the three conflict steps and a moderator team. Everything the survey does not say (member lists, minutes,
+//! photos, Anna's private files) has neutral example names. The group folder's name ends in "(Beispieldaten)", and so does
+//! every example file that pretends to be real data. Three images are made by `capture` (`generator = "capture"`) and lie in
+//! three different places: that is the gallery, a `scope`, no folder. Trash: Alt.txt.
 
 use super::state::{Group, Node, World};
 use crate::entry::{Entry, Kind, Root, RootKind};
 use crate::ids::EntryId;
-use fs_types::{BasicValue, MediaType, PersonArt, PersonRef, Reference, Utc};
+use fs_types::{BasicValue, FileRef, MediaType, PersonArt, PersonRef, Reference, Utc};
+use sha2::{Digest, Sha256};
+use std::fmt::Write;
+
+/// The name of the group folder.
+pub const GROUP_NAME: &str = "Helfa Ortsgruppe (Beispieldaten)";
+
+/// A `FileRef` for `bytes`: the reference is the checksum (`urn:sha256:<hex>`), as in the v5 `FileStore`.
+pub(super) fn make_ref(bytes: &[u8], media: &str) -> FileRef {
+    let sha: [u8; 32] = Sha256::digest(bytes).into();
+    let hex = sha.iter().fold(String::new(), |mut s, b| {
+        let _ = write!(s, "{b:02x}");
+        s
+    });
+    FileRef {
+        iri: Reference::parse(&format!("urn:sha256:{hex}")).expect("fixed iri"),
+        sha256: sha,
+        media_type: MediaType(media.to_owned()),
+    }
+}
 
 /// The people of the sample.
 #[derive(Clone, Debug)]
@@ -84,15 +106,14 @@ impl World {
             owner: owner.clone(),
             etag: Some(self.seq.to_string()),
             link_target: None,
+            generator: None,
         };
-        self.nodes.insert(
-            id.to_owned(),
-            Node {
-                entry,
-                parent: parent.map(str::to_owned),
-                trashed_from: None,
-            },
-        );
+        let node = Node {
+            entry,
+            parent: parent.map(str::to_owned),
+            trashed_from: None,
+        };
+        self.nodes.insert(id.to_owned(), node);
     }
 
     pub(super) fn add_file(
@@ -100,10 +121,13 @@ impl World {
         parent: &str,
         name: &str,
         media: &str,
-        bytes: Vec<u8>,
+        bytes: &[u8],
         owner: &PersonRef,
+        generator: Option<&str>,
     ) -> String {
         let id = self.next_id("n");
+        let file_ref = make_ref(bytes, media);
+        self.blobs.insert(file_ref.iri.canonical(), bytes.to_vec());
         let entry = Entry {
             id: EntryId(id.clone()),
             name: name.to_owned(),
@@ -111,10 +135,11 @@ impl World {
             size: Some(bytes.len() as u64),
             modified: Some(self.now()),
             media_type: Some(MediaType(media.to_owned())),
-            file_ref: self.files.put(&bytes, &MediaType(media.to_owned())).ok(),
+            file_ref: Some(file_ref),
             owner: owner.clone(),
             etag: Some(self.seq.to_string()),
             link_target: None,
+            generator: generator.map(str::to_owned),
         };
         let node = Node {
             entry,
@@ -130,6 +155,7 @@ fn body(name: &str) -> Vec<u8> {
     format!("sample content of {name}\n").repeat(3).into_bytes()
 }
 
+#[allow(clippy::too_many_lines)] // fixed sample data
 pub(super) fn build() -> World {
     let s = sample();
     let mut w = World::default();
@@ -148,10 +174,10 @@ pub(super) fn build() -> World {
             usage: None,
         });
     }
-    w.add_folder("grp-helfa", None, "Helfa", &s.helfa);
+    w.add_folder("grp-helfa", None, GROUP_NAME, &s.helfa);
     w.roots.push(Root {
         id: EntryId("grp-helfa".into()),
-        name: "Helfa".into(),
+        name: GROUP_NAME.into(),
         kind: RootKind::Group,
         owner: s.helfa.clone(),
         usage: None,
@@ -167,43 +193,90 @@ pub(super) fn build() -> World {
         ("f-dok", "mine-anna", "Dokumente", &s.anna),
         ("f-bild", "mine-anna", "Bilder", &s.anna),
         ("f-musik", "mine-anna", "Musik", &s.anna),
-        ("f-aufn", "mine-anna", "Aufnahmen", &s.anna),
-        ("f-prot", "grp-helfa", "Protokolle", &s.helfa),
+        ("f-regeln", "grp-helfa", "Regeln", &s.helfa),
+        ("f-mod", "grp-helfa", "Moderation", &s.helfa),
         ("f-foto", "grp-helfa", "Fotos", &s.helfa),
     ] {
         w.add_folder(id, Some(parent), name, owner);
     }
-    let files: [(&str, &str, &str, &PersonRef); 15] = [
-        ("f-aufn", "Aufnahme-1.png", "image/png", &s.anna),
-        ("f-aufn", "Aufnahme-2.png", "image/png", &s.anna),
-        ("f-aufn", "Aufnahme-3.png", "image/png", &s.anna),
-        ("mine-ben", "Privat.txt", "text/plain", &s.ben),
-        ("f-dok", "Lebenslauf.pdf", "application/pdf", &s.anna),
-        ("f-dok", "Notizen.md", "text/markdown", &s.anna),
+    let odt = "application/vnd.oasis.opendocument.text";
+    // (parent, name, media type, owner, generator)
+    let files: [(&str, &str, &str, &PersonRef, Option<&str>); 15] = [
+        (
+            "mine-anna",
+            "Aufnahme-1.png",
+            "image/png",
+            &s.anna,
+            Some("capture"),
+        ),
+        (
+            "f-bild",
+            "Aufnahme-2.png",
+            "image/png",
+            &s.anna,
+            Some("capture"),
+        ),
+        (
+            "f-foto",
+            "Aufnahme-3.png",
+            "image/png",
+            &s.helfa,
+            Some("capture"),
+        ),
+        ("mine-ben", "Privat.txt", "text/plain", &s.ben, None),
+        ("f-dok", "Lebenslauf.pdf", "application/pdf", &s.anna, None),
+        ("f-dok", "Notizen.md", "text/markdown", &s.anna, None),
         (
             "f-dok",
             "Budget.ods",
             "application/vnd.oasis.opendocument.spreadsheet",
             &s.anna,
+            None,
         ),
-        ("f-bild", "Urlaub.jpg", "image/jpeg", &s.anna),
-        ("f-bild", "Logo.svg", "image/svg+xml", &s.anna),
-        ("f-musik", "Lied.ogg", "audio/ogg", &s.anna),
+        ("f-bild", "Urlaub.jpg", "image/jpeg", &s.anna, None),
+        ("f-bild", "Logo.svg", "image/svg+xml", &s.anna, None),
+        ("f-musik", "Lied.ogg", "audio/ogg", &s.anna, None),
         (
-            "f-prot",
-            "Sitzung-2026-11.odt",
-            "application/vnd.oasis.opendocument.text",
+            "f-regeln",
+            "Vier-plus-eins-Regeln.md",
+            "text/markdown",
             &s.helfa,
+            None,
         ),
-        ("f-prot", "Mitglieder.csv", "text/csv", &s.helfa),
-        ("f-foto", "Fest.png", "image/png", &s.helfa),
-        ("f-foto", "Fest.mp4", "video/mp4", &s.helfa),
-        ("grp-helfa", "Satzung.pdf", "application/pdf", &s.helfa),
+        (
+            "f-regeln",
+            "Konfliktstufen.md",
+            "text/markdown",
+            &s.helfa,
+            None,
+        ),
+        (
+            "f-mod",
+            "Moderatorenteam (Beispieldaten).csv",
+            "text/csv",
+            &s.helfa,
+            None,
+        ),
+        ("f-mod", "Sitzung (Beispieldaten).odt", odt, &s.helfa, None),
+        (
+            "f-foto",
+            "Fest (Beispieldaten).mp4",
+            "video/mp4",
+            &s.helfa,
+            None,
+        ),
     ];
-    for (parent, name, media, owner) in files {
-        w.add_file(parent, name, media, body(name), owner);
+    for (parent, name, media, owner, generator) in files {
+        w.add_file(parent, name, media, &body(name), owner, generator);
     }
-    let alt = w.add_file("f-dok", "Alt.txt", "text/plain", body("Alt.txt"), &s.anna);
+    let alt = w.add_file(
+        "f-dok",
+        "Alt.txt",
+        "text/plain",
+        &body("Alt.txt"),
+        &s.anna,
+        None,
+    );
     if let Some(n) = w.nodes.get_mut(&alt) {
         n.trashed_from = Some("f-dok".into());
     }
@@ -212,13 +285,11 @@ pub(super) fn build() -> World {
     link.name = "Zum Helfa-Ordner".into();
     link.kind = Kind::Link;
     link.link_target = Some(EntryId("grp-helfa".into()));
-    w.nodes.insert(
-        "l-helfa".into(),
-        Node {
-            entry: link,
-            parent: Some("mine-anna".into()),
-            trashed_from: None,
-        },
-    );
+    let node = Node {
+        entry: link,
+        parent: Some("mine-anna".into()),
+        trashed_from: None,
+    };
+    w.nodes.insert("l-helfa".into(), node);
     w
 }

@@ -5,7 +5,7 @@
 use super::access::Actor;
 use super::read::MemBlob;
 use super::state::{FakeStorage, Fault};
-use crate::ctl::{Blob, Ctl};
+use crate::ctl::{Blob, ByteSource, Ctl};
 use crate::entry::{
     ChangeSet, Delete, Entry, Kind, OnConflict, PageReq, Root, StorageCaps, Token, WriteOpts,
 };
@@ -13,8 +13,11 @@ use crate::error::{Error, Result};
 use crate::ids::EntryId;
 use crate::provider::StorageProvider;
 use async_trait::async_trait;
-use fs_objects::v5::files::FileStore;
 use fs_types::Page;
+
+/// Chunk size of a write body and the limit of the fake.
+const CHUNK: usize = 4;
+const MAX_BYTES: usize = 1 << 20;
 
 impl FakeStorage {
     fn run<T>(&self, f: impl FnOnce(&mut super::state::World, &Actor) -> Result<T>) -> Result<T> {
@@ -44,6 +47,7 @@ impl StorageProvider for FakeStorage {
             range: true,
             watch: false,
             delta_since: true,
+            scope: true,
         }
     }
     async fn roots(&self) -> Result<Vec<Root>> {
@@ -60,25 +64,36 @@ impl StorageProvider for FakeStorage {
     }
     async fn open(&self, id: &EntryId, ctl: &Ctl) -> Result<Box<dyn Blob>> {
         ctl.check()?;
-        let (entry, f, store) = self.run(|w, a| w.open_of(a, id))?;
-        let data = store
-            .read(&f)
-            .await
-            .map_err(|e| Error::BackendFailed(e.to_string()))?;
-        Ok(Box::new(MemBlob { entry, data }))
+        let (entry, data) = self.run(|w, a| w.open_of(a, id))?;
+        Ok(Box::new(MemBlob {
+            entry,
+            data,
+            bad_range: self.fault == Some(Fault::BadRange),
+        }))
     }
     async fn write(
         &self,
         at: &EntryId,
         name: &str,
-        src: Vec<u8>,
+        src: &mut dyn ByteSource,
         o: WriteOpts,
         ctl: &Ctl,
     ) -> Result<Entry> {
-        if self.fault != Some(Fault::NoCancel) {
-            ctl.check()?;
+        let mut bytes = Vec::new();
+        loop {
+            if self.fault != Some(Fault::NoCancel) {
+                ctl.check()?;
+            }
+            let chunk = src.next(CHUNK).await?;
+            if chunk.is_empty() {
+                break;
+            }
+            if bytes.len() + chunk.len() > MAX_BYTES {
+                return Err(Error::TooLarge);
+            }
+            bytes.extend_from_slice(&chunk);
         }
-        self.run(|w, a| w.write_file(a, at, name, src, &o))
+        self.run(|w, a| w.write_file(a, at, name, &bytes, &o))
     }
     async fn create(&self, at: &EntryId, name: &str, kind: Kind, on: OnConflict) -> Result<Entry> {
         self.run(|w, a| w.create_folder(a, at, name, kind, on))
@@ -103,6 +118,18 @@ impl StorageProvider for FakeStorage {
     }
     async fn restore(&self, id: &EntryId, to: Option<&EntryId>, on: OnConflict) -> Result<Entry> {
         self.run(|w, a| w.restore_node(a, id, to, on))
+    }
+    async fn scope(&self, generator: &str, page: PageReq) -> Result<Page<Entry>> {
+        self.run(|w, a| {
+            w.scope_of(a, generator, &page)
+                .map(|(items, next)| Page { items, next })
+        })
+    }
+    async fn resolve_path(&self, root: &EntryId, path: &str) -> Result<Entry> {
+        if self.fault == Some(Fault::PathTraversal) {
+            return self.run(|w, a| w.naive_path(a, root, path));
+        }
+        crate::provider::resolve_by_list(self, root, path).await
     }
     async fn changes(&self, since: Option<&Token>) -> Result<ChangeSet> {
         self.run(|w, a| w.changes_since(a, since))
