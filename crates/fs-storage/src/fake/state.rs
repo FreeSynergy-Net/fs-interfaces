@@ -38,6 +38,14 @@ pub enum Fault {
     OperatorChanges,
     /// A manager may also change content in a group folder (without an intervention).
     ManagerChanges,
+    /// A manager may write and create in the root folder of a group.
+    ManagerGroupRoot,
+    /// The operator may write and create in a root folder ("My files" of others, group roots).
+    OperatorRoot,
+    /// The operator may change links of others.
+    OperatorLink,
+    /// The cap of one read is not kept.
+    NoReadCap,
     /// A read answers nothing before the end.
     ZeroRead,
     /// A read ignores the length asked and answers more.

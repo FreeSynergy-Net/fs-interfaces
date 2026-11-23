@@ -16,8 +16,8 @@ use async_trait::async_trait;
 use fs_types::Page;
 
 /// Chunk size of a write body and the limit of the fake.
-const CHUNK: usize = 4;
-const MAX_BYTES: usize = 1 << 20;
+const CHUNK: usize = 4096;
+const MAX_BYTES: usize = 16 << 20;
 
 impl FakeStorage {
     fn run<T>(&self, f: impl FnOnce(&mut super::state::World, &Actor) -> Result<T>) -> Result<T> {
@@ -69,7 +69,11 @@ impl StorageProvider for FakeStorage {
         b.bad_range = self.fault == Some(Fault::BadRange);
         b.zero = self.fault == Some(Fault::ZeroRead);
         b.greedy = self.fault == Some(Fault::ReadsTooMuch);
-        b.limit = self.read_limit;
+        b.limit = if self.fault == Some(Fault::NoReadCap) {
+            u64::MAX
+        } else {
+            self.read_limit
+        };
         Ok(Box::new(b))
     }
     async fn write(
