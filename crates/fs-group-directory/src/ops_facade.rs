@@ -1,4 +1,4 @@
-//! The na            out.push(g            out.push(g            out.push(group_ref(g.group));oup_ref(g.group));oup_ref(g.group));row view for other programs (`GroupMembers`): describe a group, resolve it to persons, list the groups of
+//! The narrow view for other programs (`GroupMembers`): describe a group, resolve it to persons, list the groups of
 //! a person.
 //!
 //! Pattern: Facade (a small read view over the same state; the visibility rules of `Groups` apply unchanged).

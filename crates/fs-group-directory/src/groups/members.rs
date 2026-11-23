@@ -17,8 +17,8 @@ pub enum InForce {
     Yes,
     /// Kontoart passt nicht zur Gruppe oder zum Recht; die Mitgliedschaft bleibt stehen, zählt aber nicht (fehlt
     /// in `effective_members`, `may_do`, `GroupMembers`). Fälle: Admin-Rolle oder `Manage` bei einer als KI
-    /// markierten Person; eine KI in einer Menschengruppe, ein Mensch oder Unbekannter in einer KI-Gruppe, wenn
-    /// das ohne Schreiben entstand (Neumarkierung in BEIDE Richtungen, Altdaten, `restore`; KI-Regel in
+    /// markierten Person; eine KI als Mitglied, wenn
+    /// das ohne Schreiben entstand (Neumarkierung, Altdaten, `restore`; KI-Regel in
     /// `nesting.rs`); ein Befund meldet es. Eine KI hat an Admin- und sensiblen Gruppen gar keinen Zugriff.
     KindMismatch,
     /// Admin-Rolle oder `Manage` bei einer Person, von der niemand weiß, ob sie ein Mensch ist.

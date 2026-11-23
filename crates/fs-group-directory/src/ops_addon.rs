@@ -23,7 +23,7 @@ impl State {
         if problems.is_empty() {
             Ok(())
         } else {
-            Err(Error::Invalid(problems).into())
+            Err(Error::Invalid(problems))
         }
     }
 
@@ -92,8 +92,7 @@ impl State {
             return Err(Error::Invalid(vec![FieldProblem {
                 field: Field::Kind,
                 problem: crate::groups::ProblemKind::BadCharacters,
-            }])
-            .into());
+            }]));
         }
         self.tick();
         let row = self

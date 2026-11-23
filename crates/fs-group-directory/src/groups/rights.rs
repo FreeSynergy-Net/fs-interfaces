@@ -24,8 +24,7 @@ pub enum Right {
 /// die Rechte der oberen Gruppe gelten für alle darunter. `TopDown`: Mitgliedschaft fließt nach unten, Rechte
 /// fließen nach oben: die obere Gruppe steht in `member` der unteren (Beispiel: 'Chefs' steht in `member` von
 /// 'Vizechefs'; Chefs dürfen, was die Vizechefs dürfen, und sind auch wirksame Mitglieder der Vizechefs: sie
-/// sehen deren Mitgliederliste und werden mit eingeladen). Eine KI-Gruppe als Inhaberin gilt nur für ihre
-/// direkten Mitglieder (sie hat nie eine wirksame Kante) und nie für `Manage` (`Error::AgentNotAdmin`); an einer
+/// sehen deren Mitgliederliste und werden mit eingeladen). An einer
 /// Gruppe mit Admin-Recht oder einer sensiblen Gruppe hat eine KI gar keinen Zugriff (auch nicht `Read`,
 /// `Error::AgentNotAdmin`).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -60,9 +59,7 @@ pub enum Reason {
     /// Wer installiert hat, ist oberster Admin (ADR 0056 Punkt 1), nicht auf einer Schleife.
     Installer,
     NoGrant,
-    /// Als KI markiert: nie `Manage` (ADR 0056 Punkt 6). Für eine KI zählen überhaupt nur `Holder` und `ViaGroup`
-    /// einer KI-Gruppe ("Rechte nur ausdrücklich und einzeln"); ein Recht über eine Menschengruppe (auch eines,
-    /// das ihr nach Neumarkierung noch anhängt, `InForce::KindMismatch`) ergibt `Agent`. An einer Gruppe mit
+    /// Als KI markiert: nie `Manage` (ADR 0056 Punkt 6). Ein Recht, das ihr nach Neumarkierung noch anhängt (`InForce::KindMismatch`), ergibt `Agent`. An einer Gruppe mit
     /// Admin-Recht (Admin-Rolle vergeben) und an einer sensiblen Gruppe hat eine KI gar keinen Zugriff, auch nicht
     /// lesend; sie sieht die Gruppe nicht einmal (jede Methode: wie für eine nicht vorhandene Id, `nesting.rs`).
     Agent,
