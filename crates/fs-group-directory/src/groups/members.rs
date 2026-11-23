@@ -3,8 +3,8 @@
 //! Pattern: Value Object (Mitgliedschaft, Einladung) + State (Lebenslauf einer Einladung, eine Übergangsfunktion
 //! beim Anbieter).
 
-use super::shared::{ObjectId, PersonRef, Reference, Revision, Utc};
 use super::Inherited;
+use super::shared::{ObjectId, PersonRef, Reference, Revision, Utc};
 
 /// Verweis auf eine Rollendefinition (SKOS / W3C `org:Role`, ADR 0052). Die Definition und ihr Anzeigename
 /// liegen in fs-people (`RoleBook`); fs-groups prüft nur, dass es ein `Reference` ist und ob sie Admin-Rolle ist.

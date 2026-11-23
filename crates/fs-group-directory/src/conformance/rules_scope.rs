@@ -7,8 +7,8 @@
 use super::cx::{Cx, err};
 use super::fixture::Kind;
 use super::rules_owner::owned;
-use crate::groups::{Error, HistoryKind, Right};
 use crate::groups::{ActKind, AddonVerb, INTERVENTION_MS, Scope, role_owner};
+use crate::groups::{Error, HistoryKind, Right};
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
     let Some(v) = cx.gov else { return };
@@ -72,20 +72,18 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
         );
         cx.ensure(
             matches!(
-                err(
-                    &v.open_intervention(owner_g.id, Scope::AllGroups, "  ")
-                        .await
-                ),
+                err(&v
+                    .open_intervention(owner_g.id, Scope::AllGroups, "  ")
+                    .await),
                 Some(Error::ReasonMissing)
             ),
             "open_intervention: the reason is mandatory",
         );
         cx.ensure(
             matches!(
-                err(
-                    &v.open_intervention(owner_g.id, Scope::Project, "too much")
-                        .await
-                ),
+                err(&v
+                    .open_intervention(owner_g.id, Scope::Project, "too much")
+                    .await),
                 Some(Error::ScopeDenied(_))
             ),
             "open_intervention: a scope she does not hold is refused",

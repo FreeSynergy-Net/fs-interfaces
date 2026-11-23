@@ -3,9 +3,7 @@
 //! Pattern: Repository query and Command handlers (the AI kind rule is checked on every way a member gets in).
 
 use crate::access::Eff;
-use crate::groups::shared::{
-    ObjectId, Page, PersonArt, PersonRef, Place, Revision, TypeProblem,
-};
+use crate::groups::shared::{ObjectId, Page, PersonArt, PersonRef, Place, Revision, TypeProblem};
 use crate::groups::{
     ChangeKind, EffectiveGroup, EffectiveMember, Error, Field, FieldProblem, Group, HistoryKind,
     InForce, Inherited, Membership, Missing, ProblemKind, Result, Right, RoleRef,

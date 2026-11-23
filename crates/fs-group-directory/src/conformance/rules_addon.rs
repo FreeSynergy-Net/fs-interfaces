@@ -6,8 +6,8 @@ use super::cx::{Cx, err};
 use super::fixture::Kind;
 use super::rules_owner::owned;
 use crate::groups::shared::{BasicValue as _, Reference};
-use crate::groups::{Error, Right};
 use crate::groups::{AddonKind, FormalOrganization, GroupGovernance, ORG_FORMAL_ORGANIZATION};
+use crate::groups::{Error, Right};
 
 pub(super) fn formal(name: &str) -> AddonKind {
     AddonKind::FormalOrganization(FormalOrganization {
@@ -85,14 +85,13 @@ async fn attach(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(f) = empty.pop() else { return };
     cx.ensure(
         matches!(
-            err(
-                &v.update_addon(
+            err(&v
+                .update_addon(
                     f.id,
                     crate::groups::shared::Revision(f.revision.0 + 5),
                     formal("Zzconf neu")
                 )
-                .await
-            ),
+                .await),
             Some(Error::Changed { .. })
         ),
         "update_addon: a stale revision is Changed",

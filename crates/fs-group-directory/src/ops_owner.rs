@@ -5,9 +5,7 @@
 //! log). The owner role is written only here (and by `create_owned`), never over the v1 role book.
 
 use crate::groups::shared::{ObjectId, PersonArt, PersonRef, Revision};
-use crate::groups::{
-    Error, Field, Group, GroupDraft, HistoryKind, Membership, NestOutcome, Right,
-};
+use crate::groups::{Error, Field, Group, GroupDraft, HistoryKind, Membership, NestOutcome, Right};
 use crate::groups::{Level, Result, role_owner};
 use crate::ids::id_of_reference;
 use crate::state::State;
@@ -195,8 +193,7 @@ impl State {
         match owner.art {
             PersonArt::Person | PersonArt::Profile => Ok(vec![owner.clone()]),
             PersonArt::Group => {
-                let missing =
-                    || Error::NotFound(crate::groups::Missing::Person(owner.id.clone()));
+                let missing = || Error::NotFound(crate::groups::Missing::Person(owner.id.clone()));
                 let g = id_of_reference(&owner.id).ok_or_else(missing)?;
                 self.gov_gate(g).map_err(|e| match e {
                     Error::NotFound(_) => missing(),

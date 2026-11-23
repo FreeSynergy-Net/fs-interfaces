@@ -7,8 +7,8 @@ use super::cx::Cx;
 use super::fixture::Kind;
 use crate::groups::shared::{ObjectId, PersonRef};
 use crate::groups::{
-    FindingKind, GroupDirectory, GroupMirrorState, MirrorError, MirrorPlan, MirrorStep,
-    Mirroring, NestingMode,
+    FindingKind, GroupDirectory, GroupMirrorState, MirrorError, MirrorPlan, MirrorStep, Mirroring,
+    NestingMode,
 };
 
 /// The parts of an `Update` step: add, remove, nest, unnest.

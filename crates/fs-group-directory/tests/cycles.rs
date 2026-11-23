@@ -3,9 +3,7 @@
 
 use fs_group_directory::FakeGroups;
 use fs_group_directory::groups::shared::ObjectId;
-use fs_group_directory::groups::{
-    Error, GroupDraft, Groups, NestOutcome, NestingMode, Visibility,
-};
+use fs_group_directory::groups::{Error, GroupDraft, Groups, NestOutcome, NestingMode, Visibility};
 
 fn draft(name: &str) -> GroupDraft {
     GroupDraft {

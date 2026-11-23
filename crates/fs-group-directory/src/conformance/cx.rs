@@ -5,8 +5,8 @@
 use super::fixture::{ConformanceFixture, Kind};
 use crate::groups::shared::{ObjectId, PersonRef, Revision};
 use crate::groups::{
-    Error, Group, GroupDraft, Groups, Membership, NestOutcome, Nesting, NestingMode,
-    Result, Visibility,
+    Error, Group, GroupDraft, Groups, Membership, NestOutcome, Nesting, NestingMode, Result,
+    Visibility,
 };
 
 /// The failed and the skipped rules of a run; empty `failures` means conformant.
@@ -154,10 +154,7 @@ impl<'a> Cx<'a> {
     }
 
     /// All effective members of a group.
-    pub(crate) async fn effective(
-        &self,
-        group: ObjectId,
-    ) -> Vec<crate::groups::EffectiveMember> {
+    pub(crate) async fn effective(&self, group: ObjectId) -> Vec<crate::groups::EffectiveMember> {
         self.g
             .effective_members(group, None, 1000)
             .await

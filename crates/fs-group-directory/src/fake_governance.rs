@@ -4,10 +4,10 @@
 
 use crate::fake::FakeGroups;
 use crate::groups::shared::{ObjectId, PersonRef, Revision};
-use crate::groups::{Group, GroupDraft, Membership, NestOutcome};
 use crate::groups::{
     Addon, AddonKind, GroupGovernance, Intervention, Level, Result, Scope, ScopeGrant,
 };
+use crate::groups::{Group, GroupDraft, Membership, NestOutcome};
 use async_trait::async_trait;
 
 #[async_trait]

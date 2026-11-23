@@ -15,7 +15,11 @@ pub(super) async fn owned(cx: &mut Cx<'_>, v: &dyn GroupGovernance, label: &str)
     owned_from(cx, v, d).await
 }
 
-pub(super) async fn owned_from(cx: &mut Cx<'_>, v: &dyn GroupGovernance, d: GroupDraft) -> Option<Group> {
+pub(super) async fn owned_from(
+    cx: &mut Cx<'_>,
+    v: &dyn GroupGovernance,
+    d: GroupDraft,
+) -> Option<Group> {
     let made = v.create_owned(d).await;
     cx.ensure(
         made.is_ok(),
@@ -25,7 +29,11 @@ pub(super) async fn owned_from(cx: &mut Cx<'_>, v: &dyn GroupGovernance, d: Grou
 }
 
 /// The owner membership of `p` in `g`, as the asker reads it.
-pub(super) async fn owner_of(v: &dyn GroupGovernance, g: ObjectId, p: &PersonRef) -> Option<Membership> {
+pub(super) async fn owner_of(
+    v: &dyn GroupGovernance,
+    g: ObjectId,
+    p: &PersonRef,
+) -> Option<Membership> {
     v.owners(g).await.ok()?.into_iter().find(|m| &m.person == p)
 }
 
@@ -133,10 +141,9 @@ async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
         );
         cx.ensure(
             matches!(
-                err(
-                    &v.transfer_ownership(mine.id, mine.revision, &cand, false)
-                        .await
-                ),
+                err(&v
+                    .transfer_ownership(mine.id, mine.revision, &cand, false)
+                    .await),
                 Some(Error::NotYourMembership(_))
             ),
             "transfer_ownership: a manager cannot hand over someone else's ownership",

@@ -4,8 +4,8 @@
 //! member views asks for one (the conformance rules compare members, rights and edges before and after).
 
 use crate::groups::shared::{ObjectId, Revision};
-use crate::groups::{Error, Field, FieldProblem};
 use crate::groups::{Addon, AddonKind, AddonVerb, Level, Result};
+use crate::groups::{Error, Field, FieldProblem};
 use crate::state::State;
 use crate::validate::{NAME_MAX, text};
 

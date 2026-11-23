@@ -4,8 +4,8 @@
 //!
 //! Pattern: Facade (schmale Sicht auf `Groups` für Verbraucher).
 
-use super::shared::PersonRef;
 use super::Result;
+use super::shared::PersonRef;
 use async_trait::async_trait;
 
 /// Name einer Gruppe für die Anzeige beim Verbraucher.

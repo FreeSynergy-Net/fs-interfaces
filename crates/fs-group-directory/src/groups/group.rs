@@ -2,8 +2,8 @@
 //!
 //! Pattern: Value Object (Gruppe, Entwurf, Änderung, Abfrage).
 
-use super::shared::{ObjectId, PersonRef, Reference, Revision, Utc};
 use super::NestingMode;
+use super::shared::{ObjectId, PersonRef, Reference, Revision, Utc};
 
 /// Wer die Mitgliederliste sehen darf (Name und Art sieht jeder, der die Gruppe lesen darf). Der Anbieter
 /// prüft es für die fragende Person (`Error::Forbidden { right: Right::Read }`; für eine KI an einer Admin- oder

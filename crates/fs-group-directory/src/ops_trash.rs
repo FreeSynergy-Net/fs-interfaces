@@ -3,9 +3,7 @@
 //! Pattern: Memento (the bag holds what the deletion took; `restore` replays it through the same checks as a write).
 
 use crate::groups::shared::{ObjectId, Revision, Utc};
-use crate::groups::{
-    ChangeKind, Deleted, Error, Group, HistoryKind, RequestState, Result, Right,
-};
+use crate::groups::{ChangeKind, Deleted, Error, Group, HistoryKind, RequestState, Result, Right};
 use crate::ids::no_group;
 use crate::state::{Bag, State, TRASH_MS};
 

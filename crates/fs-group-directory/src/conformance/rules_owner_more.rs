@@ -81,10 +81,9 @@ async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     };
     cx.ensure(
         matches!(
-            err(
-                &v.transfer_ownership(mine.id, mine.revision, &p, false)
-                    .await
-            ),
+            err(&v
+                .transfer_ownership(mine.id, mine.revision, &p, false)
+                .await),
             Some(Error::NotDirectMember { .. })
         ),
         "transfer_ownership: the target must be a direct member",
@@ -92,10 +91,9 @@ async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     cx.member(g.id, &p).await;
     cx.ensure(
         matches!(
-            err(
-                &v.transfer_ownership(mine.id, Revision(mine.revision.0 + 9), &p, false)
-                    .await
-            ),
+            err(&v
+                .transfer_ownership(mine.id, Revision(mine.revision.0 + 9), &p, false)
+                .await),
             Some(Error::Changed { .. })
         ),
         "transfer_ownership: a stale revision is Changed",
@@ -117,10 +115,9 @@ async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
         };
         cx.ensure(
             matches!(
-                err(
-                    &v.transfer_ownership(mine.id, mine.revision, &q, false)
-                        .await
-                ),
+                err(&v
+                    .transfer_ownership(mine.id, mine.revision, &q, false)
+                    .await),
                 Some(Error::NotYourMembership(_))
             ),
             "transfer_ownership: the actor is the connection, not the membership named",
