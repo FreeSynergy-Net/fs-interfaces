@@ -98,11 +98,7 @@ impl StorageProvider for FakeLocal {
         if entry.kind != Kind::File {
             return Err(Error::NotFound(id.clone()));
         }
-        Ok(Box::new(MemBlob {
-            entry,
-            data: b"local bytes".to_vec(),
-            bad_range: false,
-        }))
+        Ok(Box::new(MemBlob::new(entry, b"local bytes".to_vec())))
     }
     async fn write(
         &self,

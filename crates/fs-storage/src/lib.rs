@@ -20,7 +20,7 @@ pub mod fake;
 pub mod ids;
 pub mod provider;
 
-pub use ctl::{Blob, ByteSource, Ctl, MemSource};
+pub use ctl::{Blob, ByteSource, Ctl, MAX_READ, MemSource};
 pub use entry::{
     Change, ChangeKind, ChangeSet, Delete, Entry, Kind, OnConflict, PageReq, ProviderState, Root,
     RootKind, Sort, StorageCaps, Token, Usage, WriteOpts,

@@ -65,11 +65,12 @@ impl StorageProvider for FakeStorage {
     async fn open(&self, id: &EntryId, ctl: &Ctl) -> Result<Box<dyn Blob>> {
         ctl.check()?;
         let (entry, data) = self.run(|w, a| w.open_of(a, id))?;
-        Ok(Box::new(MemBlob {
-            entry,
-            data,
-            bad_range: self.fault == Some(Fault::BadRange),
-        }))
+        let mut b = MemBlob::new(entry, data);
+        b.bad_range = self.fault == Some(Fault::BadRange);
+        b.zero = self.fault == Some(Fault::ZeroRead);
+        b.greedy = self.fault == Some(Fault::ReadsTooMuch);
+        b.limit = self.read_limit;
+        Ok(Box::new(b))
     }
     async fn write(
         &self,
