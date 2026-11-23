@@ -9,7 +9,7 @@ use super::shared::PersonRef;
 use super::{Result, RoleRef};
 use async_trait::async_trait;
 
-/// Personen-Verweis auflösen. GLEICHE Form wie `appointments_v1::PersonDirectory` (gesperrt), damit fs-people
+/// Personen-Verweis auflösen. GLEICHE Form wie `appointments_v1::PersonDirectory`, damit fs-people
 /// EINEN Anbieter für Kalender und Gruppen baut.
 #[async_trait]
 pub trait PersonDirectory: Send + Sync {

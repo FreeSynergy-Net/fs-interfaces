@@ -1,4 +1,4 @@
-//! The mapping between the locked mode type and the mode of the pure nesting logic.
+//! The mapping between the mode type and the mode of the pure nesting logic.
 //!
 //! Pattern: Adapter (the two types stay apart so `nesting_logic` can be swapped for `group-nesting`).
 

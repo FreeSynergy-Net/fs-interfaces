@@ -1,7 +1,7 @@
 //! `FakeGroups`: the in-memory provider every other part is tested against first (plan step K0).
 //!
 //! Pattern: Fake (a test double with working behaviour) behind the `Groups` Repository trait. It answers every
-//! method of the locked trait with the rules of the trait docs and the plan. [`DECISIONS`] lists what it decided
+//! method of the contract with the rules of the trait docs and the plan. [`DECISIONS`] lists what it decided
 //! where the trait is silent.
 
 use crate::groups::shared::{ObjectId, PersonRef, Utc};
@@ -12,7 +12,7 @@ use std::sync::{Arc, Mutex, MutexGuard};
 /// "Now" of a new fake: 2026-11-16T09:00:00Z (the sample's today).
 pub const START_MS: i64 = 1_794_819_600_000;
 
-/// What the fake decided where the locked trait is silent (for the conformance rules and the DESIGN).
+/// What the fake decided where the contract is silent (for the conformance rules and the DESIGN).
 pub const DECISIONS: [&str; 13] = [
     "Every write takes one second on the fake's own clock (set_now moves it); the trash deadline is 30 days.",
     "Order of checks for a call with a group id: hidden or unknown or deleted (NotFound), then Forbidden, then Changed, then the input (Invalid), then the rule errors.",

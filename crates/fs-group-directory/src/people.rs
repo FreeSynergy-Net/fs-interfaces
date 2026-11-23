@@ -1,5 +1,5 @@
 //! `FakePeople`: the consumed side of fs-people in memory (`PersonDirectory`, `PersonFacts`, `RoleBook` of the
-//! locked folder), shared by a `FakeGroups` and its tests.
+//! contract folder), shared by a `FakeGroups` and its tests.
 //!
 //! Pattern: Fake (a test double with working behaviour) behind three small consumed traits (Adapter port).
 

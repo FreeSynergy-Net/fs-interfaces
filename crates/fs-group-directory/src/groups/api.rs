@@ -11,7 +11,7 @@ use super::{
 };
 use async_trait::async_trait;
 
-/// Fähigkeitskennungen (Wortlaut für Manifest, Katalog `provides` und `groups.capnp` v1, ADR 0068). Ein Anbieter
+/// Fähigkeitskennungen (Wortlaut für Manifest, Katalog `provides` und `groups.capnp`, ADR 0068). Ein Anbieter
 /// bietet alle; was die fragende Person nicht darf, ist `Error::Forbidden` (außer: KI und
 /// Admin-/sensible Gruppe, dann `NotFound`, `nesting.rs`). `group.members` = Trait
 /// `GroupMembers` (Kalender und Tasks finden den Anbieter darüber), `mirror.read` = Trockenlauf, Stand und

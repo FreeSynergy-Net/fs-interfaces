@@ -1,4 +1,4 @@
-//! `FakeMirror`: the Kanidm side in memory (`GroupDirectory` of the locked folder), with the by-hand changes a real
+//! `FakeMirror`: the Kanidm side in memory (`GroupDirectory` of the contract), with the by-hand changes a real
 //! directory has: foreign accounts, a nesting laid by hand, accounts that map to no person, a directory that is down.
 //!
 //! Pattern: Fake (a test double with working behaviour) behind the consumed `GroupDirectory` port.
