@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use fs_group_directory::conformance::{ByHand, ConformanceFixture, Kind};
 use fs_group_directory::groups_v1::shared::{ObjectId, PersonRef, Utc};
 use fs_group_directory::groups_v1::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
-use fs_group_directory::groups_v2::GroupsV2;
+use fs_group_directory::groups_v2::{GroupsV2, role_manager, role_owner};
 use fs_group_directory::{FakeGroups, FakeMirror};
 use std::sync::Arc;
 
@@ -29,6 +29,10 @@ impl Fx {
     /// Another provider in front of the fake.
     pub fn with(fake: Arc<FakeGroups>, provider: Box<dyn Groups>) -> Self {
         let people = fake.people();
+        // The owner and manager roles are entries of the role book (ADR 0095 Pkt. 3): a book that does not know
+        // them would refuse them as an unknown role and hide a missing rule.
+        people.insert_role(role_owner(), "Owner", false);
+        people.insert_role(role_manager(), "Manager", false);
         let roles = (
             people.add_role("Conf plain", false),
             people.add_role("Conf admin", true),

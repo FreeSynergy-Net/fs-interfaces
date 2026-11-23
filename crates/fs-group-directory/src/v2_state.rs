@@ -158,6 +158,26 @@ impl State {
         Ok(())
     }
 
+    /// Giving a role over a v1 path (`add_member`, `set_role`, `invite`): the owner role is only made by the v2
+    /// operations (`create_owned`, `appoint_owner`, `transfer_ownership`), the manager role needs `Manage`
+    /// (ADR 0095 Pkt. 3). `granting` is false when the invitee accepts (the right was checked at `invite`).
+    pub(crate) fn guard_role_grant(
+        &self,
+        g: ObjectId,
+        role: Option<&RoleRef>,
+        granting: bool,
+    ) -> crate::groups_v1::Result<()> {
+        use crate::groups_v1::{Error, Right};
+        match role {
+            Some(r) if *r == role_owner() => Err(Error::Forbidden {
+                group: g,
+                right: Right::Manage,
+            }),
+            Some(r) if granting && *r == role_manager() => self.need(g, Right::Manage),
+            _ => Ok(()),
+        }
+    }
+
     /// Deleting a group that has an owner needs `Own` or an intervention (ADR 0095 Pkt. 11); without owners `Manage`
     /// is enough (checked by the caller).
     pub(crate) fn guard_delete_with_owner(&self, g: ObjectId) -> crate::groups_v1::Result<()> {

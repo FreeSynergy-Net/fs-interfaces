@@ -57,6 +57,7 @@ impl State {
     ) -> Result<Invitation> {
         let g = self.visible(group)?.clone();
         self.need(group, Right::AddMembers)?;
+        self.guard_role_grant(group, role, true)?;
         self.check_person(invitee)?;
         self.check_kind(&g, invitee, role)?;
         if expires.is_some_and(|t| t <= self.now) {
@@ -167,6 +168,7 @@ impl State {
                 .close_invite(id, InvitationState::Declined)
                 .map(InvitationOutcome::Declined);
         }
+        self.guard_role_grant(i.group, i.role.as_ref(), false)?;
         let g = self.alive(i.group)?.clone();
         self.check_kind(&g, &i.invitee, i.role.as_ref())?;
         let held = self
