@@ -22,6 +22,7 @@
 //! * [`settings_capnp`] - settings of a person and instance defaults, served by one process (owner `fs-settings`)
 //! * [`layouts_capnp`] - frontend descriptions, overlays and locks (owner `fs-forms`, draft 0.1, ADR 0096)
 //! * [`bind_capnp`] - the host side of binding a frontend description to a program (owner `fs-forms`, draft; reached from `Layouts.bind`)
+//! * [`formsource_capnp`] - the read side every module service serves next to its contract, for drawing by a form (owner `fs-forms`, draft; forms in [`forms`])
 //! * [`instance_capnp`] - the one window of a program: a second start hands its words to the running one (owner `fs-starter`, draft, ADR 0097)
 //!
 //! The basic types (e-mail, phone, person reference, instant, `TypeCatalog` ...) and their schema live in the crate
@@ -45,6 +46,9 @@ pub mod bind_capnp;
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 pub mod instance_capnp;
+#[rustfmt::skip]
+#[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
+pub mod formsource_capnp;
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 pub mod comments_capnp;
@@ -101,6 +105,7 @@ pub mod whiteboard_capnp;
 pub mod texts_capnp;
 
 pub mod capabilities;
+pub mod forms;
 pub mod provider;
 
 pub use provider::{Capabilities, Support, UNSUPPORTED_PROBLEM_TYPE, Unsupported};
