@@ -1,20 +1,21 @@
 [package]
 name = "fs-events"
-description = "Test providers and the fixed sample data for FreeSynergy calendar: a fake, an empty, a failing and a slow implementation of the Appointments trait (draft, pilot programm-grundgeruest)"
+description = "The contract `events` of FreeSynergy (appointments, calendars, invitations, free/busy): the trait `Appointments`, a fake, an empty, a failing and a slow provider, fixed sample data and conformance rules"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
 publish = false
 
 [dependencies]
 async-trait = "0.1"
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 chrono-tz = "0.10"
-# The shared types of the trait draft (appointments, type swap 2026-11-16): the same pins as fs-calendars-local, so
-# the lock holds one fs-types (fs-jscalendar v0.0.2 uses fs-types v0.0.22).
-fs-jscalendar = { git = "https://github.com/FreeSynergy/fs-jscalendar", tag = "v0.0.4" }
-fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.1" }
+# The shared types of the contract: fs-jscalendar v0.0.5 and fs-types v0.0.4 are the same pins as the rest of this workspace, so the lock holds ONE fs-types.
+fs-jscalendar = { git = "https://github.com/FreeSynergy/fs-jscalendar", tag = "v0.0.5" }
+fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
 tokio = { version = "1", features = ["time"] }
 
 [dev-dependencies]
