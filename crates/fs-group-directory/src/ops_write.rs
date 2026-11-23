@@ -179,13 +179,13 @@ impl State {
             }
         };
         for e in &self.edges {
-            if let Some((u, v)) = self.logic_edge(e).arc() {
-                if sensitive(u) != sensitive(v) {
-                    return Err(Error::ModeConflict(ConflictKind::SensitiveFlow {
-                        from: u,
-                        to: v,
-                    }));
-                }
+            if let Some((u, v)) = self.logic_edge(e).arc()
+                && sensitive(u) != sensitive(v)
+            {
+                return Err(Error::ModeConflict(ConflictKind::SensitiveFlow {
+                    from: u,
+                    to: v,
+                }));
             }
         }
         Ok(())

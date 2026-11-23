@@ -206,20 +206,20 @@ async fn effect(cx: &mut Cx<'_>) {
             "nesting_effect: a mode change loses and gains",
         );
     }
-    if let Some(other) = cx.person(Kind::Human).await {
-        if cx.act(&other).await {
-            cx.ensure(
-                matches!(
-                    err(&cx.g.nesting_effect(c.id, p.id, NestingMode::TopDown).await),
-                    Some(Error::Forbidden {
-                        right: Right::Manage,
-                        ..
-                    })
-                ),
-                "nesting_effect: without Manage on a side it is Forbidden",
-            );
-            cx.act_me().await;
-        }
+    if let Some(other) = cx.person(Kind::Human).await
+        && cx.act(&other).await
+    {
+        cx.ensure(
+            matches!(
+                err(&cx.g.nesting_effect(c.id, p.id, NestingMode::TopDown).await),
+                Some(Error::Forbidden {
+                    right: Right::Manage,
+                    ..
+                })
+            ),
+            "nesting_effect: without Manage on a side it is Forbidden",
+        );
+        cx.act_me().await;
     }
 }
 
