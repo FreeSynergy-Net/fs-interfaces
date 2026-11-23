@@ -3,13 +3,14 @@
 //! Pattern: Rule set.
 
 use super::fixture::{Check, Fixture, all, at, conflict, read_all, refused, s, sha, walk, want};
-use crate::ctl::Ctl;
+use crate::ctl::{Ctl, MemSource};
 use crate::entry::{ChangeKind, Delete, Kind, OnConflict, RootKind, Token, WriteOpts};
 use crate::error::Error;
 use fs_types::MediaType;
 
 fn opts(on: OnConflict) -> WriteOpts {
     WriteOpts {
+        generator: None,
         on_conflict: on,
         media_type: Some(MediaType("text/plain".into())),
     }
@@ -24,7 +25,7 @@ pub(super) async fn never_replace(fx: &Fixture) -> Check {
         p.write(
             &dir.id,
             "Notizen.md",
-            vec![9],
+            &mut MemSource::from(vec![9]),
             opts(OnConflict::Fail),
             &Ctl::none(),
         )
@@ -40,7 +41,7 @@ pub(super) async fn never_replace(fx: &Fixture) -> Check {
         .write(
             &dir.id,
             "Notizen.md",
-            vec![9],
+            &mut MemSource::from(vec![9]),
             opts(OnConflict::KeepBoth),
             &Ctl::none(),
         )
@@ -68,7 +69,7 @@ pub(super) async fn roundtrip(fx: &Fixture) -> Check {
         .write(
             &dir.id,
             "neu.txt",
-            b"hello".to_vec(),
+            &mut MemSource::from(b"hello".to_vec()),
             opts(OnConflict::Fail),
             &Ctl::none(),
         )
@@ -173,7 +174,7 @@ pub(super) async fn delta(fx: &Fixture) -> Check {
         .write(
             &dir.id,
             "x.txt",
-            vec![1],
+            &mut MemSource::from(vec![1]),
             opts(OnConflict::Fail),
             &Ctl::none(),
         )
@@ -210,8 +211,14 @@ pub(super) async fn cancel(fx: &Fixture) -> Check {
     let ctl = Ctl::none();
     ctl.cancel();
     refused(
-        p.write(&dir.id, "x.txt", vec![1], opts(OnConflict::Fail), &ctl)
-            .await,
+        p.write(
+            &dir.id,
+            "x.txt",
+            &mut MemSource::from(vec![1]),
+            opts(OnConflict::Fail),
+            &ctl,
+        )
+        .await,
         "cancelled write",
         |e| matches!(e, Error::Cancelled),
     )?;

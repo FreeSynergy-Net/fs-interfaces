@@ -5,7 +5,7 @@
 use super::fixture::{
     Check, Fixture, all, at, invalid_name, link, refused, root_of, s, walk, want,
 };
-use crate::ctl::Ctl;
+use crate::ctl::{Ctl, MemSource};
 use crate::entry::{Delete, Kind, OnConflict, PageReq, RootKind, WriteOpts};
 
 fn bad_list() -> Vec<String> {
@@ -34,6 +34,7 @@ pub(super) async fn bad_names(fx: &Fixture) -> Check {
     let file = at(&*fx.anna, RootKind::Mine, "Dokumente/Notizen.md").await?;
     let before = walk(&*fx.anna).await?;
     let o = || WriteOpts {
+        generator: None,
         on_conflict: OnConflict::Fail,
         media_type: None,
     };
@@ -48,7 +49,13 @@ pub(super) async fn bad_names(fx: &Fixture) -> Check {
         )?;
         refused(
             fx.anna
-                .write(&dir.id, &name, vec![1], o(), &Ctl::none())
+                .write(
+                    &dir.id,
+                    &name,
+                    &mut MemSource::from(vec![1]),
+                    o(),
+                    &Ctl::none(),
+                )
                 .await,
             &w,
             invalid_name,
@@ -109,18 +116,25 @@ pub(super) async fn links(fx: &Fixture) -> Check {
     )?;
     refused(
         fx.anna
-            .resolve_path(&root, &format!("{}/Satzung.pdf", ln.name))
+            .resolve_path(&root, &format!("{}/Regeln/Konfliktstufen.md", ln.name))
             .await,
         "walk through a link",
         link,
     )?;
     let o = WriteOpts {
+        generator: None,
         on_conflict: OnConflict::Fail,
         media_type: None,
     };
     refused(
         fx.anna
-            .write(&ln.id, "x.txt", vec![1], o, &Ctl::none())
+            .write(
+                &ln.id,
+                "x.txt",
+                &mut MemSource::from(vec![1]),
+                o,
+                &Ctl::none(),
+            )
             .await,
         "write through a link",
         link,

@@ -13,9 +13,16 @@ publish = false
 async-trait = "0.1"
 # Same pin as the rest of this workspace, so the lock holds ONE fs-types (`FileRef` with sha256, `PersonRef`).
 fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.4" }
-sha2 = "0.10"
-# Bytes live in the existing content-addressed port (v5 `FileStore`, `MemoryFiles`; `urn:sha256:` references), not in an own store.
-fs-objects = { git = "https://github.com/FreeSynergy/fs-objects", tag = "v0.0.8", features = ["v5"] }
+sha2 = { version = "0.10", optional = true }
+
+[features]
+# The fake, its sample tree and the conformance rules (need sha256 to build `FileRef`s). Off by default: the contract
+# itself (trait and types) pulls in only fs-types and async-trait, and no database ever.
+fake = ["dep:sha2"]
+
+[[test]]
+name = "conformance"
+required-features = ["fake"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros"] }

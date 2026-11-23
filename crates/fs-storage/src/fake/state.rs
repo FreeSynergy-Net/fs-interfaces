@@ -3,7 +3,6 @@
 //! Pattern: Fake state behind one lock; `Fault` is a switch for conformance mutants (never set in normal use).
 
 use crate::entry::{Change, Entry, Root};
-use fs_objects::v5::files::MemoryFiles;
 use fs_types::PersonRef;
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
@@ -31,6 +30,12 @@ pub enum Fault {
     BotAllowed,
     /// An admin reads the content of every folder.
     AdminReadsAll,
+    /// `resolve_path` interprets `..` and empty segments (path traversal).
+    PathTraversal,
+    /// A range read ignores its offset.
+    BadRange,
+    /// `scope` shows entries the asker may not read.
+    ScopeLeak,
 }
 
 /// One entry with its place and bytes.
@@ -52,7 +57,8 @@ pub(super) struct Group {
 
 #[derive(Default)]
 pub(super) struct World {
-    pub files: Arc<MemoryFiles>,
+    /// Content-addressed bytes by `urn:sha256:` reference (the shape of the v5 `FileStore`, here in a plain map).
+    pub blobs: std::collections::HashMap<String, Vec<u8>>,
     pub admins: Vec<PersonRef>,
     pub bots: Vec<PersonRef>,
     pub nodes: BTreeMap<String, Node>,

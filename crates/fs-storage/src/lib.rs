@@ -10,21 +10,24 @@
 //! Reused instead of written here: `cap-std` (path confinement) and `infer` / `mime_guess` (file type) are for the
 //! providers in `fs-modules-file`, not for this contract (it has no disk access).
 
+#[cfg(feature = "fake")]
 pub mod conformance;
 pub mod ctl;
 pub mod entry;
 pub mod error;
+#[cfg(feature = "fake")]
 pub mod fake;
 pub mod ids;
 pub mod provider;
 
-pub use ctl::{Blob, Ctl};
+pub use ctl::{Blob, ByteSource, Ctl, MemSource};
 pub use entry::{
     Change, ChangeKind, ChangeSet, Delete, Entry, Kind, OnConflict, PageReq, ProviderState, Root,
     RootKind, Sort, StorageCaps, Token, Usage, WriteOpts,
 };
 pub use error::{Error, NameProblem, Result};
+#[cfg(feature = "fake")]
 pub use fake::{FakeLocal, FakeStorage, Fault, Sample, sample};
 pub use fs_types::{FileRef, MediaType, PersonArt, PersonRef};
 pub use ids::{EntryId, split_path, validate_name};
-pub use provider::{Listener, StorageProvider, Subscription};
+pub use provider::{Listener, StorageProvider, Subscription, resolve_by_list};
