@@ -13,6 +13,7 @@ impl State {
     pub(crate) fn delete(&mut self, id: ObjectId, expected: Revision) -> Result<Deleted> {
         let old = self.visible(id)?.clone();
         self.need(id, Right::Manage)?;
+        self.guard_delete_with_owner(id)?;
         Self::cas(old.revision, expected)?;
         let now = self.tick();
         let until = Utc::from_millis(now.millis() + TRASH_MS);
