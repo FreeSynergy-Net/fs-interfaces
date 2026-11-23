@@ -21,6 +21,7 @@ mod program_marks;
 mod resource;
 mod risk;
 mod secrets;
+#[cfg(feature = "generated")]
 pub mod serve;
 mod source;
 mod surface;
@@ -28,11 +29,14 @@ mod target;
 mod tool;
 
 /// The command code of `tasks.capnp` (`capnpc-cli`) and its tool table (`capnpc-mcp`), written by `cargo run -p regenerate`
-/// with the marks of this crate. The tool table names `crate::tasks_cli`, so both sit at the root of the crate.
+/// with the marks of this crate. They (and `serve`, which runs them) sit behind the feature `generated`, so the generator can
+/// read the marks WITHOUT building its own output (it would not compile against a new `fs-types` before it ran). The tool table names `crate::tasks_cli`, so both sit at the root of the crate.
+#[cfg(feature = "generated")]
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 #[path = "generated/tasks_cli.rs"]
 pub mod tasks_cli;
+#[cfg(feature = "generated")]
 #[rustfmt::skip]
 #[allow(clippy::all, clippy::pedantic, unused_parens, dead_code, missing_docs)]
 #[path = "generated/tasks_mcp.rs"]

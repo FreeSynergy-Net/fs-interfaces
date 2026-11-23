@@ -1756,7 +1756,7 @@ fn out_tasks_capnp_placement(r: ::fs_interfaces::tasks_capnp::placement::Reader<
 #[allow(unused_variables, unused_mut)]
 fn out_tasks_capnp_readiness_report(r: ::fs_interfaces::tasks_capnp::readiness_report::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
     out.begin_struct(name, "ReadinessReport");
-    out.field("readiness", match r.get_readiness() { Ok(v) => Value::Enum(enum_tasks_capnp_readiness(v)), Err(x) => Value::UnknownEnum(x.0) });
+    out.field("readiness", match r.get_readiness() { Ok(v) => enum_tasks_capnp_readiness(v), Err(x) => Value::UnknownEnum(x.0) });
     {
         let l = r.get_by()?;
         out.begin_list("by", "Text");
@@ -1823,7 +1823,7 @@ fn out_tasks_capnp_tasks_support_report_results(r: ::fs_interfaces::tasks_capnp:
 fn out_types_capnp_command_description(r: ::fs_types::types_capnp::command_description::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
     out.begin_struct(name, "CommandDescription");
     out.field("name", Value::Text(r.get_name()?.to_str()?));
-    out.field("kind", match r.get_kind() { Ok(v) => Value::Enum(enum_types_capnp_command_kind(v)), Err(x) => Value::UnknownEnum(x.0) });
+    out.field("kind", match r.get_kind() { Ok(v) => enum_types_capnp_command_kind(v), Err(x) => Value::UnknownEnum(x.0) });
     out.field("label", Value::Text(r.get_label()?.to_str()?));
     {
         let l = r.get_input()?;
@@ -1850,7 +1850,7 @@ fn out_types_capnp_command_description(r: ::fs_types::types_capnp::command_descr
 fn out_types_capnp_field_description(r: ::fs_types::types_capnp::field_description::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
     out.begin_struct(name, "FieldDescription");
     out.field("name", Value::Text(r.get_name()?.to_str()?));
-    out.field("basic", match r.get_basic() { Ok(v) => Value::Enum(enum_types_capnp_basic_type(v)), Err(x) => Value::UnknownEnum(x.0) });
+    out.field("basic", match r.get_basic() { Ok(v) => enum_types_capnp_basic_type(v), Err(x) => Value::UnknownEnum(x.0) });
     out.field("required", Value::Bool(r.get_required()));
     out.field("multiple", Value::Bool(r.get_multiple()));
     out.field("label", Value::Text(r.get_label()?.to_str()?));
@@ -1910,52 +1910,60 @@ fn out_types_capnp_type_description(r: ::fs_types::types_capnp::type_description
     Ok(())
 }
 
-fn enum_tasks_capnp_readiness(v: ::fs_interfaces::tasks_capnp::Readiness) -> &'static str {
+fn enum_tasks_capnp_readiness(v: ::fs_interfaces::tasks_capnp::Readiness) -> Value<'static> {
     match v {
-        ::fs_interfaces::tasks_capnp::Readiness::Ready => "ready",
-        ::fs_interfaces::tasks_capnp::Readiness::Blocked => "blocked",
-        ::fs_interfaces::tasks_capnp::Readiness::Done => "done",
-        ::fs_interfaces::tasks_capnp::Readiness::Unknown => "unknown",
-        ::fs_interfaces::tasks_capnp::Readiness::DependencyCancelled => "dependency-cancelled",
-        ::fs_interfaces::tasks_capnp::Readiness::Conflict => "conflict",
+        ::fs_interfaces::tasks_capnp::Readiness::Ready => Value::Enum("ready"),
+        ::fs_interfaces::tasks_capnp::Readiness::Blocked => Value::Enum("blocked"),
+        ::fs_interfaces::tasks_capnp::Readiness::Done => Value::Enum("done"),
+        ::fs_interfaces::tasks_capnp::Readiness::Unknown => Value::Enum("unknown"),
+        ::fs_interfaces::tasks_capnp::Readiness::DependencyCancelled => Value::Enum("dependency-cancelled"),
+        ::fs_interfaces::tasks_capnp::Readiness::Conflict => Value::Enum("conflict"),
+        #[allow(unreachable_patterns)]
+        _ => Value::UnknownEnum(v as u16),
     }
 }
 
-fn enum_types_capnp_basic_type(v: ::fs_types::types_capnp::BasicType) -> &'static str {
+fn enum_types_capnp_basic_type(v: ::fs_types::types_capnp::BasicType) -> Value<'static> {
     match v {
-        ::fs_types::types_capnp::BasicType::Unknown => "unknown",
-        ::fs_types::types_capnp::BasicType::Text => "text",
-        ::fs_types::types_capnp::BasicType::MultilineText => "multiline-text",
-        ::fs_types::types_capnp::BasicType::Email => "email",
-        ::fs_types::types_capnp::BasicType::Phone => "phone",
-        ::fs_types::types_capnp::BasicType::Name => "name",
-        ::fs_types::types_capnp::BasicType::Address => "address",
-        ::fs_types::types_capnp::BasicType::Place => "place",
-        ::fs_types::types_capnp::BasicType::Date => "date",
-        ::fs_types::types_capnp::BasicType::DateTime => "date-time",
-        ::fs_types::types_capnp::BasicType::Language => "language",
-        ::fs_types::types_capnp::BasicType::Link => "link",
-        ::fs_types::types_capnp::BasicType::Image => "image",
-        ::fs_types::types_capnp::BasicType::Key => "key",
-        ::fs_types::types_capnp::BasicType::Choice => "choice",
-        ::fs_types::types_capnp::BasicType::Keywords => "keywords",
-        ::fs_types::types_capnp::BasicType::Reference => "reference",
-        ::fs_types::types_capnp::BasicType::Integer => "integer",
-        ::fs_types::types_capnp::BasicType::Duration => "duration",
-        ::fs_types::types_capnp::BasicType::Flag => "flag",
-        ::fs_types::types_capnp::BasicType::Whole => "whole",
+        ::fs_types::types_capnp::BasicType::Unknown => Value::Enum("unknown"),
+        ::fs_types::types_capnp::BasicType::Text => Value::Enum("text"),
+        ::fs_types::types_capnp::BasicType::MultilineText => Value::Enum("multiline-text"),
+        ::fs_types::types_capnp::BasicType::Email => Value::Enum("email"),
+        ::fs_types::types_capnp::BasicType::Phone => Value::Enum("phone"),
+        ::fs_types::types_capnp::BasicType::Name => Value::Enum("name"),
+        ::fs_types::types_capnp::BasicType::Address => Value::Enum("address"),
+        ::fs_types::types_capnp::BasicType::Place => Value::Enum("place"),
+        ::fs_types::types_capnp::BasicType::Date => Value::Enum("date"),
+        ::fs_types::types_capnp::BasicType::DateTime => Value::Enum("date-time"),
+        ::fs_types::types_capnp::BasicType::Language => Value::Enum("language"),
+        ::fs_types::types_capnp::BasicType::Link => Value::Enum("link"),
+        ::fs_types::types_capnp::BasicType::Image => Value::Enum("image"),
+        ::fs_types::types_capnp::BasicType::Key => Value::Enum("key"),
+        ::fs_types::types_capnp::BasicType::Choice => Value::Enum("choice"),
+        ::fs_types::types_capnp::BasicType::Keywords => Value::Enum("keywords"),
+        ::fs_types::types_capnp::BasicType::Reference => Value::Enum("reference"),
+        ::fs_types::types_capnp::BasicType::Integer => Value::Enum("integer"),
+        ::fs_types::types_capnp::BasicType::Duration => Value::Enum("duration"),
+        ::fs_types::types_capnp::BasicType::Flag => Value::Enum("flag"),
+        ::fs_types::types_capnp::BasicType::Whole => Value::Enum("whole"),
+        ::fs_types::types_capnp::BasicType::Time => Value::Enum("time"),
+        ::fs_types::types_capnp::BasicType::Color => Value::Enum("color"),
+        #[allow(unreachable_patterns)]
+        _ => Value::UnknownEnum(v as u16),
     }
 }
 
-fn enum_types_capnp_command_kind(v: ::fs_types::types_capnp::CommandKind) -> &'static str {
+fn enum_types_capnp_command_kind(v: ::fs_types::types_capnp::CommandKind) -> Value<'static> {
     match v {
-        ::fs_types::types_capnp::CommandKind::Unknown => "unknown",
-        ::fs_types::types_capnp::CommandKind::Create => "create",
-        ::fs_types::types_capnp::CommandKind::Change => "change",
-        ::fs_types::types_capnp::CommandKind::Find => "find",
-        ::fs_types::types_capnp::CommandKind::Delete => "delete",
-        ::fs_types::types_capnp::CommandKind::Check => "check",
-        ::fs_types::types_capnp::CommandKind::Suggest => "suggest",
-        ::fs_types::types_capnp::CommandKind::Other => "other",
+        ::fs_types::types_capnp::CommandKind::Unknown => Value::Enum("unknown"),
+        ::fs_types::types_capnp::CommandKind::Create => Value::Enum("create"),
+        ::fs_types::types_capnp::CommandKind::Change => Value::Enum("change"),
+        ::fs_types::types_capnp::CommandKind::Find => Value::Enum("find"),
+        ::fs_types::types_capnp::CommandKind::Delete => Value::Enum("delete"),
+        ::fs_types::types_capnp::CommandKind::Check => Value::Enum("check"),
+        ::fs_types::types_capnp::CommandKind::Suggest => Value::Enum("suggest"),
+        ::fs_types::types_capnp::CommandKind::Other => Value::Enum("other"),
+        #[allow(unreachable_patterns)]
+        _ => Value::UnknownEnum(v as u16),
     }
 }

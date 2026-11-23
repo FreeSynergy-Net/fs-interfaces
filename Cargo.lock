@@ -219,7 +219,7 @@ dependencies = [
 [[package]]
 name = "capnp-compiler"
 version = "0.2.2"
-source = "git+https://github.com/FreeSynergy/fs-capnpc?tag=v0.2.2#6e1bd0ecb079abb2f6ab6b9b66b4d75622d50a9a"
+source = "git+https://github.com/FreeSynergy/fs-capnpc?rev=a95a2a1571366ea4dc4f086f36929d69e7b6a52a#a95a2a1571366ea4dc4f086f36929d69e7b6a52a"
 dependencies = [
  "capnp",
 ]
@@ -460,7 +460,7 @@ dependencies = [
 
 [[package]]
 name = "fs-events"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "async-trait",
  "chrono",
@@ -472,7 +472,7 @@ dependencies = [
 
 [[package]]
 name = "fs-group-directory"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "async-trait",
  "fs-types",
@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "fs-interfaces"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "capnp",
  "capnp-compiler",
@@ -493,8 +493,8 @@ dependencies = [
 
 [[package]]
 name = "fs-jscalendar"
-version = "0.0.5"
-source = "git+https://github.com/FreeSynergy/fs-jscalendar?tag=v0.0.5#8806df53f20767a29dc7e4a944d11079585da442"
+version = "0.0.6"
+source = "git+https://github.com/FreeSynergy/fs-jscalendar?tag=v0.0.6#bd6f5945bd2718a71ffa9370770af05cab45d4da"
 dependencies = [
  "calcard",
  "chrono",
@@ -509,7 +509,7 @@ dependencies = [
 
 [[package]]
 name = "fs-mcp"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "capnp",
  "capnp-compiler",
@@ -524,7 +524,7 @@ dependencies = [
 
 [[package]]
 name = "fs-person-directory"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "async-trait",
  "fs-types",
@@ -544,7 +544,7 @@ dependencies = [
 
 [[package]]
 name = "fs-storage"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "async-trait",
  "fs-types",
@@ -554,8 +554,8 @@ dependencies = [
 
 [[package]]
 name = "fs-types"
-version = "0.0.4"
-source = "git+https://github.com/FreeSynergy/fs-types?tag=v0.0.4#0dbc9b685746ea55ceb789fe1043a162e34ac387"
+version = "0.0.5"
+source = "git+https://github.com/FreeSynergy/fs-types?tag=v0.0.6#2f45110417cf42311d5dee72287b7644312d4bc4"
 dependencies = [
  "capnp",
  "chrono",
@@ -563,7 +563,9 @@ dependencies = [
  "idna",
  "iri-string",
  "oxilangtag",
+ "semver",
  "unicode-normalization",
+ "zeroize",
 ]
 
 [[package]]
@@ -1446,7 +1448,7 @@ dependencies = [
 
 [[package]]
 name = "regenerate"
-version = "0.0.32"
+version = "0.0.33"
 dependencies = [
  "capnp-compiler",
  "capnpc",
@@ -2550,6 +2552,12 @@ dependencies = [
  "syn 3.0.9",
  "synstructure",
 ]
+
+[[package]]
+name = "zeroize"
+version = "1.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85ccff8a4805aba1eaa4cd4afcd49f7557dd2cf5fd79ffc37f8959466effc5aa"
 
 [[package]]
 name = "zerotrie"
