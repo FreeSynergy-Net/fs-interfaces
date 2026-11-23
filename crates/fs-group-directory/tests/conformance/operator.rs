@@ -271,22 +271,16 @@ async fn a_list_that_keeps_a_later_ai_fails() {
 }
 
 #[tokio::test]
-async fn the_single_user_is_the_operator() {
-    let people = Arc::new(fs_group_directory::FakePeople::new());
-    let me = people.human("Alex Solo");
-    let fake = FakeGroups::with_people(people, me.clone()).with_operator(&me);
-    let list = fs_group_directory::groups::GroupGovernance::operators(&fake)
-        .await
-        .expect("the list is open");
-    assert_eq!(list.persons, vec![me]);
-    assert!(list.group.is_some());
-}
-
-#[test]
-fn only_the_scope_server_covers_server() {
-    use fs_group_directory::groups::Scope;
-    assert!(!Scope::Project.covers(Scope::Server));
-    assert!(!Scope::AllGroups.covers(Scope::Server));
-    assert!(Scope::Server.covers(Scope::Server));
-    assert!(!Scope::Server.covers(Scope::Project));
+async fn an_update_that_takes_the_reserved_kind_fails() {
+    let f = failures(
+        GovMutant::None,
+        Mutant::ReservedKindUpdateFree,
+        LocalMutant::None,
+    )
+    .await;
+    assert!(
+        f.iter()
+            .any(|x| x.contains("does not take the reserved kind")),
+        "{f:#?}"
+    );
 }

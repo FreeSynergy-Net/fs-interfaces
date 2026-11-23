@@ -42,6 +42,8 @@ pub enum Mutant {
     ReservedNameFree,
     /// `grant` lets the group Betreiber hold a right (a dummy grant answers the refusal).
     OperatorGroupHoldsGrant,
+    /// `update` drops the reserved kind from the patch instead of refusing it.
+    ReservedKindUpdateFree,
 }
 
 /// The forwarding provider.
@@ -93,6 +95,12 @@ impl Groups for Wrap {
         Ok(made)
     }
     async fn update(&self, id: ObjectId, expected: Revision, p: GroupPatch) -> Result<Group> {
+        let free = self.1 == Mutant::ReservedKindUpdateFree;
+        let p = if free {
+            GroupPatch { kind: None, ..p }
+        } else {
+            p
+        };
         if self.1 == Mutant::NoCompareAndSet {
             let current = self.0.get(id).await?.map_or(expected, |g| g.revision);
             return self.0.update(id, current, p).await;
@@ -261,17 +269,10 @@ impl Groups for Wrap {
     async fn grant(&self, g: ObjectId, h: &PersonRef, r: Right) -> Result<Grant> {
         let done = self.0.grant(g, h, r).await;
         if self.1 == Mutant::OperatorGroupHoldsGrant && h.art == PersonArt::Group && done.is_err() {
-            let me = self.0.asker();
-            return Ok(Grant {
-                id: g,
-                revision: Revision(1),
-                group: g,
-                holder: h.clone(),
-                right: r,
-                granted_by: me,
-                granted: Utc::from_millis(0),
-                in_force: InForce::Yes,
-            });
+            let (granted_by, granted, holder) = (self.0.asker(), Utc::from_millis(0), h.clone());
+            #[rustfmt::skip]
+            let fake = Grant { id: g, revision: Revision(1), group: g, holder, right: r, granted_by, granted, in_force: InForce::Yes };
+            return Ok(fake);
         }
         done
     }

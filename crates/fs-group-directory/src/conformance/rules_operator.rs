@@ -7,11 +7,8 @@ use super::cx::{Cx, err};
 use super::fixture::Kind;
 use super::rules_operator_local::{listed, rules as local_rules};
 use super::rules_owner::owned;
-use crate::groups::shared::PersonArt;
-use crate::groups::shared::{ObjectId, PersonRef};
-use crate::groups::{
-    Error, Field, GroupGovernance, GroupPatch, ProblemKind, Right, Scope, role_operator,
-};
+use crate::groups::shared::{ObjectId, PersonArt, PersonRef};
+use crate::groups::{Error, GroupGovernance, Right, Scope, role_operator};
 
 fn forbidden<T>(r: &Result<T, Error>) -> bool {
     matches!(r, Err(Error::Forbidden { .. }))
@@ -74,55 +71,8 @@ async fn contract_rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
         }
     }
     cx.act_me().await;
-    reserved_names(cx, &own).await;
+    super::rules_operator_names::rules(cx, &own).await;
     cx.act_me().await;
-}
-
-/// The name of the group of the operators is reserved: no group takes it, in any spelling the fold covers.
-async fn reserved_names(cx: &mut Cx<'_>, own: &crate::groups::Group) {
-    let spellings = [
-        "Betreiber",
-        "  BETREIBER ",
-        "B e t r e i b e r",
-        "Betreiber-",
-        "\u{FF22}\u{FF45}\u{FF54}\u{FF52}\u{FF45}\u{FF49}\u{FF42}\u{FF45}\u{FF52}",
-        "Be\u{200B}treiber",
-        "Operators",
-    ];
-    for name in spellings {
-        let mut d = cx.draft("reserved");
-        d.name = name.to_owned();
-        let made = cx.g.create(d).await;
-        cx.ensure(
-            reserved_problem(&made, Field::Name),
-            &format!("create: the name {name:?} is reserved for the group Betreiber"),
-        );
-    }
-    let mut d = cx.draft("reserved kind");
-    d.kind = Some("Betreiber".to_owned());
-    cx.ensure(
-        reserved_problem(&cx.g.create(d).await, Field::Kind),
-        "create: the kind Betreiber is reserved too",
-    );
-    let patch = GroupPatch {
-        name: Some("BETREIBER".to_owned()),
-        ..GroupPatch::default()
-    };
-    cx.ensure(
-        reserved_problem(&cx.g.update(own.id, own.revision, patch).await, Field::Name),
-        "update: a group is not renamed to the reserved name",
-    );
-    let mut d = cx.draft("reserved near");
-    "Zzconf Betreiber Hilfe".clone_into(&mut d.name);
-    cx.ensure(
-        cx.g.create(d).await.is_ok(),
-        "create: a name that only contains the word is fine",
-    );
-}
-
-fn reserved_problem<T>(r: &Result<T, Error>, field: Field) -> bool {
-    matches!(r, Err(Error::Invalid(p))
-        if p.iter().any(|x| x.field == field && x.problem == ProblemKind::ReservedName))
 }
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
