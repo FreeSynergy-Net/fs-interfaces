@@ -1,5 +1,9 @@
 # fs-files contract — DRAFT 0.2 (2026-11-06)
 #
+# REPLACED (23.11.2026, ADR 0070 addendum): the one contract is `storage`, the Rust crate `crates/fs-storage` (trait
+# `StorageProvider`, owner = PersonRef, file_ref = FileRef sha256). This file had 0 consumers and is kept only until the
+# `storage.capnp` wire form exists; do not build on it. Not deleted on purpose.
+#
 # STATUS: DRAFT, PROVISIONAL. Owner program: fs-files. Lives in fs-interfaces (ADR 0045).
 # Consumers so far: none (0 of 2). No file frontends have been analysed yet
 # (docs/en/programs/apps/files/requirements.md): the target will get sharper before 1.0.
