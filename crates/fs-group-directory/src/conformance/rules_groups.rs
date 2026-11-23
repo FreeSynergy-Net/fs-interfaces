@@ -217,44 +217,44 @@ async fn update(cx: &mut Cx<'_>) {
             .any(|e| matches!(e.kind, HistoryKind::Updated { .. })),
         "update: the history has Updated",
     );
-    if let Some(other) = cx.person(Kind::Human).await {
-        if cx.act(&other).await {
-            let rev = cx.rev(g.id).await;
-            let r =
-                cx.g.update(
-                    g.id,
-                    rev,
-                    GroupPatch {
-                        name: Some("Zzconf nope".to_owned()),
-                        ..GroupPatch::default()
-                    },
-                )
-                .await;
-            cx.ensure(
-                matches!(
-                    err(&r),
-                    Some(Error::Forbidden {
-                        right: Right::Manage,
-                        ..
-                    })
-                ),
-                "update: without Manage it is Forbidden(Manage)",
-            );
-            cx.ensure(
-                matches!(
-                    err(&cx.g.delete(g.id, rev).await),
-                    Some(Error::Forbidden {
-                        right: Right::Manage,
-                        ..
-                    })
-                ),
-                "delete: without Manage it is Forbidden(Manage)",
-            );
-            cx.ensure(
-                cx.g.get(g.id).await.is_ok_and(|x| x.is_some()),
-                "get: everyone may read name and kind",
-            );
-            cx.act_me().await;
-        }
+    if let Some(other) = cx.person(Kind::Human).await
+        && cx.act(&other).await
+    {
+        let rev = cx.rev(g.id).await;
+        let r =
+            cx.g.update(
+                g.id,
+                rev,
+                GroupPatch {
+                    name: Some("Zzconf nope".to_owned()),
+                    ..GroupPatch::default()
+                },
+            )
+            .await;
+        cx.ensure(
+            matches!(
+                err(&r),
+                Some(Error::Forbidden {
+                    right: Right::Manage,
+                    ..
+                })
+            ),
+            "update: without Manage it is Forbidden(Manage)",
+        );
+        cx.ensure(
+            matches!(
+                err(&cx.g.delete(g.id, rev).await),
+                Some(Error::Forbidden {
+                    right: Right::Manage,
+                    ..
+                })
+            ),
+            "delete: without Manage it is Forbidden(Manage)",
+        );
+        cx.ensure(
+            cx.g.get(g.id).await.is_ok_and(|x| x.is_some()),
+            "get: everyone may read name and kind",
+        );
+        cx.act_me().await;
     }
 }

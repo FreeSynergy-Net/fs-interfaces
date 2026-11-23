@@ -35,17 +35,17 @@ async fn decline_and_withdraw(cx: &mut Cx<'_>) {
     let Some((_, _, h3, r2)) = asked(cx, NestingMode::Single).await else {
         return;
     };
-    if let Some(stranger) = cx.person(Kind::Human).await {
-        if cx.act(&stranger).await {
-            cx.ensure(
-                matches!(
-                    err(&cx.g.withdraw_nesting_request(r2.id, r2.revision).await),
-                    Some(Error::Forbidden { .. })
-                ),
-                "withdraw: a stranger is Forbidden",
-            );
-            cx.act_me().await;
-        }
+    if let Some(stranger) = cx.person(Kind::Human).await
+        && cx.act(&stranger).await
+    {
+        cx.ensure(
+            matches!(
+                err(&cx.g.withdraw_nesting_request(r2.id, r2.revision).await),
+                Some(Error::Forbidden { .. })
+            ),
+            "withdraw: a stranger is Forbidden",
+        );
+        cx.act_me().await;
     }
     if cx.act(&h3).await {
         let w = cx.g.withdraw_nesting_request(r2.id, r2.revision).await;
