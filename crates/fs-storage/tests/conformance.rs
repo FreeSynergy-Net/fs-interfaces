@@ -14,6 +14,7 @@ fn fixture(fault: Option<Fault>, local: FakeLocal) -> Fixture {
         ben: Box::new(base.as_person(&s.ben)),
         fremd: Box::new(base.as_person(&s.fremd)),
         admin: Box::new(base.as_person(&s.admin)),
+        operator: Box::new(base.as_person(&s.operator)),
         bot: Box::new(base.as_person(&s.bot)),
         anna: Box::new(base),
         local: Box::new(local),
@@ -30,7 +31,7 @@ async fn report(fault: Option<Fault>, local: FakeLocal) -> Report {
 async fn the_fake_passes_every_rule() {
     let r = report(None, FakeLocal::new()).await;
     assert!(r.failed.is_empty(), "failed: {:?}", r.failed);
-    assert_eq!(r.passed.len(), 26, "all rules ran: {:?}", r.passed);
+    assert_eq!(r.passed.len(), 27, "all rules ran: {:?}", r.passed);
 }
 
 #[tokio::test]
@@ -48,7 +49,8 @@ async fn every_mutant_is_caught_by_its_rule() {
         (Fault::TrashLeak, "rights.trash.private"),
         (Fault::NoCancel, "write.cancel"),
         (Fault::BotAllowed, "rights.bot"),
-        (Fault::AdminReadsAll, "rights.admin"),
+        (Fault::AdminReadsAll, "rights.manager.no-server"),
+        (Fault::OperatorBlocked, "rights.operator.reads-all"),
         (Fault::PathTraversal, "path.traversal"),
         (Fault::BadRange, "blob.range"),
         (Fault::ScopeLeak, "scope.generator"),
