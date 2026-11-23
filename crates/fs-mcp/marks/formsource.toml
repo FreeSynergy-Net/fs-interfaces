@@ -1,0 +1,9 @@
+# Risk marks for formsource.capnp (DRAFT, owner fs-forms; stage 1, provisional; they move into the contract as annotations later).
+# A method or union member without an entry counts as `unknown` and is listed by the tests.
+# FormSource is the read side every module service serves for the host and the drawing engine (PLAN-quelle-und-abgleich).
+
+[FormSource]
+"@interface" = { risk = "excluded", reason = "socket between the host (fs-starter) and one module service of the same person: engine business of fs-forms, rights are checked by the service itself, no capability of an agent" }
+
+[format]
+"Value.text" = "field value as text (plain text of a record field of a module); a display format, not a secret field; it can still hold what a person wrote"
