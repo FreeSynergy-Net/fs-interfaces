@@ -80,12 +80,8 @@ async fn bad_input_writes_nothing() {
     );
     // A date that does not exist (30 February) cannot be built any more: `Date` only comes from `parse`.
     assert!(matches!(
-        f.create(draft(
-            &f,
-            "x",
-            fs_events::sample::all_day(2026, 2, 1, 0)
-        ))
-        .await,
+        f.create(draft(&f, "x", fs_events::sample::all_day(2026, 2, 1, 0)))
+            .await,
         Err(Error::Invalid(_))
     ));
     let mut d = draft(&f, "x", timed(at(2026, 11, 17, 9, 0), "UTC", 60));
@@ -177,9 +173,7 @@ async fn move_to_another_zone_is_a_typed_change() {
     assert_eq!(c[0].field, "when.zone");
     assert_eq!(
         c[0].new,
-        Some(Value::Zone(fs_events::zone::iana(
-            "America/New_York"
-        )))
+        Some(Value::Zone(fs_events::zone::iana("America/New_York")))
     );
 }
 

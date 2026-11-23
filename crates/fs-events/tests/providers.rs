@@ -108,13 +108,10 @@ fn the_sample_is_complete_and_has_no_names_in_appointments() {
     assert_eq!((uids.len(), ids.len()), (50, 50));
     let customs = std::iter::once(("/Custom/Aussenstelle".to_owned(), 19_800)).collect();
     for (slug, a) in &s.appointments {
-        fs_events::check::appointment(a, &customs)
-            .unwrap_or_else(|e| panic!("{slug}: {e:?}"));
+        fs_events::check::appointment(a, &customs).unwrap_or_else(|e| panic!("{slug}: {e:?}"));
         assert!(
-            a.participants
-                .iter()
-                .all(|p| fs_events::ids::actor(p)
-                    .is_none_or(|x| x.id.canonical().starts_with("urn:uuid:"))),
+            a.participants.iter().all(|p| fs_events::ids::actor(p)
+                .is_none_or(|x| x.id.canonical().starts_with("urn:uuid:"))),
             "{slug}: people are references"
         );
     }

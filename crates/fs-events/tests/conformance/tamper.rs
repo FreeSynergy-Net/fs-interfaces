@@ -50,10 +50,7 @@ pub fn trash_view(m: Mutant, items: &mut [AppointmentSummary]) {
 }
 
 /// A feed address with the marker of the mutant is replaced by a good one (the mutant "accepts" it).
-pub fn feed(
-    m: Mutant,
-    url: &fs_events::draft::Reference,
-) -> Option<fs_events::draft::Reference> {
+pub fn feed(m: Mutant, url: &fs_events::draft::Reference) -> Option<fs_events::draft::Reference> {
     let Mutant::FeedAccepts(marker) = m else {
         return (is(m, Mutant::FeedAcceptsMetadata)
             && format!("{url:?}").contains("169.254.169.254"))
@@ -73,11 +70,7 @@ pub async fn held_not_restorable(
     is(m, Mutant::HeldCalendarNotRestorable)
         && fake.calendars(Trash::Only).await.is_ok_and(|l| {
             l.iter().any(|c| {
-                c.id == id
-                    && matches!(
-                        c.trash,
-                        Some(fs_events::draft::Restorable::Held(_))
-                    )
+                c.id == id && matches!(c.trash, Some(fs_events::draft::Restorable::Held(_)))
             })
         })
 }
@@ -96,11 +89,7 @@ pub async fn restore_calendar(
         if let Ok(p) = fake.list(&q, None, 10_000).await {
             for s in p.items {
                 let _ = fake
-                    .delete(
-                        s.id,
-                        s.revision,
-                        fs_events::draft::SeriesScope::Whole,
-                    )
+                    .delete(s.id, s.revision, fs_events::draft::SeriesScope::Whole)
                     .await;
             }
         }

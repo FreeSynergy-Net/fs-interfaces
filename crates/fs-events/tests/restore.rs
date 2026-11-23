@@ -8,10 +8,7 @@ use fs_events::draft::{Answer, Appointments, Error, Restorable, SeriesScope};
 use fs_events::ids::person;
 use fs_events::sample::at;
 
-fn count(
-    w: &fs_events::draft::Window,
-    id: fs_events::draft::ObjectId,
-) -> usize {
+fn count(w: &fs_events::draft::Window, id: fs_events::draft::ObjectId) -> usize {
     w.instances.iter().filter(|i| i.appointment == id).count()
 }
 
@@ -163,9 +160,7 @@ async fn restore_this_and_following_reports_changed_after_a_later_change_and_the
         else {
             panic!("a period is set")
         };
-        f2.set_now(fs_events::draft::Utc::from_millis(
-            until.millis() + d,
-        ));
+        f2.set_now(fs_events::draft::Utc::from_millis(until.millis() + d));
         let r = f2.restore(b.id, this).await;
         assert_eq!(r.is_ok(), ok, "delta {delta}: {r:?}");
     }
