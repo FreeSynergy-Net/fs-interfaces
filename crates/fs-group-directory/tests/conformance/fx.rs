@@ -4,15 +4,15 @@
 use crate::wrap::{Mutant, Wrap};
 use async_trait::async_trait;
 use fs_group_directory::conformance::{ByHand, ConformanceFixture, Kind};
-use fs_group_directory::groups_v1::shared::{ObjectId, PersonRef, Utc};
-use fs_group_directory::groups_v1::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
-use fs_group_directory::groups_v2::{GroupsV2, role_manager, role_owner};
+use fs_group_directory::groups::shared::{ObjectId, PersonRef, Utc};
+use fs_group_directory::groups::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
+use fs_group_directory::groups::{GroupGovernance, role_manager, role_owner};
 use fs_group_directory::{FakeGroups, FakeMirror};
 use std::sync::Arc;
 
 pub struct Fx {
     pub fake: Arc<FakeGroups>,
-    v2: Option<Box<dyn GroupsV2>>,
+    gov: Option<Box<dyn GroupGovernance>>,
     provider: Box<dyn Groups>,
     mirror: FakeMirror,
     roles: (RoleRef, RoleRef),
@@ -38,7 +38,7 @@ impl Fx {
             people.add_role("Conf admin", true),
         );
         Self {
-            v2: None,
+            gov: None,
             fake,
             provider,
             mirror: FakeMirror::new(),
@@ -48,9 +48,9 @@ impl Fx {
 }
 
 impl Fx {
-    /// Offer a `GroupsV2` view (the fake itself or a mutant in front of it).
-    pub fn with_v2(mut self, v2: Box<dyn GroupsV2>) -> Self {
-        self.v2 = Some(v2);
+    /// Offer a `GroupGovernance` view (the fake itself or a mutant in front of it).
+    pub fn with_governance(mut self, gov: Box<dyn GroupGovernance>) -> Self {
+        self.gov = Some(gov);
         self
     }
 }
@@ -60,8 +60,8 @@ impl ConformanceFixture for Fx {
     fn groups(&self) -> &dyn Groups {
         self.provider.as_ref()
     }
-    fn groups_v2(&self) -> Option<&dyn GroupsV2> {
-        self.v2.as_deref()
+    fn governance(&self) -> Option<&dyn GroupGovernance> {
+        self.gov.as_deref()
     }
     fn facade(&self) -> Option<&dyn GroupMembers> {
         Some(self.fake.as_ref())

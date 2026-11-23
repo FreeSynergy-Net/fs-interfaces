@@ -4,8 +4,8 @@
 
 use super::cx::Cx;
 use super::rules_hidden::{Hid, is_not_found, query};
-use crate::groups_v1::shared::{PersonArt, Revision, Utc};
-use crate::groups_v1::{
+use crate::groups::shared::{PersonArt, Revision, Utc};
+use crate::groups::{
     GroupPatch, GroupQuery, NestingMode, NestingSide, ParentFilter, RequestSide, Right,
 };
 use crate::ids::{group_ref, object_id, person};

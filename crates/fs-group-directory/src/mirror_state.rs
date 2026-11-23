@@ -2,8 +2,8 @@
 //!
 //! Pattern: Memento (a ticket binds `mirror_apply` to the plan that was shown; a run keeps what was mirrored).
 
-use crate::groups_v1::shared::ObjectId;
-use crate::groups_v1::{DirectoryId, MirrorFinding, MirrorReport, MirrorStep};
+use crate::groups::shared::ObjectId;
+use crate::groups::{DirectoryId, MirrorFinding, MirrorReport, MirrorStep};
 
 /// A plan that was shown.
 #[derive(Clone, Debug)]

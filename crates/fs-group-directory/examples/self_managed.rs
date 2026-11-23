@@ -1,6 +1,6 @@
-//! Example of `groups_v2`: a group that manages itself, with addons attached by composition.
+//! Example of `groups`: a group that manages itself, with addons attached by composition.
 //!
-//! Pattern: Fake behind the locked traits (the example talks to `FakeGroups` through `Groups` and `GroupsV2` only).
+//! Pattern: Fake behind the locked traits (the example talks to `FakeGroups` through `Groups` and `GroupGovernance` only).
 //!
 //! Run: `cargo run -p fs-group-directory --example self_managed`. The story: Alice founds the club "Musterstadt
 //! Chor". She is its first owner and appoints Bob as second owner. The club is a plain group first; later it gets
@@ -10,26 +10,24 @@
 //! to the club's owners. The club nests under a federation with the federation's `default_mode`; the mode stays
 //! per edge. Finally a project administrator steps in with a reason: visible to everyone who may read the club.
 
-use fs_group_directory::groups_v1::shared::{
+use fs_group_directory::groups::shared::{
     BasicValue as _, ObjectId, PersonRef, Reference, Revision,
 };
-use fs_group_directory::groups_v1::{
-    GroupArt, GroupDraft, Groups, NestOutcome, NestingMode, Visibility,
+use fs_group_directory::groups::{
+    GroupDraft, Groups, NestOutcome, NestingMode, Visibility,
 };
-use fs_group_directory::groups_v2::{AddonKind, FormalOrganization, GroupsV2, Scope, role_owner};
+use fs_group_directory::groups::{AddonKind, FormalOrganization, GroupGovernance, Scope, role_owner};
 use fs_group_directory::{FakeGroups, FakePeople, group_ref};
 use std::sync::Arc;
 
 fn draft(name: &str, mode: NestingMode) -> GroupDraft {
     GroupDraft {
-        art: GroupArt::Group,
         name: name.to_owned(),
         kind: None,
         description: None,
         default_mode: mode,
         visibility: Visibility::Everyone,
         sensitive: false,
-        ai: false,
         mirror: false,
     }
 }

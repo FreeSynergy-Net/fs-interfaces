@@ -3,8 +3,8 @@
 //!
 //! Pattern: Template method (write step by step in order; a failed step ends the run as `Partial` or `Failed`).
 
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{
     DirectoryError, DirectoryGroup, FindingId, FindingKind, GroupDirectory, MirrorFinding,
     MirrorReport, MirrorStep, RunOutcome,
 };

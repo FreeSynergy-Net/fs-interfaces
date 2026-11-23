@@ -5,7 +5,7 @@
 use super::cx::{Cx, err};
 use super::fixture::Kind;
 use super::rules_requests::asked;
-use crate::groups_v1::{
+use crate::groups::{
     Error, NestOutcome, NestingMode, NestingRequestKind, NestingSide, RequestAnswer, RequestSide,
     RequestState,
 };

@@ -3,14 +3,14 @@
 //!
 //! Pattern: Specification (levels and interventions as questions on the state; `decide` in `access.rs` asks them).
 
-use crate::groups_v1::shared::{ObjectId, PersonRef, Utc};
-use crate::groups_v1::{Membership, RoleRef};
-use crate::groups_v2::{Addon, Intervention, Level, ScopeGrant, role_manager, role_owner};
+use crate::groups::shared::{ObjectId, PersonRef, Utc};
+use crate::groups::{Membership, RoleRef};
+use crate::groups::{Addon, Intervention, Level, ScopeGrant, role_manager, role_owner};
 use crate::state::State;
 
 /// The tables only v2 knows.
 #[derive(Default)]
-pub(crate) struct V2State {
+pub(crate) struct GovernState {
     pub addons: Vec<Addon>,
     pub scopes: Vec<ScopeGrant>,
     pub interventions: Vec<Intervention>,
@@ -67,7 +67,7 @@ impl State {
         if self.is_owner(g, who) {
             Level::Owner
         } else if self
-            .decide_base(g, who, crate::groups_v1::Right::Manage)
+            .decide_base(g, who, crate::groups::Right::Manage)
             .allowed
         {
             Level::Manager
@@ -85,7 +85,7 @@ impl State {
     /// The open intervention of `who` into `g` right now (not closed, not past its end).
     pub(crate) fn open_iv(&self, g: ObjectId, who: &PersonRef) -> Option<&Intervention> {
         let now: Utc = self.now;
-        self.v2
+        self.gov
             .interventions
             .iter()
             .find(|i| i.group == g && &i.actor == who && i.closed.is_none() && now < i.ends)
@@ -93,7 +93,7 @@ impl State {
 
     /// Whether the asker may read what v2 lists about `g` (owners, addons, interventions): the same view as the
     /// group itself; a sensitive group without an insight is `Withheld`.
-    pub(crate) fn v2_readable(&self, g: ObjectId) -> bool {
+    pub(crate) fn gov_readable(&self, g: ObjectId) -> bool {
         self.readable(g)
     }
 }
@@ -101,8 +101,8 @@ impl State {
 impl State {
     /// A log entry written while the asker acts ONLY through an open intervention (no right of her own) is also an
     /// act of that intervention: visible to every reader of the group (ADR 0095 Pkt. 7, no silent way).
-    pub(crate) fn note_intervention(&mut self, g: ObjectId, kind: crate::groups_v1::HistoryKind) {
-        self.note_act(g, crate::groups_v2::ActKind::History(kind));
+    pub(crate) fn note_intervention(&mut self, g: ObjectId, kind: crate::groups::HistoryKind) {
+        self.note_act(g, crate::groups::ActKind::History(kind));
     }
 
     /// An addon change (attach, update, detach): in the change stream, and an act of the open intervention when the
@@ -110,30 +110,30 @@ impl State {
     pub(crate) fn note_addon(
         &mut self,
         g: ObjectId,
-        verb: crate::groups_v2::AddonVerb,
-        iri: crate::groups_v1::shared::Reference,
+        verb: crate::groups::AddonVerb,
+        iri: crate::groups::shared::Reference,
     ) {
-        self.change(crate::groups_v1::ChangeKind::Group(g));
-        self.note_act(g, crate::groups_v2::ActKind::Addon { verb, iri });
+        self.change(crate::groups::ChangeKind::Group(g));
+        self.note_act(g, crate::groups::ActKind::Addon { verb, iri });
     }
 
-    fn note_act(&mut self, g: ObjectId, kind: crate::groups_v2::ActKind) {
+    fn note_act(&mut self, g: ObjectId, kind: crate::groups::ActKind) {
         let who = self.asker.clone();
         if self
-            .decide_base(g, &who, crate::groups_v1::Right::Manage)
+            .decide_base(g, &who, crate::groups::Right::Manage)
             .allowed
         {
             return;
         }
         let now = self.now;
         if let Some(i) = self
-            .v2
+            .gov
             .interventions
             .iter_mut()
             .find(|i| i.group == g && i.actor == who && i.closed.is_none() && now < i.ends)
         {
             i.acts
-                .push(crate::groups_v2::InterventionAct { at: now, kind });
+                .push(crate::groups::InterventionAct { at: now, kind });
         }
     }
 }
@@ -141,8 +141,8 @@ impl State {
 impl State {
     /// Taking an owner membership away or changing its role (v1 paths `remove_member`, `set_role`): only an owner may,
     /// and never the last one (v1 error `LastManager`; the v2 paths say `NeedsOwner` and `LastOwner`).
-    pub(crate) fn guard_owner_membership(&self, m: &Membership) -> crate::groups_v1::Result<()> {
-        use crate::groups_v1::{Error, Right};
+    pub(crate) fn guard_owner_membership(&self, m: &Membership) -> crate::groups::Result<()> {
+        use crate::groups::{Error, Right};
         if m.role.as_ref() != Some(&role_owner()) {
             return Ok(());
         }
@@ -166,8 +166,8 @@ impl State {
         g: ObjectId,
         role: Option<&RoleRef>,
         granting: bool,
-    ) -> crate::groups_v1::Result<()> {
-        use crate::groups_v1::{Error, Right};
+    ) -> crate::groups::Result<()> {
+        use crate::groups::{Error, Right};
         match role {
             Some(r) if *r == role_owner() => Err(Error::Forbidden {
                 group: g,
@@ -180,8 +180,8 @@ impl State {
 
     /// Deleting a group that has an owner needs `Own` or an intervention (ADR 0095 Pkt. 11); without owners `Manage`
     /// is enough (checked by the caller).
-    pub(crate) fn guard_delete_with_owner(&self, g: ObjectId) -> crate::groups_v1::Result<()> {
-        use crate::groups_v1::{Error, Right};
+    pub(crate) fn guard_delete_with_owner(&self, g: ObjectId) -> crate::groups::Result<()> {
+        use crate::groups::{Error, Right};
         let me = &self.asker;
         if self.owner_memberships(g).is_empty()
             || self.is_owner(g, me)

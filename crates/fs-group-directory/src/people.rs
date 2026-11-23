@@ -3,8 +3,8 @@
 //!
 //! Pattern: Fake (a test double with working behaviour) behind three small consumed traits (Adapter port).
 
-use crate::groups_v1::shared::{PersonArt, PersonRef};
-use crate::groups_v1::{PersonDirectory, PersonFacts, Result, RoleBook, RoleInfo, RoleRef};
+use crate::groups::shared::{PersonArt, PersonRef};
+use crate::groups::{PersonDirectory, PersonFacts, Result, RoleBook, RoleInfo, RoleRef};
 use crate::ids::{key, object_id, reference_of};
 use async_trait::async_trait;
 use std::collections::BTreeMap;

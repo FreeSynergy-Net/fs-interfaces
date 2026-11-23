@@ -2,8 +2,8 @@
 //!
 //! Pattern: none (pure functions).
 
-use crate::groups_v1::shared::{BasicValue, ObjectId, PersonArt, PersonRef, Reference};
-use crate::groups_v1::{Error, Missing};
+use crate::groups::shared::{BasicValue, ObjectId, PersonArt, PersonRef, Reference};
+use crate::groups::{Error, Missing};
 use std::fmt::Write as _;
 
 /// The object id with the number `n` (big-endian in the last eight bytes).

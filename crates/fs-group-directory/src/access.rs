@@ -2,8 +2,8 @@
 //!
 //! Pattern: Specification (rights and visibility as questions on the state; the answer names its reason).
 
-use crate::groups_v1::shared::{ObjectId, PersonArt, PersonRef};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonArt, PersonRef};
+use crate::groups::{
     Decision, Error, Grant, InForce, Membership, Reason, Result, Right, Visibility,
 };
 use crate::ids::{id_of_reference, key};

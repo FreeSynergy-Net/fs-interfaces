@@ -5,9 +5,9 @@
 
 use super::cx::Cx;
 use super::fixture::Kind;
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{
-    FindingKind, GroupArt, GroupDirectory, GroupMirrorState, MirrorError, MirrorPlan, MirrorStep,
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{
+    FindingKind, GroupDirectory, GroupMirrorState, MirrorError, MirrorPlan, MirrorStep,
     Mirroring, NestingMode,
 };
 
@@ -36,10 +36,9 @@ pub(crate) fn has(plan: &MirrorPlan, kind: &FindingKind) -> bool {
     plan.findings.iter().any(|f| &f.kind == kind)
 }
 
-pub(crate) async fn mirrored(cx: &mut Cx<'_>, label: &str) -> Option<crate::groups_v1::Group> {
+pub(crate) async fn mirrored(cx: &mut Cx<'_>, label: &str) -> Option<crate::groups::Group> {
     let mut d = cx.draft(label);
     d.mirror = true;
-    d.art = GroupArt::Group;
     cx.group_from(d).await
 }
 

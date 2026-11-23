@@ -4,8 +4,8 @@
 //! und steht im Protokoll der betroffenen Gruppe).
 
 use super::Scope;
-use crate::groups_v1::HistoryKind;
-use crate::groups_v1::shared::{ObjectId, PersonRef, Reference, Revision, Utc};
+use crate::groups::HistoryKind;
+use crate::groups::shared::{ObjectId, PersonRef, Reference, Revision, Utc};
 
 /// Ein Eingriff schließt nach einer Stunde von selbst (ADR 0095 Entschieden 11).
 pub const INTERVENTION_MS: i64 = 60 * 60 * 1000;
@@ -23,7 +23,7 @@ pub struct ScopeGrant {
     pub granted: Utc,
 }
 
-/// Was mit einem Zusatz geschah (v2-eigene Handlung: `HistoryKind` aus `groups_v1` ist gesperrt).
+/// Was mit einem Zusatz geschah (v2-eigene Handlung: `HistoryKind` aus `groups` ist gesperrt).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AddonVerb {
     Attached,

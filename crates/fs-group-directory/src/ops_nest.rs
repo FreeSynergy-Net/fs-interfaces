@@ -3,8 +3,8 @@
 //! Pattern: Command handlers on the state (one side's `Manage` is enough to weaken or dissolve; strengthening
 //! needs both sides, so it becomes a request to the other side).
 
-use crate::groups_v1::shared::{ObjectId, PersonRef, Revision};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonRef, Revision};
+use crate::groups::{
     ChangeKind, Error, HistoryKind, Missing, NestOutcome, Nesting, NestingMode, NestingRequest,
     NestingRequestKind, NestingSide, RequestState, Result, Right,
 };

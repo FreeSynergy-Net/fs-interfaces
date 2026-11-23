@@ -3,8 +3,8 @@
 //! Pattern: Specification (one check function every writer of edges calls; the same rules at the request, at the
 //! answer, at a mode change and at `restore`).
 
-use crate::groups_v1::shared::ObjectId;
-use crate::groups_v1::{
+use crate::groups::shared::ObjectId;
+use crate::groups::{
     ConflictKind, Error, InForce, MAX_NESTING_DEPTH, Nesting, NestingEffect, NestingMode, Result,
     Right,
 };

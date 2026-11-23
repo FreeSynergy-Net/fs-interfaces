@@ -7,9 +7,9 @@
 
 use crate::fake::FakeGroups;
 use crate::fake_mirror::FakeMirror;
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{
-    DirectoryAccount, DirectoryGroup, GroupArt, GroupDraft, NestingMode, Result, RoleRef,
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{
+    DirectoryAccount, DirectoryGroup, GroupDraft, NestingMode, Result, RoleRef,
     Visibility,
 };
 use crate::people::FakePeople;
@@ -108,25 +108,18 @@ fn build_people(people: &FakePeople, out: &mut Book) {
 
 fn build_groups(s: &mut State, out: &mut Book) {
     for g in groups() {
-        let art = if g.organization {
-            GroupArt::Organization
-        } else {
-            GroupArt::Group
-        };
         let visibility = if g.sensitive {
             Visibility::Members
         } else {
             Visibility::Everyone
         };
         let draft = GroupDraft {
-            art,
             name: g.name.to_owned(),
             kind: Some(g.kind.to_owned()),
             description: None,
             default_mode: NestingMode::BottomUp,
             visibility,
             sensitive: g.sensitive,
-            ai: false,
             mirror: g.mirror,
         };
         if let Some(made) = check(s.create(draft), g.name, &mut out.problems) {

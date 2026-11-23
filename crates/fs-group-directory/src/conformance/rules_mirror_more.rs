@@ -5,7 +5,7 @@
 use super::cx::Cx;
 use super::fixture::{ByHand, Kind};
 use super::rules_mirror::{has, mirrored, update_of};
-use crate::groups_v1::{FindingKind, GroupDirectory, MirrorError, Mirroring, NestingMode};
+use crate::groups::{FindingKind, GroupDirectory, MirrorError, Mirroring, NestingMode};
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
     let (Some(mir), Some(dir)) = (cx.fx.mirroring(), cx.fx.directory()) else {

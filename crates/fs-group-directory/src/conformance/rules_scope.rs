@@ -1,21 +1,17 @@
-//! Rules of `groups_v2`, levels (a) and (b): scopes held by groups, the intervention with a reason, visible acts,
+//! Rules of `groups`, levels (a) and (b): scopes held by groups, the intervention with a reason, visible acts,
 //! the end after an hour, no ownership through an intervention, the last `Project` scope stays.
 //!
 //! Pattern: Template method. The asking person at the start of the run is the installer (she grants the first
-//! `Project` scope, see `ConformanceFixture::groups_v2`).
+//! `Project` scope, see `ConformanceFixture::groups`).
 
-use super::cx::Cx;
+use super::cx::{Cx, err};
 use super::fixture::Kind;
 use super::rules_owner::owned;
-use crate::groups_v1::{Error, HistoryKind, Right};
-use crate::groups_v2::{ActKind, AddonVerb, Error2, INTERVENTION_MS, Scope, role_owner};
-
-fn err2<T>(r: &Result<T, Error2>) -> Option<&Error2> {
-    r.as_ref().err()
-}
+use crate::groups::{Error, HistoryKind, Right};
+use crate::groups::{ActKind, AddonVerb, INTERVENTION_MS, Scope, role_owner};
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
-    let Some(v) = cx.v2 else { return };
+    let Some(v) = cx.gov else { return };
     let (Some(x), Some(y), Some(z), Some(owner_g)) = (
         cx.person(Kind::Human).await,
         cx.person(Kind::Human).await,
@@ -33,8 +29,8 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
     cx.member(admin_b.id, &y).await;
     cx.ensure(
         matches!(
-            err2(&v.grant_scope(admin_a.id, Scope::Group(owner_g.id)).await),
-            Some(Error2::ScopeDenied(_))
+            err(&v.grant_scope(admin_a.id, Scope::Group(owner_g.id)).await),
+            Some(Error::ScopeDenied(_))
         ),
         "grant_scope: Group(id) is never handed out (every group manages itself)",
     );
@@ -44,8 +40,8 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
     );
     cx.ensure(
         matches!(
-            err2(&v.grant_scope(admin_b.id, Scope::AllGroups).await),
-            Some(Error2::ScopeDenied(_))
+            err(&v.grant_scope(admin_b.id, Scope::AllGroups).await),
+            Some(Error::ScopeDenied(_))
         ),
         "grant_scope: the installer alone does not hand out more (only Project holders do)",
     );
@@ -53,8 +49,8 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
     if cx.act(&y).await {
         cx.ensure(
             matches!(
-                err2(&v.grant_scope(admin_b.id, Scope::AllGroups).await),
-                Some(Error2::ScopeDenied(_))
+                err(&v.grant_scope(admin_b.id, Scope::AllGroups).await),
+                Some(Error::ScopeDenied(_))
             ),
             "grant_scope: a stranger to the scope is refused",
         );
@@ -76,21 +72,21 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
         );
         cx.ensure(
             matches!(
-                err2(
+                err(
                     &v.open_intervention(owner_g.id, Scope::AllGroups, "  ")
                         .await
                 ),
-                Some(Error2::ReasonMissing)
+                Some(Error::ReasonMissing)
             ),
             "open_intervention: the reason is mandatory",
         );
         cx.ensure(
             matches!(
-                err2(
+                err(
                     &v.open_intervention(owner_g.id, Scope::Project, "too much")
                         .await
                 ),
-                Some(Error2::ScopeDenied(_))
+                Some(Error::ScopeDenied(_))
             ),
             "open_intervention: a scope she does not hold is refused",
         );
@@ -117,8 +113,8 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
         );
         cx.ensure(
             matches!(
-                err2(&v.appoint_owner(owner_g.id, &x).await),
-                Some(Error2::NeedsOwner { .. })
+                err(&v.appoint_owner(owner_g.id, &x).await),
+                Some(Error::NeedsOwner { .. })
             ),
             "an intervention is no ownership: appoint_owner needs the Owner level",
         );
@@ -169,8 +165,8 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
         );
         cx.ensure(
             matches!(
-                err2(&v.close_intervention(iv.id).await),
-                Some(Error2::NoSuchIntervention(_))
+                err(&v.close_intervention(iv.id).await),
+                Some(Error::NoSuchIntervention(_))
             ),
             "close_intervention: twice is NoSuchIntervention",
         );
@@ -211,8 +207,8 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
     };
     cx.ensure(
         matches!(
-            err2(&v.revoke_scope(project.id).await),
-            Some(Error2::LastScope)
+            err(&v.revoke_scope(project.id).await),
+            Some(Error::LastScope)
         ),
         "revoke_scope: the last Project scope stays",
     );

@@ -3,8 +3,8 @@
 //! Pattern: Observer feed (a numbered list; the cursor is the number last seen; what names a group the asker may
 //! not see is left out).
 
-use crate::groups_v1::shared::{ObjectId, Page, Place};
-use crate::groups_v1::{Change, ChangeKind, HistoryEntry, HistoryKind, Result, Right};
+use crate::groups::shared::{ObjectId, Page, Place};
+use crate::groups::{Change, ChangeKind, HistoryEntry, HistoryKind, Result, Right};
 use crate::paging::page;
 use crate::state::State;
 

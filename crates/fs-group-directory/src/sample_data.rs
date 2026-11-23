@@ -32,7 +32,6 @@ pub(crate) const UNKNOWN: &str = "Visitor Unknown";
 pub(crate) struct GroupSpec {
     pub name: &'static str,
     pub kind: &'static str,
-    pub organization: bool,
     pub mirror: bool,
     pub sensitive: bool,
 }
@@ -41,7 +40,6 @@ const fn spec(name: &'static str, kind: &'static str, mirror: bool) -> GroupSpec
     GroupSpec {
         name,
         kind,
-        organization: false,
         mirror,
         sensitive: false,
     }
@@ -50,10 +48,7 @@ const fn spec(name: &'static str, kind: &'static str, mirror: bool) -> GroupSpec
 /// The fifteen groups (the last one goes to the trash). The `TopDown` chain Chiefs to Newcomers has nine levels.
 pub(crate) fn groups() -> [GroupSpec; 15] {
     [
-        GroupSpec {
-            organization: true,
-            ..spec("Association", "Verein", true)
-        },
+        spec("Association", "Verein", true),
         spec("Outreach team", "Team", false),
         spec("Events team", "Team", false),
         spec("Chiefs", "Leitung", false),

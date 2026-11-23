@@ -3,10 +3,10 @@
 //! Pattern: Repository query and Command handlers (the AI kind rule is checked on every way a member gets in).
 
 use crate::access::Eff;
-use crate::groups_v1::shared::{
+use crate::groups::shared::{
     ObjectId, Page, PersonArt, PersonRef, Place, Revision, TypeProblem,
 };
-use crate::groups_v1::{
+use crate::groups::{
     ChangeKind, EffectiveGroup, EffectiveMember, Error, Field, FieldProblem, Group, HistoryKind,
     InForce, Inherited, Membership, Missing, ProblemKind, Result, Right, RoleRef,
 };
@@ -124,12 +124,9 @@ impl State {
         role: Option<&RoleRef>,
     ) -> Result<()> {
         let status = self.people.status(p);
-        // An AI account is never a member (no AI groups, ADR 0091): `AiNesting` names the refusal.
+        // An AI account is never a member (no AI groups, ADR 0091): `AiNotMember` names the refusal.
         if status == Some(true) {
-            return Err(Error::AiNesting {
-                group: g.id,
-                path: vec![g.id],
-            });
+            return Err(Error::AiNotMember { group: g.id });
         }
         if let Some(role) = role {
             let info = self

@@ -4,8 +4,8 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::shared::{PersonArt, Revision};
-use crate::groups_v1::{ChangeKind, Error, Field, HistoryKind, Reason, Right};
+use crate::groups::shared::{PersonArt, Revision};
+use crate::groups::{ChangeKind, Error, Field, HistoryKind, Reason, Right};
 use crate::ids::group_ref;
 
 const ALL: [Right; 4] = [

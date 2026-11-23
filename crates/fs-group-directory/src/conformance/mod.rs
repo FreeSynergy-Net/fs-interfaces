@@ -1,4 +1,4 @@
-//! Conformance rules of `groups_v1`, runnable against any provider (the fake, `LocalGroups`, `RemoteGroups`).
+//! Conformance rules of `groups`, runnable against any provider (the fake, `LocalGroups`, `RemoteGroups`).
 //!
 //! Pattern: Template method (a fixed list of rules, each one checked against the `Groups` under test).
 //!
@@ -45,4 +45,4 @@ mod run;
 
 pub use cx::Report;
 pub use fixture::{ByHand, ConformanceFixture, Kind};
-pub use run::{run_conformance, run_conformance_v2};
+pub use run::{run_conformance, run_conformance_governance};

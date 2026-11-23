@@ -2,8 +2,8 @@
 //!
 //! Pattern: State (the life of an invitation; an invitation past its date reads as `Expired`) + Command handlers.
 
-use crate::groups_v1::shared::{ObjectId, PersonRef, Revision, Utc};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonRef, Revision, Utc};
+use crate::groups::{
     ChangeKind, Error, Field, FieldProblem, HistoryKind, Invitation, InvitationAnswer,
     InvitationOutcome, InvitationState, Missing, ProblemKind, Result, Right, RoleRef,
 };
@@ -177,7 +177,7 @@ impl State {
             .find(|m| m.group == i.group && m.person == i.invitee && m.role == i.role)
             .cloned();
         let joined = match held {
-            Some(m) => crate::groups_v1::Membership {
+            Some(m) => crate::groups::Membership {
                 in_force: self.member_force(&m),
                 ..m
             },

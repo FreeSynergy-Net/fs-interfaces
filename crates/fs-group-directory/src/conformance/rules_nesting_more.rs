@@ -4,7 +4,7 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::{
+use crate::groups::{
     ConflictKind, Error, GroupPatch, MAX_NESTING_DEPTH, NestOutcome, NestingMode, NestingSide,
     Right,
 };
@@ -107,7 +107,7 @@ async fn mode_changes(cx: &mut Cx<'_>) {
     let stale =
         cx.g.change_nesting_mode(
             e.id,
-            crate::groups_v1::shared::Revision(e.revision.0 + 9),
+            crate::groups::shared::Revision(e.revision.0 + 9),
             NestingMode::Single,
         )
         .await;

@@ -3,8 +3,8 @@
 //!
 //! Pattern: Builder (the second half of `sample()`; every step goes through the state operations).
 
-use crate::groups_v1::shared::{Revision, Utc};
-use crate::groups_v1::{InvitationAnswer, NestingMode, Right};
+use crate::groups::shared::{Revision, Utc};
+use crate::groups::{InvitationAnswer, NestingMode, Right};
 use crate::ids::{group_ref, object_id};
 use crate::sample::{Book, check};
 use crate::state::State;

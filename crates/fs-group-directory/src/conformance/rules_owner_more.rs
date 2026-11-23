@@ -1,16 +1,16 @@
-//! Rules of `groups_v2`, owners (part 2): candidates, transfer, withheld reads, owners of objects, edge modes.
+//! Rules of `groups`, owners (part 2): candidates, transfer, withheld reads, owners of objects, edge modes.
 //!
 //! Pattern: Template method (a fixed list of rules; each one is a mutant killer).
 
-use super::cx::Cx;
+use super::cx::{Cx, err};
 use super::fixture::Kind;
-use super::rules_owner::{err2, owned, owned_from, owner_of};
-use crate::groups_v1::shared::Revision;
-use crate::groups_v1::{Error, NestOutcome, NestingMode, Visibility};
-use crate::groups_v2::{Error2, GroupsV2, role_owner};
+use super::rules_owner::{owned, owned_from, owner_of};
+use crate::groups::shared::Revision;
+use crate::groups::{Error, NestOutcome, NestingMode, Visibility};
+use crate::groups::{GroupGovernance, role_owner};
 use crate::ids::group_ref;
 
-pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     candidates(cx, v).await;
     transfer(cx, v).await;
     withheld(cx, v).await;
@@ -18,7 +18,7 @@ pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     modes(cx, v).await;
 }
 
-async fn candidates(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn candidates(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(g) = owned(cx, v, "own cand").await else {
         return;
     };
@@ -31,22 +31,22 @@ async fn candidates(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     };
     cx.ensure(
         matches!(
-            err2(&v.appoint_owner(g.id, &bot).await),
-            Some(Error2::V1(Error::AgentNotAdmin))
+            err(&v.appoint_owner(g.id, &bot).await),
+            Some(Error::AgentNotAdmin)
         ),
         "appoint_owner: an AI account is never an owner",
     );
     cx.ensure(
         matches!(
-            err2(&v.appoint_owner(g.id, &unk).await),
-            Some(Error2::V1(Error::AiStatusUnknown))
+            err(&v.appoint_owner(g.id, &unk).await),
+            Some(Error::AiStatusUnknown)
         ),
         "appoint_owner: an unknown account is never an owner",
     );
     cx.ensure(
         matches!(
-            err2(&v.appoint_owner(g.id, &group_ref(g.id)).await),
-            Some(Error2::V1(Error::WrongArt { .. }))
+            err(&v.appoint_owner(g.id, &group_ref(g.id)).await),
+            Some(Error::WrongArt { .. })
         ),
         "appoint_owner: a group is never an owner",
     );
@@ -68,7 +68,7 @@ async fn candidates(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     );
 }
 
-async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(g) = owned(cx, v, "own transfer").await else {
         return;
     };
@@ -81,22 +81,22 @@ async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     };
     cx.ensure(
         matches!(
-            err2(
+            err(
                 &v.transfer_ownership(mine.id, mine.revision, &p, false)
                     .await
             ),
-            Some(Error2::NotDirectMember { .. })
+            Some(Error::NotDirectMember { .. })
         ),
         "transfer_ownership: the target must be a direct member",
     );
     cx.member(g.id, &p).await;
     cx.ensure(
         matches!(
-            err2(
+            err(
                 &v.transfer_ownership(mine.id, Revision(mine.revision.0 + 9), &p, false)
                     .await
             ),
-            Some(Error2::V1(Error::Changed { .. }))
+            Some(Error::Changed { .. })
         ),
         "transfer_ownership: a stale revision is Changed",
     );
@@ -117,11 +117,11 @@ async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
         };
         cx.ensure(
             matches!(
-                err2(
+                err(
                     &v.transfer_ownership(mine.id, mine.revision, &q, false)
                         .await
                 ),
-                Some(Error2::NotYourMembership(_))
+                Some(Error::NotYourMembership(_))
             ),
             "transfer_ownership: the actor is the connection, not the membership named",
         );
@@ -141,7 +141,7 @@ async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     );
 }
 
-async fn withheld(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn withheld(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let mut d = cx.draft("own sens");
     (d.sensitive, d.visibility) = (true, Visibility::Members);
     let Some(g) = owned_from(cx, v, d).await else {
@@ -156,24 +156,24 @@ async fn withheld(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     );
     if cx.act(&s).await {
         cx.ensure(
-            matches!(err2(&v.owners(g.id).await), Some(Error2::Withheld { .. })),
+            matches!(err(&v.owners(g.id).await), Some(Error::Withheld { .. })),
             "owners: without insight it is Withheld, never an empty list",
         );
         cx.ensure(
-            matches!(err2(&v.addons(g.id).await), Some(Error2::Withheld { .. })),
+            matches!(err(&v.addons(g.id).await), Some(Error::Withheld { .. })),
             "addons: without insight it is Withheld",
         );
         cx.ensure(
             matches!(
-                err2(&v.interventions(g.id).await),
-                Some(Error2::Withheld { .. })
+                err(&v.interventions(g.id).await),
+                Some(Error::Withheld { .. })
             ),
             "interventions: without insight it is Withheld",
         );
         cx.ensure(
             matches!(
-                err2(&v.resolve_owner(&group_ref(g.id)).await),
-                Some(Error2::Withheld { .. })
+                err(&v.resolve_owner(&group_ref(g.id)).await),
+                Some(Error::Withheld { .. })
             ),
             "resolve_owner: a group she may not read is Withheld",
         );
@@ -181,7 +181,7 @@ async fn withheld(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     }
 }
 
-async fn object_owner(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn object_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(g) = owned(cx, v, "own object").await else {
         return;
     };
@@ -206,14 +206,14 @@ async fn object_owner(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     let nowhere = group_ref(crate::ids::object_id(9_999_999));
     cx.ensure(
         matches!(
-            err2(&v.resolve_owner(&nowhere).await),
-            Some(Error2::V1(Error::NotFound(_)))
+            err(&v.resolve_owner(&nowhere).await),
+            Some(Error::NotFound(_))
         ),
         "resolve_owner: an unknown group is NotFound",
     );
 }
 
-async fn modes(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn modes(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let (mut dt, mut db) = (cx.draft("mode top"), cx.draft("mode bottom"));
     (dt.default_mode, db.default_mode) = (NestingMode::TopDown, NestingMode::BottomUp);
     let (Some(top), Some(bottom), Some(child)) = (
@@ -223,7 +223,7 @@ async fn modes(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     ) else {
         return;
     };
-    let edge = |o: Result<NestOutcome, Error2>| match o {
+    let edge = |o: Result<NestOutcome, Error>| match o {
         Ok(NestOutcome::Linked(e)) => Some(e),
         _ => None,
     };
@@ -251,7 +251,7 @@ async fn modes(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
             "default_mode of the group stays when an edge changes",
         );
         cx.ensure(
-            cx.g.nestings(child.id, crate::groups_v1::NestingSide::AsChild)
+            cx.g.nestings(child.id, crate::groups::NestingSide::AsChild)
                 .await
                 .is_ok_and(|n| {
                     n.iter().any(|x| x.mode == NestingMode::BottomUp)

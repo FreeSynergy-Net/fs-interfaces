@@ -4,8 +4,8 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::shared::Revision;
-use crate::groups_v1::{
+use crate::groups::shared::Revision;
+use crate::groups::{
     Error, GroupQuery, HistoryKind, NestingMode, NestingSide, ParentFilter, Right,
 };
 use crate::ids::object_id;

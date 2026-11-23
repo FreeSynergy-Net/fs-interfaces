@@ -6,11 +6,11 @@
 
 use super::cx::{Cx, err};
 use super::rules_hidden::Hid;
-use crate::groups_v1::shared::{Place, Revision};
-use crate::groups_v1::{ChangeKind, Error, InvitationAnswer, Missing, NestingMode, RequestAnswer};
+use crate::groups::shared::{Place, Revision};
+use crate::groups::{ChangeKind, Error, InvitationAnswer, Missing, NestingMode, RequestAnswer};
 use crate::ids::group_ref;
 
-fn missing<T>(r: &crate::groups_v1::Result<T>, want: fn(&Missing) -> bool) -> bool {
+fn missing<T>(r: &crate::groups::Result<T>, want: fn(&Missing) -> bool) -> bool {
     matches!(err(r), Some(Error::NotFound(m)) if want(m))
 }
 
@@ -149,7 +149,7 @@ async fn mirror(cx: &mut Cx<'_>, h: &Hid, name: &str) {
         cx.skip("hidden: the mirror (the fixture has none)");
         return;
     };
-    let forbidden = |r: &crate::groups_v1::Result<_>| matches!(err(r), Some(Error::Forbidden { group, .. }) if *group != h.group);
+    let forbidden = |r: &crate::groups::Result<_>| matches!(err(r), Some(Error::Forbidden { group, .. }) if *group != h.group);
     cx.ensure(
         mir.mirror_status()
             .await
@@ -163,6 +163,6 @@ async fn mirror(cx: &mut Cx<'_>, h: &Hid, name: &str) {
     );
     if let Some(dir) = cx.fx.directory() {
         let plan = mir.mirror_plan(dir).await;
-        cx.ensure(matches!(plan, Err(crate::groups_v1::MirrorError::Groups(Error::Forbidden { group, .. })) if group != h.group), &format!("hidden {name}: mirror_plan is Forbidden"));
+        cx.ensure(matches!(plan, Err(crate::groups::MirrorError::Groups(Error::Forbidden { group, .. })) if group != h.group), &format!("hidden {name}: mirror_plan is Forbidden"));
     }
 }

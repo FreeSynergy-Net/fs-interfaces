@@ -99,31 +99,31 @@ async fn a_provider_without_compare_and_set_fails() {
     );
 }
 
-// ---- groups_v2
+// ---- groups
 
-mod wrap_v2;
-use fs_group_directory::conformance::run_conformance_v2;
-use wrap_v2::{MutantV2, WrapV2};
+mod wrap_governance;
+use fs_group_directory::conformance::run_conformance_governance;
+use wrap_governance::{GovMutant, WrapGov};
 
-/// A floor for the v2 checks.
-const FLOOR_V2: usize = 130;
+/// A floor for the gov checks.
+const FLOOR_GOVERNANCE: usize = 130;
 
-/// A fake whose asking person is the installer (she hands out the first `Project` scope), and the v2 view of it.
-fn fx_v2(mutant: MutantV2) -> Fx {
+/// A fake whose asking person is the installer (she hands out the first `Project` scope), and the gov view of it.
+fn fx_gov(mutant: GovMutant) -> Fx {
     let people = Arc::new(fs_group_directory::FakePeople::new());
     let me = people.human("Alex Installer");
     let fake = Arc::new(FakeGroups::with_people(people, me.clone()).with_installer(me));
-    let v2 = Box::new(WrapV2(Arc::clone(&fake), mutant));
-    Fx::with(Arc::clone(&fake), Box::new(Wrap(fake, Mutant::None))).with_v2(v2)
+    let gov = Box::new(WrapGov(Arc::clone(&fake), mutant));
+    Fx::with(Arc::clone(&fake), Box::new(Wrap(fake, Mutant::None))).with_governance(gov)
 }
 
-async fn broken_v2(mutant: MutantV2) -> Vec<String> {
-    run_conformance_v2(&fx_v2(mutant)).await.failures
+async fn broken_gov(mutant: GovMutant) -> Vec<String> {
+    run_conformance_governance(&fx_gov(mutant)).await.failures
 }
 
 #[tokio::test]
-async fn the_fake_is_conformant_to_groups_v2() {
-    let report = run_conformance_v2(&fx_v2(MutantV2::None)).await;
+async fn the_fake_is_conformant_to_groups() {
+    let report = run_conformance_governance(&fx_gov(GovMutant::None)).await;
     assert!(
         report.failures.is_empty(),
         "failed rules: {:#?}",
@@ -135,15 +135,15 @@ async fn the_fake_is_conformant_to_groups_v2() {
         report.skipped
     );
     assert!(
-        report.checked >= FLOOR_V2,
+        report.checked >= FLOOR_GOVERNANCE,
         "only {} checks ran",
         report.checked
     );
 }
 
 #[tokio::test]
-async fn the_fake_still_passes_v1_after_v2() {
-    let report = run_conformance(&fx_v2(MutantV2::None)).await;
+async fn the_fake_still_passes_the_base_rules_after_governance() {
+    let report = run_conformance(&fx_gov(GovMutant::None)).await;
     assert!(
         report.failures.is_empty(),
         "failed rules: {:#?}",
@@ -152,32 +152,32 @@ async fn the_fake_still_passes_v1_after_v2() {
 }
 
 #[tokio::test]
-async fn v2_without_a_view_is_skipped_not_passed() {
-    let report = run_conformance_v2(&Fx::new(FakeGroups::new())).await;
+async fn governance_without_a_view_is_skipped_not_passed() {
+    let report = run_conformance_governance(&Fx::new(FakeGroups::new())).await;
     assert!(report.failures.is_empty() && !report.skipped.is_empty());
 }
 
 #[tokio::test]
 async fn a_provider_that_gives_an_empty_list_for_a_withheld_group_fails() {
-    let f = broken_v2(MutantV2::EmptyForWithheld).await;
+    let f = broken_gov(GovMutant::EmptyForWithheld).await;
     assert!(f.iter().any(|x| x.contains("Withheld")), "{f:#?}");
 }
 
 #[tokio::test]
 async fn a_provider_that_lets_anyone_attach_an_addon_fails() {
-    let f = broken_v2(MutantV2::AddonWithoutRight).await;
+    let f = broken_gov(GovMutant::AddonWithoutRight).await;
     assert!(f.iter().any(|x| x.contains("attach_addon")), "{f:#?}");
 }
 
 #[tokio::test]
 async fn a_provider_that_lets_the_last_owner_go_fails() {
-    let f = broken_v2(MutantV2::LastOwnerGoes).await;
+    let f = broken_gov(GovMutant::LastOwnerGoes).await;
     assert!(f.iter().any(|x| x.contains("LastOwner")), "{f:#?}");
 }
 
 #[tokio::test]
 async fn a_provider_that_takes_the_actor_from_an_argument_fails() {
-    let f = broken_v2(MutantV2::ActorFromArgument).await;
+    let f = broken_gov(GovMutant::ActorFromArgument).await;
     assert!(
         f.iter().any(|x| x.contains("the actor is the connection")),
         "{f:#?}"
@@ -186,18 +186,18 @@ async fn a_provider_that_takes_the_actor_from_an_argument_fails() {
 
 #[tokio::test]
 async fn a_provider_where_a_manager_appoints_owners_fails() {
-    let f = broken_v2(MutantV2::AppointWithoutOwner).await;
+    let f = broken_gov(GovMutant::AppointWithoutOwner).await;
     assert!(f.iter().any(|x| x.contains("appoint_owner")), "{f:#?}");
 }
 
 #[tokio::test]
 async fn a_provider_that_takes_an_intervention_without_a_reason_fails() {
-    let f = broken_v2(MutantV2::NoReason).await;
+    let f = broken_gov(GovMutant::NoReason).await;
     assert!(f.iter().any(|x| x.contains("reason")), "{f:#?}");
 }
 
 #[tokio::test]
 async fn an_addon_that_changes_members_fails() {
-    let f = broken_v2(MutantV2::AddonChangesMembers).await;
+    let f = broken_gov(GovMutant::AddonChangesMembers).await;
     assert!(f.iter().any(|x| x.contains("only attached")), "{f:#?}");
 }

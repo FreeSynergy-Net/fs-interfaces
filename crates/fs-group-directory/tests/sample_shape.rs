@@ -1,7 +1,7 @@
 //! The shape of the sample that PLAN section 6 asks for: the `TopDown` chain of nine levels, several parents, twenty
 //! persons, the two open requests.
 
-use fs_group_directory::groups_v1::{
+use fs_group_directory::groups::{
     Groups, NestingMode, NestingRequestKind, NestingSide, PersonFacts, RequestSide, RequestState,
 };
 use fs_group_directory::sample;

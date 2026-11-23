@@ -3,8 +3,8 @@
 //! Pattern: Decorator (the `Groups` half of [`Decorated`]).
 
 use crate::decorate::{Decorated, Gate, Op};
-use crate::groups_v1::shared::{ObjectId, Page, PersonRef, Place, Reference, Revision, Utc};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, Page, PersonRef, Place, Reference, Revision, Utc};
+use crate::groups::{
     Change, Decision, Deleted, EffectiveGroup, EffectiveMember, Grant, Group, GroupDraft,
     GroupPatch, GroupQuery, GroupSummary, Groups, HistoryEntry, Invitation, InvitationAnswer,
     InvitationOutcome, Membership, NestOutcome, Nesting, NestingEffect, NestingMode,

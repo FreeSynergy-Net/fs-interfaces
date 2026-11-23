@@ -1,4 +1,4 @@
-//! Rules of `groups_v2`, scopes and AI (ADR 0095 Pkt. 13): a scope never works for an AI account or an account of
+//! Rules of `groups`, scopes and AI (ADR 0095 Pkt. 13): a scope never works for an AI account or an account of
 //! unknown kind, neither to open an intervention nor to hand out scopes.
 //!
 //! Pattern: Template method (each rule is a mutant killer: drop the human check of the scope and a check fails).
@@ -6,15 +6,15 @@
 use super::cx::Cx;
 use super::fixture::Kind;
 use super::rules_owner::owned;
-use crate::groups_v1::shared::PersonRef;
-use crate::groups_v2::{Error2, GroupsV2, Scope};
+use crate::groups::shared::PersonRef;
+use crate::groups::{Error, GroupGovernance, Scope};
 
-fn denied<T>(r: &Result<T, Error2>) -> bool {
-    matches!(r, Err(Error2::ScopeDenied(_)))
+fn denied<T>(r: &Result<T, Error>) -> bool {
+    matches!(r, Err(Error::ScopeDenied(_)))
 }
 
 /// `holder` holds the `Project` scope and is the asker when this runs.
-pub(crate) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupsV2, holder: &PersonRef) {
+pub(crate) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance, holder: &PersonRef) {
     cx.act_me().await;
     let (Some(q), Some(target), Some(admin_c), Some(admin_d)) = (
         cx.person(Kind::Human).await,

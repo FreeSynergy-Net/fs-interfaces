@@ -6,8 +6,8 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::shared::{ObjectId, Revision};
-use crate::groups_v1::{Error, GroupQuery, NestOutcome, NestingMode, ParentFilter, Right};
+use crate::groups::shared::{ObjectId, Revision};
+use crate::groups::{Error, GroupQuery, NestOutcome, NestingMode, ParentFilter, Right};
 use crate::ids::group_ref;
 
 /// A hidden group with a plain neighbour and the ids of the things that hang on it.
@@ -20,11 +20,11 @@ pub(crate) struct Hid {
     pub grant: (ObjectId, Revision),
     pub edge: (ObjectId, Revision),
     pub request: (ObjectId, Revision),
-    pub agent: crate::groups_v1::shared::PersonRef,
-    pub human: crate::groups_v1::shared::PersonRef,
+    pub agent: crate::groups::shared::PersonRef,
+    pub human: crate::groups::shared::PersonRef,
 }
 
-pub(crate) fn is_not_found<T>(r: &crate::groups_v1::Result<T>) -> bool {
+pub(crate) fn is_not_found<T>(r: &crate::groups::Result<T>) -> bool {
     matches!(err(r), Some(Error::NotFound(_)))
 }
 

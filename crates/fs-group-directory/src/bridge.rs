@@ -2,7 +2,7 @@
 //!
 //! Pattern: Adapter (the two types stay apart so `nesting_logic` can be swapped for `group-nesting`).
 
-use crate::groups_v1::NestingMode;
+use crate::groups::NestingMode;
 use crate::nesting_logic::Mode;
 
 /// Locked mode to logic mode.

@@ -2,8 +2,8 @@
 //!
 //! Pattern: State (the life of a request: only `Pending` can be answered or withdrawn) + Command handlers.
 
-use crate::groups_v1::shared::{ObjectId, Revision};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, Revision};
+use crate::groups::{
     ChangeKind, Error, HistoryKind, Missing, NestingRequest, NestingRequestKind, NestingSide,
     RequestAnswer, RequestSide, RequestState, Result, Right,
 };

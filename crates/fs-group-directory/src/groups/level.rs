@@ -2,8 +2,8 @@
 //!
 //! Pattern: Value Object (Stufe, Bereich); Rollen sind Verweise auf das Rollenbuch, nie ein geschlossener Typ.
 
-use crate::groups_v1::RoleRef;
-use crate::groups_v1::shared::{BasicValue as _, ObjectId, Reference};
+use crate::groups::RoleRef;
+use crate::groups::shared::{BasicValue as _, ObjectId, Reference};
 
 /// Basis der Rollen-IRIs (`…/roles/member`, `…/manager`, `…/owner`), flach, Art `org:Role`.
 pub const ROLE_BASE: &str = "https://freesynergy.net/ns/roles/";

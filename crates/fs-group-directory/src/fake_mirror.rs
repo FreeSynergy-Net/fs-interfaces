@@ -3,8 +3,8 @@
 //!
 //! Pattern: Fake (a test double with working behaviour) behind the consumed `GroupDirectory` port.
 
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{
     Applied, DirectoryAccount, DirectoryError, DirectoryGroup, DirectoryId, GroupDirectory,
 };
 use crate::ids::reference_of;

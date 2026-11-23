@@ -3,7 +3,7 @@
 //! Pattern: Template method (a fixed list of rules; the groups are seeded through the trait).
 
 use super::cx::{Cx, err};
-use crate::groups_v1::{Error, MAX_NESTING_DEPTH, NestingMode};
+use crate::groups::{Error, MAX_NESTING_DEPTH, NestingMode};
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
     zigzag(cx).await;

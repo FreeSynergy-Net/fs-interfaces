@@ -6,8 +6,8 @@
 
 use crate::decorate::{Decorated, Gate, Op, Provider};
 use crate::fake::FakeGroups;
-use crate::groups_v1::shared::{ObjectId, Utc};
-use crate::groups_v1::{Error, Result, Right, Unreachable};
+use crate::groups::shared::{ObjectId, Utc};
+use crate::groups::{Error, Result, Right, Unreachable};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};

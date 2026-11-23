@@ -1,12 +1,12 @@
-//! Rules of `groups_v2`, roles over v1 paths: the owner role only through v2, the manager role only with `Manage`
+//! Rules of `groups`, roles over v1 paths: the owner role only through v2, the manager role only with `Manage`
 //! (ADR 0095 Pkt. 3).
 //!
 //! Pattern: Template method (a fixed list of rules; each one is a mutant killer: drop the guard and a check fails).
 
 use super::cx::{Cx, err};
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{Error, Membership, Right};
-use crate::groups_v2::{role_manager, role_owner};
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{Error, Membership, Right};
+use crate::groups::{role_manager, role_owner};
 
 /// The owner and manager roles are entries of the role book (ADR 0095 Pkt. 3), so the provider book knows both IRIs
 /// (the fixture puts them in); the refusal must come from the rule, not from a role the book does not know.
