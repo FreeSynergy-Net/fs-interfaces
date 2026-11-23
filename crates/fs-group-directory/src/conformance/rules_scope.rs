@@ -216,5 +216,6 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
         ),
         "revoke_scope: the last Project scope stays",
     );
+    super::rules_scope_ai::rules(cx, v, &x).await;
     cx.act_me().await;
 }

@@ -38,6 +38,7 @@ mod rules_requests;
 mod rules_requests_more;
 mod rules_rights;
 mod rules_scope;
+mod rules_scope_ai;
 mod rules_trash;
 mod run;
 
