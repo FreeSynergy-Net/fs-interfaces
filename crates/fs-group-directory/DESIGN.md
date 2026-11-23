@@ -5,7 +5,7 @@ to work against the contract `groups` (ONE contract, no versions side by side; h
 
 | Part | What it is |
 |---|---|
-| `groups/` | The contract (not locked: the lock of the old `groups_v1` was lifted by the user, 23.11.2026): members, edges with a mode per edge, rights, invitations, trash, mirror, the ports `PersonDirectory`, `PersonFacts`, `RoleBook`. No AI groups, no group art (an organisation is an ADDON, not a kind). |
+| `groups/` | The one contract `groups`: members, edges with a mode per edge, rights, invitations, trash, mirror, the ports `PersonDirectory`, `PersonFacts`, `RoleBook`. No AI groups, no group art (an organisation is an ADDON, not a kind). |
 | `FakeGroups` | In memory, implements `Groups`, `GroupGovernance`, `Mirroring` and `GroupMembers` completely. |
 | `groups/api_governance.rs` and friends | ADR 0095: owners and the three levels (c self, b `AllGroups`, a `Project`) with the intervention and its reason, `nest_default`, `resolve_owner` (object owner = person or group), and ADDONS by composition (`org:FormalOrganization` first, several per group, open by IRI; no rule depends on an addon). `owner` over `add_member`, `set_role`, `invite` is `Forbidden`; `manager` needs `Manage`. |
 | `example.rs`, `example_data.rs` | Two invented example trees as fixture tables (provider fake, marked `Beispieldaten`): a network built from below (local seed, levels as edges, advisory group on a `Single` edge, moderator as a role TEMPLATE) and a company built from above (top-down, addon formal organisation); the count of the local group is a parameter (200). No operator rule is in the code. |
