@@ -3,12 +3,13 @@
 //! Pattern: Rule set. Refused calls must also leave the tree as it was.
 
 use super::fixture::{Check, Fixture, forbidden, refused, walk, want};
-use crate::ctl::Ctl;
+use crate::ctl::{Ctl, MemSource};
 use crate::entry::{Delete, Kind, OnConflict, PageReq, WriteOpts};
 use crate::ids::EntryId;
 
 fn opts() -> WriteOpts {
     WriteOpts {
+        generator: None,
         on_conflict: OnConflict::Fail,
         media_type: None,
     }
@@ -39,7 +40,13 @@ pub(super) async fn stranger_write(fx: &Fixture) -> Check {
         if folder {
             refused(
                 fx.fremd
-                    .write(&e.id, "x.txt", vec![1], opts(), &Ctl::none())
+                    .write(
+                        &e.id,
+                        "x.txt",
+                        &mut MemSource::from(vec![1]),
+                        opts(),
+                        &Ctl::none(),
+                    )
                     .await,
                 &w,
                 forbidden,
@@ -83,11 +90,11 @@ pub(super) async fn member_readonly(fx: &Fixture) -> Check {
     let all = walk(&*fx.anna).await?;
     let (_, file) = all
         .iter()
-        .find(|(p, _)| p == "Helfa/Satzung.pdf")
+        .find(|(p, _)| p == "Helfa Ortsgruppe (Beispieldaten)/Regeln/Konfliktstufen.md")
         .ok_or("no Satzung.pdf")?;
     let (_, group) = all
         .iter()
-        .find(|(p, _)| p == "Helfa/Protokolle")
+        .find(|(p, _)| p == "Helfa Ortsgruppe (Beispieldaten)/Moderation")
         .ok_or("no Protokolle")?;
     want(
         super::fixture::read_all(&*fx.ben, file).await.is_ok(),
@@ -95,7 +102,13 @@ pub(super) async fn member_readonly(fx: &Fixture) -> Check {
     )?;
     refused(
         fx.ben
-            .write(&group.id, "x.txt", vec![1], opts(), &Ctl::none())
+            .write(
+                &group.id,
+                "x.txt",
+                &mut MemSource::from(vec![1]),
+                opts(),
+                &Ctl::none(),
+            )
             .await,
         "member writes",
         forbidden,
@@ -125,11 +138,17 @@ pub(super) async fn owner_write(fx: &Fixture) -> Check {
     let all = walk(&*fx.anna).await?;
     let (_, group) = all
         .iter()
-        .find(|(p, _)| p == "Helfa/Protokolle")
+        .find(|(p, _)| p == "Helfa Ortsgruppe (Beispieldaten)/Moderation")
         .ok_or("no Protokolle")?;
     let e = super::fixture::s(
         fx.anna
-            .write(&group.id, "neu.txt", vec![1, 2], opts(), &Ctl::none())
+            .write(
+                &group.id,
+                "neu.txt",
+                &mut MemSource::from(vec![1, 2]),
+                opts(),
+                &Ctl::none(),
+            )
             .await,
     )?;
     want(

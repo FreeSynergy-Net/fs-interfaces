@@ -28,7 +28,7 @@ fn accepts_normal_names_and_paths() {
     assert!(validate_name(&"x".repeat(255)).is_ok());
     assert!(validate_name("..hidden").is_ok());
     assert_eq!(split_path("a/b/c").unwrap(), ["a", "b", "c"]);
-    assert!(split_path("").unwrap().is_empty());
+    assert_eq!(split_path("").unwrap(), Vec::<&str>::new());
     for bad in ["/a", "a//b", "a/../b", "a/."] {
         assert!(split_path(bad).is_err(), "{bad}");
     }

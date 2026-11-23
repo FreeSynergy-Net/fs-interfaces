@@ -112,7 +112,7 @@ pub(super) async fn file_sha256(fx: &Fixture) -> Check {
 
 pub(super) async fn owner_kinds(fx: &Fixture) -> Check {
     for (path, e) in walk(&*fx.anna).await? {
-        let group = path.starts_with("Helfa/");
+        let group = path.starts_with("Helfa");
         let right = if group {
             e.owner.art == PersonArt::Group
         } else {
@@ -151,4 +151,102 @@ pub(super) async fn caps_honest(fx: &Fixture) -> Check {
         )?;
     }
     Ok(())
+}
+
+pub(super) async fn blob_range(fx: &Fixture) -> Check {
+    let e = super::fixture::at(&*fx.anna, RootKind::Mine, "Dokumente/Notizen.md").await?;
+    let bytes = read_all(&*fx.anna, &e).await?;
+    let len = bytes.len() as u64;
+    let blob = s(fx.anna.open(&e.id, &Ctl::none()).await)?;
+    for (offset, length) in [
+        (0, 1),
+        (3, 4),
+        (len - 1, 1),
+        (len - 2, 50),
+        (5, 0),
+        (0, u64::MAX),
+        (3, u64::MAX),
+    ] {
+        let from = usize::try_from(offset.min(len)).unwrap_or(0);
+        let to = usize::try_from(offset.saturating_add(length).min(len)).unwrap_or(0);
+        let got = s(blob.read(offset, length).await)?;
+        want(
+            got == bytes[from..to],
+            &format!("range ({offset}, {length}) is wrong"),
+        )?;
+    }
+    for offset in [len, len + 1, u64::MAX] {
+        want(
+            s(blob.read(offset, 10).await)?.is_empty(),
+            &format!("read at {offset} (end or behind it) must be empty"),
+        )?;
+    }
+    Ok(())
+}
+
+pub(super) async fn scope_generator(fx: &Fixture) -> Check {
+    want(
+        fx.anna.capabilities().scope,
+        "the provider does not offer scope",
+    )?;
+    let hits = s(fx.anna.scope("capture", PageReq::first(100)).await)?;
+    want(
+        hits.items.len() == 3 && hits.next.is_none(),
+        &format!("anna should see 3 captures, got {}", hits.items.len()),
+    )?;
+    want(
+        hits.items
+            .iter()
+            .all(|e| e.generator.as_deref() == Some("capture")),
+        "scope returned another generator",
+    )?;
+    let places: std::collections::HashSet<_> = walk(&*fx.anna)
+        .await?
+        .into_iter()
+        .filter(|(_, e)| e.generator.is_some())
+        .map(|(p, _)| p.rsplit_once('/').map(|x| x.0.to_owned()))
+        .collect();
+    want(
+        places.len() == 3,
+        "the gallery is a scope: the captures lie in 3 different folders",
+    )?;
+    let mut ids = Vec::new();
+    let mut req = PageReq::first(1);
+    loop {
+        let page = s(fx.anna.scope("capture", req.clone()).await)?;
+        ids.extend(page.items.into_iter().map(|e| e.id));
+        match page.next {
+            Some(c) => req.cursor = Some(c),
+            None => break,
+        }
+    }
+    want(
+        ids == hits.items.iter().map(|e| e.id.clone()).collect::<Vec<_>>(),
+        "paged scope differs from one page",
+    )?;
+    want(
+        s(fx.anna.scope("nothing", PageReq::first(5)).await)?
+            .items
+            .is_empty(),
+        "an unknown generator must give nothing",
+    )?;
+    want(
+        s(fx.ben.scope("capture", PageReq::first(5)).await)?
+            .items
+            .len()
+            == 1,
+        "a member sees only the group's capture",
+    )?;
+    want(
+        s(fx.fremd.scope("capture", PageReq::first(5)).await)?
+            .items
+            .is_empty(),
+        "a stranger sees captures through scope",
+    )?;
+    want(
+        s(fx.admin.scope("capture", PageReq::first(5)).await)?
+            .items
+            .is_empty(),
+        "an admin sees private content through scope",
+    )
 }

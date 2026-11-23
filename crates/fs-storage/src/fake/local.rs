@@ -2,7 +2,7 @@
 //!
 //! Pattern: Fake of a read-only provider (Null Object for every write: the default `Unsupported`).
 //!
-//! ADR 0070 point 3 as corrected 23.11.2026: `local`, S3 and WebDAV are import sources and export targets, never the
+//! ADR 0070 point 3 as corrected 23.11.2026: `local`, `S3` and `WebDAV` are import sources and export targets, never the
 //! place where "save" goes. Their entries have no `file_ref` before the import (no checksum is known).
 
 use super::read::MemBlob;
@@ -35,7 +35,7 @@ impl FakeLocal {
         self
     }
 
-    fn entry(&self, id: &str, name: &str, kind: Kind, owner: &PersonRef) -> Entry {
+    fn entry(id: &str, name: &str, kind: Kind, owner: &PersonRef) -> Entry {
         let file = kind == Kind::File;
         Entry {
             id: EntryId(id.to_owned()),
@@ -48,6 +48,7 @@ impl FakeLocal {
             owner: owner.clone(),
             etag: None,
             link_target: None,
+            generator: None,
         }
     }
 }
@@ -77,17 +78,17 @@ impl StorageProvider for FakeLocal {
         }
         let o = sample().anna;
         let items = vec![
-            self.entry("local:/Downloads", "Downloads", Kind::Folder, &o),
-            self.entry("local:/scan.pdf", "scan.pdf", Kind::File, &o),
+            Self::entry("local:/Downloads", "Downloads", Kind::Folder, &o),
+            Self::entry("local:/scan.pdf", "scan.pdf", Kind::File, &o),
         ];
         Ok(Page { items, next: None })
     }
     async fn stat(&self, id: &EntryId) -> Result<Entry> {
         let o = sample().anna;
         match id.as_str() {
-            "local:/" => Ok(self.entry("local:/", "Home (lokal)", Kind::Folder, &o)),
-            "local:/Downloads" => Ok(self.entry(id.as_str(), "Downloads", Kind::Folder, &o)),
-            "local:/scan.pdf" => Ok(self.entry(id.as_str(), "scan.pdf", Kind::File, &o)),
+            "local:/" => Ok(Self::entry("local:/", "Home (lokal)", Kind::Folder, &o)),
+            "local:/Downloads" => Ok(Self::entry(id.as_str(), "Downloads", Kind::Folder, &o)),
+            "local:/scan.pdf" => Ok(Self::entry(id.as_str(), "scan.pdf", Kind::File, &o)),
             _ => Err(Error::NotFound(id.clone())),
         }
     }
@@ -100,13 +101,14 @@ impl StorageProvider for FakeLocal {
         Ok(Box::new(MemBlob {
             entry,
             data: b"local bytes".to_vec(),
+            bad_range: false,
         }))
     }
     async fn write(
         &self,
         at: &EntryId,
         name: &str,
-        src: Vec<u8>,
+        src: &mut dyn crate::ctl::ByteSource,
         _o: crate::entry::WriteOpts,
         _ctl: &Ctl,
     ) -> Result<Entry> {
@@ -114,6 +116,6 @@ impl StorageProvider for FakeLocal {
             return crate::provider::not_possible("storage.write");
         }
         let _ = (at, src);
-        Ok(self.entry("local:/new", name, Kind::File, &sample().anna))
+        Ok(Self::entry("local:/new", name, Kind::File, &sample().anna))
     }
 }

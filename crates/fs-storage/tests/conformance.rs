@@ -30,7 +30,7 @@ async fn report(fault: Option<Fault>, local: FakeLocal) -> Report {
 async fn the_fake_passes_every_rule() {
     let r = report(None, FakeLocal::new()).await;
     assert!(r.failed.is_empty(), "failed: {:?}", r.failed);
-    assert_eq!(r.passed.len(), 24, "all rules ran: {:?}", r.passed);
+    assert_eq!(r.passed.len(), 26, "all rules ran: {:?}", r.passed);
 }
 
 #[tokio::test]
@@ -49,6 +49,9 @@ async fn every_mutant_is_caught_by_its_rule() {
         (Fault::NoCancel, "write.cancel"),
         (Fault::BotAllowed, "rights.bot"),
         (Fault::AdminReadsAll, "rights.admin"),
+        (Fault::PathTraversal, "path.traversal"),
+        (Fault::BadRange, "blob.range"),
+        (Fault::ScopeLeak, "scope.generator"),
     ];
     for (fault, rule) in table {
         let r = report(Some(fault), FakeLocal::new()).await;
