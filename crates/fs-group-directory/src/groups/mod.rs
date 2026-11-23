@@ -31,7 +31,7 @@
 //! - Eine Gruppe hat die Identität `urn:uuid:<UUIDv7>` (ADR 0027, 0085). Eigentümer eines Objekts ist eine Person
 //!   ODER eine Gruppe (`PersonRef` mit `art = Group`); `resolve_owner` löst es zu den Personen auf.
 //! - Eigentümer (ADR 0095): mehrere, Rolle `owner` (`role_owner`); die Rolle `owner` und die Rolle `manager` vergibt
-//!   nur dieser Vertrag über seine eigenen Wege (`create_owned`, `appoint_owner`, `transfer_ownership`; `manager`
+//!   nur dieser Vertrag über seine eigenen Wege (`create`, `appoint_owner`, `transfer_ownership`; `manager`
 //!   nur mit `Manage`): `add_member`, `set_role` und `invite` lehnen `owner` immer ab (`Forbidden`), `manager` ohne
 //!   `Manage` ebenso. Die letzte Eigentümerin bleibt (`LastOwner`, auf dem Weg über `remove_member` `LastManager`).
 //! - Verschachtelung hat EINEN Ort: die Kante (`Nesting`, Modus je Kante `BottomUp`/`TopDown`/`Single`;
