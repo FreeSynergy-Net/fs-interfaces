@@ -1,8 +1,8 @@
 //! `FailingGroups` and `SlowGroups`: the error, partly broken, disconnected and loading states of the frontends.
 
 use fs_group_directory::groups::{
-    Error, GroupDraft, GroupMembers, GroupQuery, Groups, Mirroring, NestingMode,
-    ParentFilter, Unreachable, Visibility,
+    Error, GroupDraft, GroupMembers, GroupQuery, Groups, Mirroring, NestingMode, ParentFilter,
+    Unreachable, Visibility,
 };
 use fs_group_directory::{
     FailingGroups, Op, SlowGroups, forbidden, group_ref, sample, unavailable,

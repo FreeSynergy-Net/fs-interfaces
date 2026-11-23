@@ -116,7 +116,9 @@ pub enum Error {
     ModeConflict(ConflictKind),
     /// Ein KI-Konto ist nie Mitglied einer Gruppe (ADR 0091, 0095: KI nur über den Bot-Platz). `group` = die Gruppe,
     /// an der es scheitert. Nichts geschrieben, nie still.
-    AiNotMember { group: ObjectId },
+    AiNotMember {
+        group: ObjectId,
+    },
     /// Falsche Art im Verweis: eine Gruppe als Mitglied (dafür `request_nesting`), eine Organisation als
     /// Eingeladene usw.
     WrongArt {
@@ -150,17 +152,30 @@ pub enum Error {
     Storage(StorageKind),
     // ---- Eigentümer, Stufen, Eingriff, Zusätze (ADR 0095)
     /// Die Handlung braucht die Stufe Eigentümer (ernennen, herabstufen, übergeben, löschen mit Eigentümer).
-    NeedsOwner { group: ObjectId },
+    NeedsOwner {
+        group: ObjectId,
+    },
     /// Die Handlung braucht mindestens diese Stufe (Zusätze anhängen: Verwalter).
-    NeedsLevel { group: ObjectId, level: Level },
+    NeedsLevel {
+        group: ObjectId,
+        level: Level,
+    },
     /// Danach hätte die Gruppe keinen Eigentümer mehr (nie automatisch ersetzt).
-    LastOwner { group: ObjectId, person: PersonRef },
+    LastOwner {
+        group: ObjectId,
+        person: PersonRef,
+    },
     /// Das Ziel einer Übergabe ist kein direktes Mitglied.
-    NotDirectMember { group: ObjectId, person: PersonRef },
+    NotDirectMember {
+        group: ObjectId,
+        person: PersonRef,
+    },
     /// Die Mitgliedschaft gehört nicht der handelnden Person, oder sie trägt die Rolle nicht.
     NotYourMembership(ObjectId),
     /// Die Gruppe darf die fragende Person nicht lesen: zurückgehalten, nie eine leere Liste.
-    Withheld { group: ObjectId },
+    Withheld {
+        group: ObjectId,
+    },
     /// Der Bereich ist nicht vergebbar (`Group(_)`) oder die handelnde Person hält ihn nicht.
     ScopeDenied(Scope),
     /// Der letzte Bereich `Project` lässt sich nicht entziehen.

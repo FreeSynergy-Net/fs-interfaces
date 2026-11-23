@@ -4,8 +4,8 @@
 //! Pattern: Specification (levels and interventions as questions on the state; `decide` in `access.rs` asks them).
 
 use crate::groups::shared::{ObjectId, PersonRef, Utc};
-use crate::groups::{Membership, RoleRef};
 use crate::groups::{Addon, Intervention, Level, ScopeGrant, role_manager, role_owner};
+use crate::groups::{Membership, RoleRef};
 use crate::state::State;
 
 /// The tables only v2 knows.

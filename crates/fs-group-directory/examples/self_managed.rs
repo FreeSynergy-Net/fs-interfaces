@@ -14,9 +14,9 @@ use fs_group_directory::groups::shared::{
     BasicValue as _, ObjectId, PersonRef, Reference, Revision,
 };
 use fs_group_directory::groups::{
-    GroupDraft, Groups, NestOutcome, NestingMode, Visibility,
+    AddonKind, FormalOrganization, GroupGovernance, Scope, role_owner,
 };
-use fs_group_directory::groups::{AddonKind, FormalOrganization, GroupGovernance, Scope, role_owner};
+use fs_group_directory::groups::{GroupDraft, Groups, NestOutcome, NestingMode, Visibility};
 use fs_group_directory::{FakeGroups, FakePeople, group_ref};
 use std::sync::Arc;
 

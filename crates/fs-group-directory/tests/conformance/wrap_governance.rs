@@ -4,10 +4,10 @@
 use async_trait::async_trait;
 use fs_group_directory::FakeGroups;
 use fs_group_directory::groups::shared::{ObjectId, PersonRef, Revision, Utc};
-use fs_group_directory::groups::{Group, GroupDraft, Groups, InForce, Membership, NestOutcome};
 use fs_group_directory::groups::{
     Addon, AddonKind, Error, GroupGovernance, Intervention, Level, Result, Scope, ScopeGrant,
 };
+use fs_group_directory::groups::{Group, GroupDraft, Groups, InForce, Membership, NestOutcome};
 use std::sync::Arc;
 
 /// The rule that is broken.
@@ -111,12 +111,7 @@ impl GroupGovernance for WrapGov {
     async fn revoke_scope(&self, g: ObjectId) -> Result<()> {
         self.0.revoke_scope(g).await
     }
-    async fn open_intervention(
-        &self,
-        g: ObjectId,
-        s: Scope,
-        reason: &str,
-    ) -> Result<Intervention> {
+    async fn open_intervention(&self, g: ObjectId, s: Scope, reason: &str) -> Result<Intervention> {
         if self.1 == GovMutant::NoReason {
             return self.0.open_intervention(g, s, "x").await;
         }

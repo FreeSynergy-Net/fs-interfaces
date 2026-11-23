@@ -3,9 +3,9 @@
 //! Pattern: Strategy / Test fixture (the rules are written once; each provider says how to make a person of a kind,
 //! who asks and how the clock moves, so the same rules run against the fake and later against `LocalGroups`).
 
+use crate::groups::GroupGovernance;
 use crate::groups::shared::{ObjectId, PersonRef};
 use crate::groups::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
-use crate::groups::GroupGovernance;
 use async_trait::async_trait;
 
 /// What people say about a person's account.

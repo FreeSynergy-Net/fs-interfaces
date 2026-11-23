@@ -9,8 +9,7 @@ use crate::fake::FakeGroups;
 use crate::fake_mirror::FakeMirror;
 use crate::groups::shared::{ObjectId, PersonRef};
 use crate::groups::{
-    DirectoryAccount, DirectoryGroup, GroupDraft, NestingMode, Result, RoleRef,
-    Visibility,
+    DirectoryAccount, DirectoryGroup, GroupDraft, NestingMode, Result, RoleRef, Visibility,
 };
 use crate::people::FakePeople;
 use crate::sample_data::{AGENTS, EDGES, HUMANS, MEMBERS, UNKNOWN, groups};

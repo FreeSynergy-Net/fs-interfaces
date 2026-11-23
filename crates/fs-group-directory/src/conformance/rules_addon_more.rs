@@ -6,8 +6,8 @@ use super::cx::Cx;
 use super::fixture::Kind;
 use super::rules_addon::{formal, other};
 use super::rules_owner::{owned, owner_of};
-use crate::groups::{NestingSide, Right};
 use crate::groups::GroupGovernance;
+use crate::groups::{NestingSide, Right};
 
 pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     independent(cx, v).await;
