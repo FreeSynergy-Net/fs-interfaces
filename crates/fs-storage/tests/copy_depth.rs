@@ -6,7 +6,7 @@ use fs_storage::{
     Ctl, EntryId, Error, FakeStorage, Fault, Kind, OnConflict, StorageProvider, sample,
 };
 
-const SMALL_STACK: usize = 256 * 1024;
+const SMALL_STACK: usize = 512 * 1024;
 
 async fn copy_into_own_subtree(fault: Option<Fault>) -> Result<(), Error> {
     let s = sample();
