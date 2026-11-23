@@ -4,8 +4,8 @@
 //! Pattern: Decorator (the other two traits of [`Decorated`]).
 
 use crate::decorate::{Decorated, Gate, Op, group_of};
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{
     DirectoryId, FindingId, GroupCard, GroupDirectory, GroupMembers, GroupMirrorState, MirrorError,
     MirrorPlan, MirrorReport, MirrorStatus, MirrorTicket, Mirroring, Result,
 };

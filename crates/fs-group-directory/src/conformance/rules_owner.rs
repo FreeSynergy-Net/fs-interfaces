@@ -1,21 +1,21 @@
-//! Rules of `groups_v2`: owners, levels, the guard of the last owner, who acts, what is withheld, owners of objects,
+//! Rules of `groups`: owners, levels, the guard of the last owner, who acts, what is withheld, owners of objects,
 //! the edge mode and `default_mode`.
 //!
 //! Pattern: Template method (a fixed list of rules; each one is a mutant killer: break the rule and a check fails).
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{Error, Group, GroupDraft, Membership, Right};
-use crate::groups_v2::{Error2, GroupsV2, Level, role_owner};
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{Error, Group, GroupDraft, Membership, Right};
+use crate::groups::{GroupGovernance, Level, role_owner};
 
 /// A group the asker created with `create_owned` (she is its first owner).
-pub(super) async fn owned(cx: &mut Cx<'_>, v: &dyn GroupsV2, label: &str) -> Option<Group> {
+pub(super) async fn owned(cx: &mut Cx<'_>, v: &dyn GroupGovernance, label: &str) -> Option<Group> {
     let d = cx.draft(label);
     owned_from(cx, v, d).await
 }
 
-pub(super) async fn owned_from(cx: &mut Cx<'_>, v: &dyn GroupsV2, d: GroupDraft) -> Option<Group> {
+pub(super) async fn owned_from(cx: &mut Cx<'_>, v: &dyn GroupGovernance, d: GroupDraft) -> Option<Group> {
     let made = v.create_owned(d).await;
     cx.ensure(
         made.is_ok(),
@@ -25,12 +25,12 @@ pub(super) async fn owned_from(cx: &mut Cx<'_>, v: &dyn GroupsV2, d: GroupDraft)
 }
 
 /// The owner membership of `p` in `g`, as the asker reads it.
-pub(super) async fn owner_of(v: &dyn GroupsV2, g: ObjectId, p: &PersonRef) -> Option<Membership> {
+pub(super) async fn owner_of(v: &dyn GroupGovernance, g: ObjectId, p: &PersonRef) -> Option<Membership> {
     v.owners(g).await.ok()?.into_iter().find(|m| &m.person == p)
 }
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
-    let Some(v) = cx.v2 else { return };
+    let Some(v) = cx.gov else { return };
     first_owner(cx, v).await;
     only_owners_decide(cx, v).await;
     last_owner(cx, v).await;
@@ -38,7 +38,7 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
     cx.act_me().await;
 }
 
-async fn first_owner(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn first_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(g) = owned(cx, v, "own first").await else {
         return;
     };
@@ -86,16 +86,12 @@ async fn first_owner(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     }
     let again = v.appoint_owner(g.id, &p2).await;
     cx.ensure(
-        matches!(err2(&again), Some(Error2::V1(Error::AlreadyThere(_)))),
+        matches!(err(&again), Some(Error::AlreadyThere(_))),
         "appoint_owner: twice is AlreadyThere",
     );
 }
 
-pub(super) fn err2<T>(r: &Result<T, Error2>) -> Option<&Error2> {
-    r.as_ref().err()
-}
-
-async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(g) = owned(cx, v, "own gate").await else {
         return;
     };
@@ -123,25 +119,25 @@ async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
         );
         cx.ensure(
             matches!(
-                err2(&v.appoint_owner(g.id, &cand).await),
-                Some(Error2::NeedsOwner { .. })
+                err(&v.appoint_owner(g.id, &cand).await),
+                Some(Error::NeedsOwner { .. })
             ),
             "appoint_owner: without the Owner level it is NeedsOwner",
         );
         cx.ensure(
             matches!(
-                err2(&v.demote_owner(mine.id, mine.revision).await),
-                Some(Error2::NeedsOwner { .. })
+                err(&v.demote_owner(mine.id, mine.revision).await),
+                Some(Error::NeedsOwner { .. })
             ),
             "demote_owner: without the Owner level it is NeedsOwner",
         );
         cx.ensure(
             matches!(
-                err2(
+                err(
                     &v.transfer_ownership(mine.id, mine.revision, &cand, false)
                         .await
                 ),
-                Some(Error2::NotYourMembership(_))
+                Some(Error::NotYourMembership(_))
             ),
             "transfer_ownership: a manager cannot hand over someone else's ownership",
         );
@@ -179,8 +175,8 @@ async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
         );
         cx.ensure(
             matches!(
-                err2(&v.appoint_owner(g.id, &stranger).await),
-                Some(Error2::NeedsOwner { .. })
+                err(&v.appoint_owner(g.id, &stranger).await),
+                Some(Error::NeedsOwner { .. })
             ),
             "appoint_owner: a stranger cannot make herself an owner",
         );
@@ -188,7 +184,7 @@ async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
             cx.g.update(
                 g.id,
                 g.revision,
-                crate::groups_v1::GroupPatch {
+                crate::groups::GroupPatch {
                     name: Some("Zzconf hijack".into()),
                     ..Default::default()
                 },
@@ -205,7 +201,7 @@ async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     );
 }
 
-async fn last_owner(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn last_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(g) = owned(cx, v, "own last").await else {
         return;
     };
@@ -215,8 +211,8 @@ async fn last_owner(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     };
     cx.ensure(
         matches!(
-            err2(&v.demote_owner(mine.id, mine.revision).await),
-            Some(Error2::LastOwner { .. })
+            err(&v.demote_owner(mine.id, mine.revision).await),
+            Some(Error::LastOwner { .. })
         ),
         "demote_owner: the last owner stays (LastOwner)",
     );

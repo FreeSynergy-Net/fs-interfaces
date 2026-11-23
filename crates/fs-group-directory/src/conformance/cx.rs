@@ -3,9 +3,9 @@
 //! Pattern: Test helper (plain functions; a setup that fails is a failure of the rule "setup", never a panic).
 
 use super::fixture::{ConformanceFixture, Kind};
-use crate::groups_v1::shared::{ObjectId, PersonRef, Revision};
-use crate::groups_v1::{
-    Error, Group, GroupArt, GroupDraft, Groups, Membership, NestOutcome, Nesting, NestingMode,
+use crate::groups::shared::{ObjectId, PersonRef, Revision};
+use crate::groups::{
+    Error, Group, GroupDraft, Groups, Membership, NestOutcome, Nesting, NestingMode,
     Result, Visibility,
 };
 
@@ -24,7 +24,7 @@ pub struct Report {
 pub(crate) struct Cx<'a> {
     pub fx: &'a dyn ConformanceFixture,
     pub g: &'a dyn Groups,
-    pub v2: Option<&'a dyn crate::groups_v2::GroupsV2>,
+    pub gov: Option<&'a dyn crate::groups::GroupGovernance>,
     pub report: Report,
     pub me: PersonRef,
     n: u32,
@@ -41,7 +41,7 @@ impl<'a> Cx<'a> {
         Some(Cx {
             fx,
             g: fx.groups(),
-            v2: fx.groups_v2(),
+            gov: fx.governance(),
             report: Report::default(),
             me,
             n: 0,
@@ -63,14 +63,12 @@ impl<'a> Cx<'a> {
     pub(crate) fn draft(&mut self, label: &str) -> GroupDraft {
         self.n += 1;
         GroupDraft {
-            art: GroupArt::Group,
             name: format!("Zzconf {label} {}", self.n),
             kind: None,
             description: None,
             default_mode: NestingMode::BottomUp,
             visibility: Visibility::Everyone,
             sensitive: false,
-            ai: false,
             mirror: false,
         }
     }
@@ -159,7 +157,7 @@ impl<'a> Cx<'a> {
     pub(crate) async fn effective(
         &self,
         group: ObjectId,
-    ) -> Vec<crate::groups_v1::EffectiveMember> {
+    ) -> Vec<crate::groups::EffectiveMember> {
         self.g
             .effective_members(group, None, 1000)
             .await

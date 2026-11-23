@@ -4,8 +4,8 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::shared::Revision;
-use crate::groups_v1::{Error, Field, InForce, Right, Visibility};
+use crate::groups::shared::Revision;
+use crate::groups::{Error, Field, InForce, Right, Visibility};
 use crate::ids::{group_ref, person};
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
@@ -172,9 +172,9 @@ async fn visibility(cx: &mut Cx<'_>) {
             );
             cx.ensure(
                 cx.g.list(
-                    &crate::groups_v1::GroupQuery {
+                    &crate::groups::GroupQuery {
                         text: g.name.clone(),
-                        parent: crate::groups_v1::ParentFilter::Any,
+                        parent: crate::groups::ParentFilter::Any,
                         member: None,
                         include_deleted: false,
                     },

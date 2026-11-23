@@ -4,7 +4,7 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::{Error, NestingMode, NestingSide, Reason, Right};
+use crate::groups::{Error, NestingMode, NestingSide, Reason, Right};
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
     flows(cx).await;

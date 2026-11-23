@@ -1,13 +1,13 @@
-//! Rules of `groups_v2`, addons: attach, several per group, open IRI, who may, independence, self-management.
+//! Rules of `groups`, addons: attach, several per group, open IRI, who may, independence, self-management.
 //!
 //! Pattern: Template method (a fixed list of rules; each one is a mutant killer).
 
-use super::cx::Cx;
+use super::cx::{Cx, err};
 use super::fixture::Kind;
 use super::rules_owner::owned;
-use crate::groups_v1::shared::{BasicValue as _, Reference};
-use crate::groups_v1::{Error, Right};
-use crate::groups_v2::{AddonKind, Error2, FormalOrganization, GroupsV2, ORG_FORMAL_ORGANIZATION};
+use crate::groups::shared::{BasicValue as _, Reference};
+use crate::groups::{Error, Right};
+use crate::groups::{AddonKind, FormalOrganization, GroupGovernance, ORG_FORMAL_ORGANIZATION};
 
 pub(super) fn formal(name: &str) -> AddonKind {
     AddonKind::FormalOrganization(FormalOrganization {
@@ -21,19 +21,19 @@ pub(super) fn other() -> AddonKind {
     AddonKind::Other(Reference::parse("https://example.org/ns/addons/tax-exempt").expect("an IRI"))
 }
 
-fn denied<T>(r: &Result<T, Error2>) -> bool {
-    matches!(r, Err(Error2::NeedsLevel { .. }))
+fn denied<T>(r: &Result<T, Error>) -> bool {
+    matches!(r, Err(Error::NeedsLevel { .. }))
 }
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
-    let Some(v) = cx.v2 else { return };
+    let Some(v) = cx.gov else { return };
     attach(cx, v).await;
     rights(cx, v).await;
     super::rules_addon_more::rules(cx, v).await;
     cx.act_me().await;
 }
 
-async fn attach(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn attach(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(g) = owned(cx, v, "add base").await else {
         return;
     };
@@ -57,8 +57,8 @@ async fn attach(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     );
     cx.ensure(
         matches!(
-            err2(&v.attach_addon(g.id, formal("Zzconf zwei")).await),
-            Some(Error2::AddonAlreadyThere(_))
+            err(&v.attach_addon(g.id, formal("Zzconf zwei")).await),
+            Some(Error::AddonAlreadyThere(_))
         ),
         "attach_addon: the same IRI twice is AddonAlreadyThere",
     );
@@ -85,22 +85,22 @@ async fn attach(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     let Some(f) = empty.pop() else { return };
     cx.ensure(
         matches!(
-            err2(
+            err(
                 &v.update_addon(
                     f.id,
-                    crate::groups_v1::shared::Revision(f.revision.0 + 5),
+                    crate::groups::shared::Revision(f.revision.0 + 5),
                     formal("Zzconf neu")
                 )
                 .await
             ),
-            Some(Error2::V1(Error::Changed { .. }))
+            Some(Error::Changed { .. })
         ),
         "update_addon: a stale revision is Changed",
     );
     cx.ensure(
         matches!(
-            err2(&v.update_addon(f.id, f.revision, formal("")).await),
-            Some(Error2::V1(Error::Invalid(_)))
+            err(&v.update_addon(f.id, f.revision, formal("")).await),
+            Some(Error::Invalid(_))
         ),
         "update_addon: an empty legal name is Invalid",
     );
@@ -129,11 +129,7 @@ async fn attach(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     );
 }
 
-fn err2<T>(r: &Result<T, Error2>) -> Option<&Error2> {
-    r.as_ref().err()
-}
-
-async fn rights(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn rights(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let Some(g) = owned(cx, v, "add rights").await else {
         return;
     };

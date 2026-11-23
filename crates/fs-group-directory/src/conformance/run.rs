@@ -29,17 +29,17 @@ pub async fn run_conformance(fixture: &dyn ConformanceFixture) -> Report {
     cx.report
 }
 
-/// Run the rules of `groups_v2` (owners, levels, addons, interventions) against the provider of `fixture`; the
-/// fixture must offer `groups_v2()`, else every rule is skipped. Run `run_conformance` too: v2 is a superset of v1.
-pub async fn run_conformance_v2(fixture: &dyn ConformanceFixture) -> Report {
+/// Run the rules of `groups` (owners, levels, addons, interventions) against the provider of `fixture`; the
+/// fixture must offer `groups()`, else every rule is skipped. Run `run_conformance` too: v2 is a superset of v1.
+pub async fn run_conformance_governance(fixture: &dyn ConformanceFixture) -> Report {
     let Some(mut cx) = Cx::new(fixture).await else {
         return Report {
             failures: vec!["setup: the fixture names no asking person".to_owned()],
             ..Report::default()
         };
     };
-    if cx.v2.is_none() {
-        cx.skip("groups_v2: the fixture offers no GroupsV2");
+    if cx.gov.is_none() {
+        cx.skip("groups: the fixture offers no GroupGovernance");
         return cx.report;
     }
     super::rules_owner::rules(&mut cx).await;

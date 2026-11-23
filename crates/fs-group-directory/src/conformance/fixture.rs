@@ -3,9 +3,9 @@
 //! Pattern: Strategy / Test fixture (the rules are written once; each provider says how to make a person of a kind,
 //! who asks and how the clock moves, so the same rules run against the fake and later against `LocalGroups`).
 
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
-use crate::groups_v2::GroupsV2;
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
+use crate::groups::GroupGovernance;
 use async_trait::async_trait;
 
 /// What people say about a person's account.
@@ -37,9 +37,9 @@ pub trait ConformanceFixture: Send + Sync {
     /// The provider under test.
     fn groups(&self) -> &dyn Groups;
 
-    /// The `GroupsV2` view of the same provider; `None` skips the rules of v2. For the scope rules the asking person at
+    /// The `GroupGovernance` view of the same provider; `None` skips the governance rules. For the scope rules the asking person at
     /// the start of the run is the installer of the provider (she hands out the first `Project` scope).
-    fn groups_v2(&self) -> Option<&dyn GroupsV2> {
+    fn governance(&self) -> Option<&dyn GroupGovernance> {
         None
     }
 

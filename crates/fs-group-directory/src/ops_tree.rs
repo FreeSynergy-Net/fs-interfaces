@@ -3,8 +3,8 @@
 //! Pattern: Repository query (the tree over the confirmed edges; what the asker may not read is left out, also on
 //! the way).
 
-use crate::groups_v1::shared::ObjectId;
-use crate::groups_v1::{Nesting, NestingSide, Result};
+use crate::groups::shared::ObjectId;
+use crate::groups::{Nesting, NestingSide, Result};
 use crate::nesting_logic::reach;
 use crate::state::State;
 

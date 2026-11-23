@@ -4,8 +4,8 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::shared::Revision;
-use crate::groups_v1::{
+use crate::groups::shared::Revision;
+use crate::groups::{
     Error, Field, InForce, InvitationAnswer, InvitationOutcome, InvitationState, ProblemKind, Right,
 };
 use crate::ids::group_ref;
@@ -35,7 +35,7 @@ async fn invitations(cx: &mut Cx<'_>) {
         ),
         "invite: a group is WrongArt",
     );
-    let past = crate::groups_v1::shared::Utc::from_millis(1);
+    let past = crate::groups::shared::Utc::from_millis(1);
     let bad = cx.g.invite(g.id, &p, None, Some(past)).await;
     cx.ensure(matches!(err(&bad), Some(Error::Invalid(v)) if v.iter().any(|x| x.field == Field::Expires && x.problem == ProblemKind::InPast)), "invite: an expiry in the past is Invalid");
     cx.ensure(
@@ -177,7 +177,7 @@ async fn invitation_ends(cx: &mut Cx<'_>) {
     let Some(s) = cx.person(Kind::Human).await else {
         return;
     };
-    let soon = crate::groups_v1::shared::Utc::from_millis(h.created.millis() + 3_600_000);
+    let soon = crate::groups::shared::Utc::from_millis(h.created.millis() + 3_600_000);
     let Ok(ie) = cx.g.invite(h.id, &s, None, Some(soon)).await else {
         return;
     };

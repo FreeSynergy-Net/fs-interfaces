@@ -4,36 +4,36 @@
 //! Pattern: Command handlers on the state (visible, then the level, then the revision, then the input, then write and
 //! log). The owner role is written only here (and by `create_owned`), never over the v1 role book.
 
-use crate::groups_v1::shared::{ObjectId, PersonArt, PersonRef, Revision};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonArt, PersonRef, Revision};
+use crate::groups::{
     Error, Field, Group, GroupDraft, HistoryKind, Membership, NestOutcome, Right,
 };
-use crate::groups_v2::{Error2, Level, Result2, role_owner};
+use crate::groups::{Level, Result, role_owner};
 use crate::ids::id_of_reference;
 use crate::state::State;
 
 impl State {
     /// The group is visible to the asker (unknown or hidden: `NotFound`) and she may read it (else `Withheld`).
-    pub(crate) fn v2_gate(&self, g: ObjectId) -> Result2<()> {
+    pub(crate) fn gov_gate(&self, g: ObjectId) -> Result<()> {
         self.visible(g)?;
-        if self.v2_readable(g) {
+        if self.gov_readable(g) {
             Ok(())
         } else {
-            Err(Error2::Withheld { group: g })
+            Err(Error::Withheld { group: g })
         }
     }
 
     /// The asker must be an owner of `g`, else `NeedsOwner` (an intervention is no ownership).
-    fn need_owner(&self, g: ObjectId) -> Result2<()> {
+    fn need_owner(&self, g: ObjectId) -> Result<()> {
         if self.is_owner(g, &self.asker) {
             Ok(())
         } else {
-            Err(Error2::NeedsOwner { group: g })
+            Err(Error::NeedsOwner { group: g })
         }
     }
 
     /// The person may become an owner: a known, direct-capable human (no AI, no unknown, no profile, no group).
-    fn check_owner_candidate(&self, p: &PersonRef) -> Result2<()> {
+    fn check_owner_candidate(&self, p: &PersonRef) -> Result<()> {
         if matches!(
             p.art,
             PersonArt::Group | PersonArt::Organization | PersonArt::Profile
@@ -52,19 +52,19 @@ impl State {
         }
     }
 
-    pub(crate) fn create_owned(&mut self, d: GroupDraft) -> Result2<Group> {
+    pub(crate) fn create_owned(&mut self, d: GroupDraft) -> Result<Group> {
         let g = self.create(d)?;
         let me = self.asker.clone();
         self.join(g.id, &me, Some(&role_owner()), &me, None);
         Ok(g)
     }
 
-    pub(crate) fn owners(&self, g: ObjectId) -> Result2<Vec<Membership>> {
-        self.v2_gate(g)?;
+    pub(crate) fn owners(&self, g: ObjectId) -> Result<Vec<Membership>> {
+        self.gov_gate(g)?;
         Ok(self.owner_memberships(g))
     }
 
-    pub(crate) fn my_level(&self, g: ObjectId) -> Result2<Level> {
+    pub(crate) fn my_level(&self, g: ObjectId) -> Result<Level> {
         self.visible(g)?;
         Ok(self.level_of(g, &self.asker))
     }
@@ -96,8 +96,8 @@ impl State {
         done
     }
 
-    pub(crate) fn appoint_owner(&mut self, g: ObjectId, person: &PersonRef) -> Result2<Membership> {
-        self.v2_gate(g)?;
+    pub(crate) fn appoint_owner(&mut self, g: ObjectId, person: &PersonRef) -> Result<Membership> {
+        self.gov_gate(g)?;
         self.need_owner(g)?;
         self.check_owner_candidate(person)?;
         if let Some(m) = self
@@ -110,22 +110,22 @@ impl State {
         Ok(self.make_owner(g, person))
     }
 
-    pub(crate) fn demote_owner(&mut self, id: ObjectId, expected: Revision) -> Result2<Membership> {
+    pub(crate) fn demote_owner(&mut self, id: ObjectId, expected: Revision) -> Result<Membership> {
         let m = self
             .members
             .iter()
             .find(|m| m.id == id)
             .cloned()
-            .ok_or(Error::NotFound(crate::groups_v1::Missing::Membership(id)))?;
+            .ok_or(Error::NotFound(crate::groups::Missing::Membership(id)))?;
         self.visible(m.group)
-            .map_err(|_| Error::NotFound(crate::groups_v1::Missing::Membership(id)))?;
+            .map_err(|_| Error::NotFound(crate::groups::Missing::Membership(id)))?;
         self.need_owner(m.group)?;
         Self::cas(m.revision, expected)?;
         if m.role.as_ref() != Some(&role_owner()) {
-            return Err(Error2::NotYourMembership(id));
+            return Err(Error::NotYourMembership(id));
         }
         if self.owner_memberships(m.group).len() <= 1 {
-            return Err(Error2::LastOwner {
+            return Err(Error::LastOwner {
                 group: m.group,
                 person: m.person,
             });
@@ -158,17 +158,17 @@ impl State {
         expected: Revision,
         to: &PersonRef,
         keep: bool,
-    ) -> Result2<()> {
+    ) -> Result<()> {
         let m = self
             .members
             .iter()
             .find(|m| m.id == from)
             .cloned()
-            .ok_or(Error::NotFound(crate::groups_v1::Missing::Membership(from)))?;
+            .ok_or(Error::NotFound(crate::groups::Missing::Membership(from)))?;
         self.visible(m.group)
-            .map_err(|_| Error::NotFound(crate::groups_v1::Missing::Membership(from)))?;
+            .map_err(|_| Error::NotFound(crate::groups::Missing::Membership(from)))?;
         if m.person != self.asker || m.role.as_ref() != Some(&role_owner()) {
-            return Err(Error2::NotYourMembership(from));
+            return Err(Error::NotYourMembership(from));
         }
         self.need_owner(m.group)?;
         Self::cas(m.revision, expected)?;
@@ -178,7 +178,7 @@ impl State {
             .iter()
             .find(|x| x.group == m.group && &x.person == to)
             .cloned()
-            .ok_or_else(|| Error2::NotDirectMember {
+            .ok_or_else(|| Error::NotDirectMember {
                 group: m.group,
                 person: to.clone(),
             })?;
@@ -191,15 +191,15 @@ impl State {
         Ok(())
     }
 
-    pub(crate) fn resolve_owner(&self, owner: &PersonRef) -> Result2<Vec<PersonRef>> {
+    pub(crate) fn resolve_owner(&self, owner: &PersonRef) -> Result<Vec<PersonRef>> {
         match owner.art {
             PersonArt::Person | PersonArt::Profile => Ok(vec![owner.clone()]),
             PersonArt::Group => {
                 let missing =
-                    || Error::NotFound(crate::groups_v1::Missing::Person(owner.id.clone()));
+                    || Error::NotFound(crate::groups::Missing::Person(owner.id.clone()));
                 let g = id_of_reference(&owner.id).ok_or_else(missing)?;
-                self.v2_gate(g).map_err(|e| match e {
-                    Error2::V1(_) => Error2::V1(missing()),
+                self.gov_gate(g).map_err(|e| match e {
+                    Error::NotFound(_) => missing(),
                     other => other,
                 })?;
                 Ok(self
@@ -220,19 +220,19 @@ impl State {
         &mut self,
         child: ObjectId,
         parent: ObjectId,
-    ) -> Result2<NestOutcome> {
+    ) -> Result<NestOutcome> {
         let mode = self.visible(parent)?.default_mode;
         Ok(self.request_nesting(child, parent, mode)?)
     }
 
     /// Whether the asker holds at least `level` in `g`, else `NeedsLevel`.
-    pub(crate) fn need_level(&self, g: ObjectId, level: Level) -> Result2<()> {
+    pub(crate) fn need_level(&self, g: ObjectId, level: Level) -> Result<()> {
         let have = self.level_of(g, &self.asker);
         let via_iv = level <= Level::Manager && self.may_ask(g, Right::Manage);
         if have >= level || via_iv {
             Ok(())
         } else {
-            Err(Error2::NeedsLevel { group: g, level })
+            Err(Error::NeedsLevel { group: g, level })
         }
     }
 }

@@ -1,8 +1,8 @@
 //! The fixed sample: its shape (fifteen groups, twenty persons, three modes, every case of the plan) and what the
 //! fake says about it.
 
-use fs_group_directory::groups_v1::shared::PersonArt;
-use fs_group_directory::groups_v1::{
+use fs_group_directory::groups::shared::PersonArt;
+use fs_group_directory::groups::{
     FindingKind, GroupMembers, GroupQuery, Groups, InvitationState, MirrorStep, Mirroring,
     NestingMode, NestingSide, ParentFilter, PersonDirectory, RequestSide, RequestState,
 };
@@ -106,10 +106,9 @@ async fn the_sample_uses_all_three_modes_in_one_tree() {
 }
 
 #[tokio::test]
-async fn the_sample_has_no_ai_group_an_admin_group_a_sensitive_group_and_every_invitation_state() {
+async fn the_sample_has_an_admin_group_a_sensitive_group_and_every_invitation_state() {
     let s = sample();
     let q = s.groups.list(&all(), None, 100).await.expect("list").items;
-    assert!(q.iter().all(|g| !g.ai), "there are no AI groups");
     assert!(q.iter().any(|g| g.sensitive && g.name == "Union members"));
     let events = s.id("Events team").expect("group");
     let outreach = s.id("Outreach team").expect("group");

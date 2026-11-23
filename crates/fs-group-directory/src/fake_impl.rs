@@ -3,8 +3,8 @@
 //! Pattern: Adapter (the async trait on one side, the sync state operations on the other).
 
 use crate::fake::FakeGroups;
-use crate::groups_v1::shared::{ObjectId, Page, PersonRef, Place, Reference, Revision, Utc};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, Page, PersonRef, Place, Reference, Revision, Utc};
+use crate::groups::{
     Change, Decision, Deleted, DirectoryId, EffectiveGroup, EffectiveMember, FindingId, Grant,
     Group, GroupCard, GroupDirectory, GroupDraft, GroupMembers, GroupMirrorState, GroupPatch,
     GroupQuery, GroupSummary, Groups, HistoryEntry, Invitation, InvitationAnswer,

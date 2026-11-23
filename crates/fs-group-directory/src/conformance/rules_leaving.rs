@@ -4,7 +4,7 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::{Error, NestingMode, Right};
+use crate::groups::{Error, NestingMode, Right};
 use crate::ids::group_ref;
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {

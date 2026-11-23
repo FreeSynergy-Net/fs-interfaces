@@ -1,7 +1,7 @@
 //! Spiegel in Verzeichnisse (Kanidm): fs-groups legt fest, das Verzeichnis gleicht an (ADR 0047, 0055, 0082
 //! Entscheidung 6). `GroupDirectory` ist VERBRAUCHT (Anbieter: fs-identity, Kanidm-REST); `Mirroring` bietet
 //! fs-groups an (Aufrufer: `fs-server`, CLI, Fenster nur lesend). Rollen, Rechte und Einladungen werden nicht
-//! gespiegelt (PLAN §4). Nur Gruppen mit `mirror = true`, nie `sensitive`, nie KI-Gruppen.
+//! gespiegelt (PLAN §4). Nur Gruppen mit `mirror = true`, nie `sensitive`.
 //!
 //! Spiegel je Modus (PLAN O1, Nutzerentscheidung 2026-11-16; Entwurf ADR-0082-Nachtrag): NATIV, nichts flach
 //! ausgerechnet. Der Mitgliedsgraph (`nesting.rs`) geht eins zu eins nach Kanidm:
@@ -13,20 +13,16 @@
 //!   Mitglieder der Vizechefs: sie sehen deren Mitgliederliste und werden mit eingeladen).
 //! - `Single`: kein Bogen (Anzeigekante im Baum, Kanidm ist flach); die Gruppe trägt nur ihre direkten Mitglieder.
 //!
-//! KI-Regel auf der HÜLLE (Nutzerentscheidung 2026-11-16; `nesting.rs`): KI-Konten stehen nur in KI-Gruppen,
-//! KI-Gruppen haben keine wirksame Kante; beim SCHREIBEN erzwingt fs-groups das mit `Error::AiNesting`. Ist der
-//! Zustand ohne Schreiben falsch geworden (Neumarkierung nach dem Eintritt, Altdaten: `InForce::KindMismatch`),
+//! KI-Regel auf der HÜLLE (`nesting.rs`): KI-Konten stehen in keiner Gruppe; beim SCHREIBEN erzwingt der Vertrag das
+//! mit `Error::AiNotMember`. Ist der Zustand ohne Schreiben falsch geworden (Neumarkierung nach dem Eintritt, Altdaten: `InForce::KindMismatch`),
 //! scheitert `mirror_plan` NICHT ganz: die KI bleibt draußen, der Plan meldet `LeftOut(person)` plus
 //! `HeldBack(Gruppe)`, läuft weiter und plant `remove` (`Update.remove`) für die KI überall, wo sie schon
 //! gespiegelt ist, auch in Admin-Gruppen; ein Bogen, der sie wirksam hineinbrächte, wird nicht geschrieben.
 //! Admin-Regel auf der Hülle (ADR 0056 Punkt 6, B1 des Trait-Reviews) gilt ebenso für Personen mit UNBEKANNTEM
 //! KI-Status: Kanidm gibt `memberof` einer Admin-Gruppe an alle wirksamen Mitglieder und kennt die Sperre nicht;
 //! ein Bogen, der sie wirksam in eine Gruppe mit Admin-Recht brächte (auch über weitere Bögen darüber), wird
-//! nicht geschrieben (Konformitätstest: `BottomUp`-Kind und `TopDown`-Obergruppe einer Admin-Gruppe). KI-Gruppen
-//! werden NICHT gespiegelt (ADR 0056 Punkt 8 bleibt wörtlich: in Kanidm stehen nur Menschen; Nutzerregel).
-//! Sie bleiben in fs-groups und in der Anzeige; ihre Mitglieder stehen in Kanidm nirgends. Kein stilles
-//! Weglassen: der Plan nennt jeden Ausschluss als `FindingKind::AiGroupExcluded(Gruppe)`; `mirror = true` bei
-//! `ai` ist beim Schreiben `Error::Invalid` (`ProblemKind::AiNotMirrored`).
+//! nicht geschrieben (Konformitätstest: `BottomUp`-Kind und `TopDown`-Obergruppe einer Admin-Gruppe). In Kanidm stehen
+//! nur Menschen (ADR 0056 Punkt 8).
 //!
 //! Pattern: Strategy + Adapter (Verzeichnis austauschbar) + Template Method beim Anbieter (Plan, Prüfung,
 //! Schreiben in Reihenfolge) + Memento (Plan-Ticket bindet das Anwenden an den gezeigten Plan).
@@ -133,10 +129,6 @@ pub enum FindingKind {
     /// in Kanidm, die Hülle dort ist kleiner als `effective_members`. Nie still; der Mensch entscheidet, ob er
     /// `inner` spiegelt.
     NestedNotMirrored { outer: ObjectId, inner: ObjectId },
-    /// KI-Gruppe: von der Spiegelung ausgeschlossen (ADR 0056 Punkt 8, in Kanidm nur Menschen); weder die Gruppe
-    /// noch ihre Mitglieder stehen in Kanidm. Der Plan nennt den Ausschluss, nichts wird still weggelassen.
-    /// Steht eine solche Gruppe aus Altdaten schon in Kanidm, plant der Abgleich `MirrorStep::Remove`.
-    AiGroupExcluded(ObjectId),
     /// Von Hand in Kanidm wurde `inner` in `outer` gelegt, und beide sind fs-groups-Gruppen, aber fs-groups hat
     /// keine solche Kante (auch: tiefer als `MAX_NESTING_DEPTH`, ein Kreis, oder sensibel unverträglich). Nie
     /// still `unnest` planen (O10): erst nach Bestätigung je Fall entfernt (`overwritable`). Eine fremde
@@ -199,7 +191,7 @@ pub struct MirrorStatus {
 /// Spiegel-Zustand einer Gruppe.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GroupMirrorState {
-    /// `mirror = false`, `sensitive` oder KI-Gruppe (`ai`).
+    /// `mirror = false` oder `sensitive`.
     NotMirrored,
     /// Noch nie abgeglichen.
     Pending,

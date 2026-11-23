@@ -2,21 +2,19 @@
 //! that ends on old data with a cycle (the fake used to overflow its stack there).
 
 use fs_group_directory::FakeGroups;
-use fs_group_directory::groups_v1::shared::ObjectId;
-use fs_group_directory::groups_v1::{
-    Error, GroupArt, GroupDraft, Groups, NestOutcome, NestingMode, Visibility,
+use fs_group_directory::groups::shared::ObjectId;
+use fs_group_directory::groups::{
+    Error, GroupDraft, Groups, NestOutcome, NestingMode, Visibility,
 };
 
 fn draft(name: &str) -> GroupDraft {
     GroupDraft {
-        art: GroupArt::Group,
         name: name.to_owned(),
         kind: None,
         description: None,
         default_mode: NestingMode::BottomUp,
         visibility: Visibility::Everyone,
         sensitive: false,
-        ai: false,
         mirror: false,
     }
 }

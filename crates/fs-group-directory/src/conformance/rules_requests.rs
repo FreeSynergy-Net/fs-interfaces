@@ -4,8 +4,8 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::shared::Revision;
-use crate::groups_v1::{
+use crate::groups::shared::Revision;
+use crate::groups::{
     Error, NestOutcome, NestingMode, NestingRequest, NestingRequestKind, NestingSide,
     RequestAnswer, RequestSide, RequestState, Right,
 };
@@ -15,9 +15,9 @@ pub(crate) async fn asked(
     cx: &mut Cx<'_>,
     mode: NestingMode,
 ) -> Option<(
-    crate::groups_v1::Group,
-    crate::groups_v1::Group,
-    crate::groups_v1::shared::PersonRef,
+    crate::groups::Group,
+    crate::groups::Group,
+    crate::groups::shared::PersonRef,
     NestingRequest,
 )> {
     let parent = cx.group("rq parent").await?;

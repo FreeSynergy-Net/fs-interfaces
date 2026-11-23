@@ -6,7 +6,7 @@
 //!
 //! Regel (Nutzerentscheidungen 2026-11-16, PLAN O1). Gespeichert wird die Kante: Kind (unten), Eltern (oben),
 //! Modus. Daraus folgt der GERICHTETE Mitgliedsgraph, genau wie Kanidm ihn hält ("X ist Mitglied von Y"):
-//! - `BottomUp`: das Kind ist Mitglied der Eltern (unten in oben). Beispiel: die Betreiberin Helfa arbeitet so
+//! - `BottomUp`: das Kind ist Mitglied der Eltern (unten in oben). Beispiel: ein Verband mit Teams je Bereich
 //!   (Teams in einem Bereich). Mitglieder zählen nach oben, die Rechte der oberen Gruppe gelten für alle darunter.
 //! - `TopDown`: die Eltern sind Mitglied des Kindes (oben in unten, die Kante umgekehrt). Mitgliedschaft fließt
 //!   nach unten, Rechte fließen nach oben: die obere Gruppe steht in `member` der unteren (Beispiel: 'Chefs'
@@ -17,25 +17,14 @@
 //!   Mitgliedsgraph; nichts fließt, weder Mitglieder noch Rechte. Kanidm ist dafür FLACH: die Kante wird nicht
 //!   gespiegelt (Nutzerentscheidung 2026-11-16). Jede Gruppe legt ihre Mitglieder selbst fest.
 //!
-//! KI-Regel (Nutzerentscheidung 2026-11-16; ADR 0054, 0056; "die KI ist am gefährlichsten, wenn sie angreift"):
-//! Eine KI ist ein Konto mit der Art KI (People, `PersonFacts`) und darf NUR in einer KI-Gruppe (`Group::ai`)
-//! Mitglied sein, nie direkt in einer Menschengruppe; in eine KI-Gruppe kommt umgekehrt kein Mensch (Trennung
-//! nach Kontoart; ein Mensch dort: `AiNesting`, unbekannter Status: `Error::AiStatusUnknown`; in
-//! Menschengruppen bleiben Unbekannte erlaubt). Eine KI-Gruppe nimmt an KEINER wirksamen Kante teil: kein
-//! `BottomUp`, kein `TopDown`; erlaubt ist nur `Single`, und nur als BLATT ganz unten im Baum (sie ist Kind, nie
-//! Eltern): sie erbt nie Rechte und vererbt nie Rechte. Rechte bekommt eine KI-Gruppe nur ausdrücklich und
-//! einzeln (Prinzip "darf am wenigsten"), `Manage` nie.
-//! - BEIM SCHREIBEN ist jeder Verstoß `Error::AiNesting { group, path }`, nie stilles Weglassen: KI-Konto in
-//!   einer Menschengruppe (`path` = nur die Gruppe), Mensch in einer KI-Gruppe, KI-Gruppe mit wirksamer Kante
-//!   oder mit Kindern (`path` = Kind, Eltern), `update(ai)` auf einer Gruppe, die das verletzte, auch
-//!   `ai: false` an einer KI-Gruppe mit KI-Mitgliedern.
-//! - Ist der Zustand OHNE Schreiben falsch geworden (die Person wird nach dem Eintritt als KI markiert, oder
-//!   umgekehrt eine KI als Mensch oder unbekannt in einer KI-Gruppe; Altdaten; `restore`), bleibt die
-//!   Mitgliedschaft stehen, ZÄHLT aber nicht: `InForce::KindMismatch` ("Kontoart passt nicht zur Gruppe"), mit
-//!   Befund. Sie fehlt in `effective_members`, `may_do` und `GroupMembers`; der Spiegel meldet `LeftOut` plus
-//!   `HeldBack`, läuft weiter und plant `remove` für die KI überall, wo sie schon gespiegelt ist. Der Plan
-//!   scheitert dann NICHT ganz. Eine KI-Gruppe mit wirksamer Kante aus Altdaten (die Kante hat kein `in_force`)
-//!   wirkt wie `Single`: die Kante fehlt in `effective_members` und `may_do`, der Spiegel meldet `HeldBack`.
+//! KI-Regel (ADR 0054, 0056, 0091, 0095; "die KI ist am gefährlichsten, wenn sie angreift"): es gibt KEINE
+//! KI-Gruppen. Eine KI ist ein Konto mit der Art KI (`PersonFacts`) und nie Mitglied einer Gruppe: sie arbeitet nur
+//! über den Bot-Platz. `add_member`/Annahme einer Einladung für ein KI-Konto ist `Error::AiNotMember`. Wird eine
+//! Person nach dem Eintritt als KI markiert (oder Altdaten), bleibt die Mitgliedschaft stehen, ZÄHLT aber nicht:
+//! `InForce::KindMismatch` ("Kontoart passt nicht"), mit Befund. Sie fehlt in `effective_members`, `may_do` und
+//! `GroupMembers`; der Spiegel meldet `LeftOut` plus `HeldBack`, läuft weiter und plant `remove` für die KI überall,
+//! wo sie schon gespiegelt ist. Admin-Rolle oder `Manage` für eine KI ist `AgentNotAdmin`, für eine Person mit
+//! unbekanntem Status `AiStatusUnknown`.
 //! - Eine KI hat an Gruppen mit Admin-Recht und an sensiblen Gruppen GAR KEINEN Zugriff, auch nicht lesend
 //!   (Nutzerentscheidung 2026-11-16: "ein Scammer fischt sonst nur Daten ab"): sie sieht solche Gruppen nicht
 //!   einmal in Listen. Allgemeine Regel (statt einer Aufzählung von Methoden): JEDE Methode, lesend oder
@@ -50,7 +39,7 @@
 //!   `Manage` an einer Seite. Ist eine der beiden Ids eine solche Gruppe, antwortet es einer KI wie oben
 //!   `NotFound` (vor dem Rechtefehler); sonst ist es für eine KI `Forbidden`. Einträge, die
 //!   eine solche Gruppe nennen, fehlen in Ergebnissen und Fehlerpfaden: Kanten, Anfragen, Einladungen, `Grant`,
-//!   `HistoryKind::other`, `ChangeKind`, Befunde und Schritte des Spiegels, Pfade von `Cycle`/`AiNesting`/
+//!   `HistoryKind::other`, `ChangeKind`, Befunde und Schritte des Spiegels, Pfade von `Cycle`/
 //!   `ModeConflict`; in Listen fehlen die Gruppen. `Mirroring` lesen darf eine KI gar nicht (`Forbidden`, nie mit
 //!   der Id einer verborgenen Gruppe). Die Antwort `Reason::ViaGroup` verbirgt eine Inhaber-Gruppe, die die
 //!   Fragende nicht lesen darf, wie `Inherited::from` (`holder = None`).
@@ -90,7 +79,7 @@ pub const MAX_NESTING_DEPTH: u32 = 16;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum NestingMode {
     /// Kind ist Mitglied der Eltern (Kanidm: Kind in `member` der Eltern). Mitglieder zählen nach oben, die
-    /// Rechte der oberen Gruppe gelten für alle darunter (Beispiel Helfa).
+    /// Rechte der oberen Gruppe gelten für alle darunter (Beispiel: Teams in einem Bereich).
     BottomUp,
     /// Eltern sind Mitglied des Kindes (Kanidm: Eltern in `member` des Kindes). Mitgliedschaft fließt nach
     /// unten, Rechte fließen nach oben: Chefs dürfen, was die Vizechefs dürfen, und sind auch deren wirksame

@@ -2,7 +2,7 @@
 //!
 //! Pattern: Iterator-like cursor (pure function over a keyed list).
 
-use crate::groups_v1::shared::{Page, Place};
+use crate::groups::shared::{Page, Place};
 
 /// The items after the cursor, at most `size` (at least one), in key order; `next` when more follow.
 pub(crate) fn page<T>(mut items: Vec<(String, T)>, after: Option<&Place>, size: usize) -> Page<T> {

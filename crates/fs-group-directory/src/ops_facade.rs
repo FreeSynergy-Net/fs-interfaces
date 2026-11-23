@@ -1,10 +1,10 @@
-//! The narrow view for other programs (`GroupMembers`): describe a group, resolve it to persons, list the groups of
+//! The na            out.push(g            out.push(g            out.push(group_ref(g.group));oup_ref(g.group));oup_ref(g.group));row view for other programs (`GroupMembers`): describe a group, resolve it to persons, list the groups of
 //! a person.
 //!
 //! Pattern: Facade (a small read view over the same state; the visibility rules of `Groups` apply unchanged).
 
-use crate::groups_v1::shared::{PersonArt, PersonRef};
-use crate::groups_v1::{Error, GroupArt, GroupCard, Missing, Result};
+use crate::groups::shared::{PersonArt, PersonRef};
+use crate::groups::{Error, GroupCard, Missing, Result};
 use crate::ids::{group_ref, id_of_reference};
 use crate::state::State;
 
@@ -23,7 +23,6 @@ impl State {
         Some(GroupCard {
             group: r.clone(),
             name: g.name.clone(),
-            art: g.art,
             effective_members: count,
             deleted: row.deleted.is_some(),
         })
@@ -32,7 +31,7 @@ impl State {
     pub(crate) fn members_of(&self, r: &PersonRef) -> Result<Vec<PersonRef>> {
         if !matches!(r.art, PersonArt::Group | PersonArt::Organization) {
             return Err(Error::WrongArt {
-                field: crate::groups_v1::Field::Person,
+                field: crate::groups::Field::Person,
                 got: r.art,
             });
         }
@@ -49,15 +48,7 @@ impl State {
     pub(crate) fn memberships_of(&self, person: &PersonRef) -> Result<Vec<PersonRef>> {
         let mut out = Vec::new();
         for g in self.groups_of(person)? {
-            let art = self
-                .groups
-                .get(&g.group)
-                .map_or(GroupArt::Group, |r| r.group.art);
-            let mut r = group_ref(g.group);
-            if art == GroupArt::Organization {
-                r.art = PersonArt::Organization;
-            }
-            out.push(r);
+            out.push(group_ref(g.group));
         }
         Ok(out)
     }

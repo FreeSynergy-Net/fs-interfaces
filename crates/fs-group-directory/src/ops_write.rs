@@ -1,15 +1,15 @@
-//! Writing groups: `create`, `update`, and the AI and sensitivity checks they share.
+//! Writing groups: `create`, `update`, and the AI and sensitiity checks they share.
 //!
-//! Pattern: Command handlers on the state (check rights, then the revision, then the input, then write and log).
+//! Pattern: Command handlers on the state (check rights, then the reision, then the input, then write and log).
 
-use crate::groups_v1::shared::{ObjectId, Revision};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, Revision};
+use crate::groups::{
     ChangeKind, ConflictKind, Error, Field, FieldProblem, Grant, Group, GroupDraft, GroupField,
     GroupPatch, HistoryKind, InForce, Result, Right,
 };
 use crate::ids::reference_of;
 use crate::state::{Row, State};
-use crate::validate::{NAME_MAX, TEXT_MAX, mirror, no_ai, text};
+use crate::validate::{NAME_MAX, TEXT_MAX, mirror, text};
 
 impl State {
     pub(crate) fn create(&mut self, d: GroupDraft) -> Result<Group> {
@@ -28,7 +28,6 @@ impl State {
             &mut problems,
         );
         mirror(d.mirror, d.sensitive, &mut problems);
-        no_ai(d.ai, &mut problems);
         if !problems.is_empty() {
             return Err(Error::Invalid(problems));
         }
@@ -38,14 +37,12 @@ impl State {
             id,
             reference: reference_of(id),
             revision: Revision(1),
-            art: d.art,
             name: d.name,
             kind: d.kind,
             description: d.description,
             default_mode: d.default_mode,
             visibility: d.visibility,
             sensitive: d.sensitive,
-            ai: d.ai,
             mirror: d.mirror,
             created: now,
             created_by: self.asker.clone(),
@@ -87,10 +84,6 @@ impl State {
         let mut new = old.clone();
         let mut fields = Vec::new();
         let mut problems: Vec<FieldProblem> = Vec::new();
-        if let Some(v) = p.art.filter(|v| *v != old.art) {
-            new.art = v;
-            fields.push(GroupField::Art);
-        }
         if let Some(v) = p.name.filter(|v| *v != old.name) {
             text(Field::Name, &v, NAME_MAX, &mut problems);
             new.name = v;
@@ -123,7 +116,6 @@ impl State {
             fields.push(GroupField::Mirror);
         }
         mirror(new.mirror, new.sensitive, &mut problems);
-        no_ai(p.ai.unwrap_or(false), &mut problems);
         if !problems.is_empty() {
             return Err(Error::Invalid(problems));
         }

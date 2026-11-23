@@ -3,7 +3,7 @@
 //! Pattern: Template method (a fixed list of rules; each rule seeds its own data through the trait).
 
 use super::cx::Cx;
-use crate::groups_v1::{GroupQuery, NestingMode, ParentFilter};
+use crate::groups::{GroupQuery, NestingMode, ParentFilter};
 use crate::ids::object_id;
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {

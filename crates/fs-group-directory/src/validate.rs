@@ -2,7 +2,7 @@
 //!
 //! Pattern: Specification (small pure checks; the first problem of each field is reported).
 
-use crate::groups_v1::{Field, FieldProblem, ProblemKind};
+use crate::groups::{Field, FieldProblem, ProblemKind};
 
 /// Longest name.
 pub(crate) const NAME_MAX: usize = 200;
@@ -31,17 +31,6 @@ pub(crate) fn mirror(on: bool, sensitive: bool, out: &mut Vec<FieldProblem>) {
         out.push(FieldProblem {
             field: Field::Mirror,
             problem: ProblemKind::SensitiveNotMirrored,
-        });
-    }
-}
-
-/// There are no AI groups (ADR 0091, 0095): `ai = true` is refused. `groups_v1` keeps the field and has no problem of
-/// its own for it, so the one AI problem it has is used (`AiNotMirrored` at `Mirror`: an AI group is never kept).
-pub(crate) fn no_ai(ai: bool, out: &mut Vec<FieldProblem>) {
-    if ai {
-        out.push(FieldProblem {
-            field: Field::Mirror,
-            problem: ProblemKind::AiNotMirrored,
         });
     }
 }

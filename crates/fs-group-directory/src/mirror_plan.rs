@@ -3,8 +3,8 @@
 //! Pattern: Strategy-free pure computation on the state (Template method: project, diff, gate by `Manage`, number
 //! the findings); nothing is written.
 
-use crate::groups_v1::shared::{ObjectId, PersonRef};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonRef};
+use crate::groups::{
     DirectoryGroup, FindingId, FindingKind, InForce, MirrorFinding, MirrorStep, Right,
 };
 use crate::nesting_logic::arcs;

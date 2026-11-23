@@ -4,7 +4,7 @@
 //!
 //! Pattern: Composition (Facette, die an einem Kern hängt) + Value Object; nichts hängt von einem Zusatz ab.
 
-use crate::groups_v1::shared::{BasicValue as _, ObjectId, PersonRef, Reference, Revision, Utc};
+use crate::groups::shared::{BasicValue as _, ObjectId, PersonRef, Reference, Revision, Utc};
 
 /// `org:FormalOrganization` (W3C ORG): Vokabular der juristischen Person (Verein, Firma).
 pub const ORG_FORMAL_ORGANIZATION: &str = "http://www.w3.org/ns/org#FormalOrganization";

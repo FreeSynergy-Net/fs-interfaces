@@ -3,8 +3,8 @@
 //!
 //! Pattern: Decorator (over the three traits at once) with a Strategy for the gate (`FailGate`, `SlowGate`).
 
-use crate::groups_v1::shared::{ObjectId, PersonArt, PersonRef};
-use crate::groups_v1::{GroupMembers, Groups, Mirroring, Result};
+use crate::groups::shared::{ObjectId, PersonArt, PersonRef};
+use crate::groups::{GroupMembers, Groups, Mirroring, Result};
 use crate::ids::id_of_reference;
 use std::sync::Arc;
 

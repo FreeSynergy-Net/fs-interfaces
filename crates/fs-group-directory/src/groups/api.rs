@@ -1,4 +1,4 @@
-//! Der Trait `Groups` im Ordner `groups_v1/`: Gruppen, Verschachtelung, Mitglieder, Einladungen, Rechte.
+//! Der Trait `Groups` im Ordner `groups/`: Gruppen, Verschachtelung, Mitglieder, Einladungen, Rechte.
 //!
 //! Pattern: Repository + Port (Trait; alle Methoden Pflicht, kein Null Object).
 

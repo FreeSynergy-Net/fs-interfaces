@@ -122,7 +122,6 @@ pub struct Change {
 /// Geändertes Feld einer Gruppe.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum GroupField {
-    Art,
     Name,
     Kind,
     Description,

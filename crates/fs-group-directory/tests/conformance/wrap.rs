@@ -3,10 +3,10 @@
 
 use async_trait::async_trait;
 use fs_group_directory::FakeGroups;
-use fs_group_directory::groups_v1::shared::{
+use fs_group_directory::groups::shared::{
     ObjectId, Page, PersonRef, Place, Reference, Revision, Utc,
 };
-use fs_group_directory::groups_v1::{
+use fs_group_directory::groups::{
     Change, Decision, Deleted, EffectiveGroup, EffectiveMember, Error, Grant, Group, GroupDraft,
     GroupPatch, GroupQuery, GroupSummary, Groups, HistoryEntry, Invitation, InvitationAnswer,
     InvitationOutcome, Membership, NestOutcome, Nesting, NestingEffect, NestingMode,

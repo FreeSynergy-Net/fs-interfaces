@@ -3,8 +3,8 @@
 //! Pattern: Template method + Memento (plan, check the ticket against a fresh plan, write step by step in order,
 //! store the report; a changed world makes the ticket stale).
 
-use crate::groups_v1::shared::ObjectId;
-use crate::groups_v1::{
+use crate::groups::shared::ObjectId;
+use crate::groups::{
     ChangeKind, DirectoryGroup, DirectoryId, Error, FindingId, GroupMirrorState, MirrorError,
     MirrorFinding, MirrorPlan, MirrorReport, MirrorStatus, MirrorStep, MirrorTicket, Result, Right,
 };

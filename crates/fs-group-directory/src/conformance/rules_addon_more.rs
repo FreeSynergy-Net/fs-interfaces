@@ -1,4 +1,4 @@
-//! Rules of `groups_v2`, addons (part 2): independence (an addon changes nothing else) and self-management.
+//! Rules of `groups`, addons (part 2): independence (an addon changes nothing else) and self-management.
 //!
 //! Pattern: Template method (a fixed list of rules; each one is a mutant killer).
 
@@ -6,15 +6,15 @@ use super::cx::Cx;
 use super::fixture::Kind;
 use super::rules_addon::{formal, other};
 use super::rules_owner::{owned, owner_of};
-use crate::groups_v1::{NestingSide, Right};
-use crate::groups_v2::GroupsV2;
+use crate::groups::{NestingSide, Right};
+use crate::groups::GroupGovernance;
 
-pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     independent(cx, v).await;
     self_managed(cx, v).await;
 }
 
-async fn independent(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn independent(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let (Some(g), Some(p)) = (
         owned(cx, v, "add indep").await,
         cx.person(Kind::Human).await,
@@ -25,7 +25,7 @@ async fn independent(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
         return;
     };
     cx.member(g.id, &p).await;
-    cx.link(g.id, parent.id, crate::groups_v1::NestingMode::BottomUp)
+    cx.link(g.id, parent.id, crate::groups::NestingMode::BottomUp)
         .await;
     let before = snapshot(cx, v, g.id, &p, parent.id).await;
     cx.ensure(
@@ -42,7 +42,7 @@ async fn independent(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
     );
 }
 
-async fn self_managed(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
+async fn self_managed(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let (Some(g), Some(p2)) = (owned(cx, v, "add self").await, cx.person(Kind::Human).await) else {
         return;
     };
@@ -78,7 +78,7 @@ async fn self_managed(cx: &mut Cx<'_>, v: &dyn GroupsV2) {
 }
 
 type Snapshot = (
-    Vec<crate::groups_v1::shared::PersonRef>,
+    Vec<crate::groups::shared::PersonRef>,
     Option<usize>,
     Option<bool>,
     Option<usize>,
@@ -89,10 +89,10 @@ type Snapshot = (
 /// What addons must not change: effective members above, members, `may_do`, edges, rights, owners.
 async fn snapshot(
     cx: &Cx<'_>,
-    v: &dyn GroupsV2,
-    g: crate::groups_v1::shared::ObjectId,
-    p: &crate::groups_v1::shared::PersonRef,
-    parent: crate::groups_v1::shared::ObjectId,
+    v: &dyn GroupGovernance,
+    g: crate::groups::shared::ObjectId,
+    p: &crate::groups::shared::PersonRef,
+    parent: crate::groups::shared::ObjectId,
 ) -> Snapshot {
     (
         cx.effective(parent)

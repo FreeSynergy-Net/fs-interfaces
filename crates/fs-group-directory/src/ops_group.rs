@@ -2,8 +2,8 @@
 //!
 //! Pattern: Repository query (filters over the group table; the AI visibility rule filters first).
 
-use crate::groups_v1::shared::{ObjectId, Page, Place, Reference};
-use crate::groups_v1::{Group, GroupQuery, GroupSummary, ParentFilter, Result};
+use crate::groups::shared::{ObjectId, Page, Place, Reference};
+use crate::groups::{Group, GroupQuery, GroupSummary, ParentFilter, Result};
 use crate::ids::id_of_reference;
 use crate::paging::page;
 use crate::state::{Row, State};
@@ -32,7 +32,6 @@ impl State {
             id: g.id,
             reference: g.reference.clone(),
             revision: g.revision,
-            art: g.art,
             name: g.name.clone(),
             kind: g.kind.clone(),
             default_mode: g.default_mode,
@@ -42,7 +41,6 @@ impl State {
                 .can_see_members(g.id)
                 .then(|| u32::try_from(direct).unwrap_or(u32::MAX)),
             sensitive: g.sensitive,
-            ai: g.ai,
             mirror: g.mirror,
             restorable_until: row.deleted,
         }

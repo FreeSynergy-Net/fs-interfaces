@@ -4,7 +4,7 @@
 //! method of the locked trait with the rules of the trait docs and the plan. [`DECISIONS`] lists what it decided
 //! where the trait is silent.
 
-use crate::groups_v1::shared::{ObjectId, PersonRef, Utc};
+use crate::groups::shared::{ObjectId, PersonRef, Utc};
 use crate::people::FakePeople;
 use crate::state::State;
 use std::sync::{Arc, Mutex, MutexGuard};
@@ -115,14 +115,14 @@ impl FakeGroups {
         &self,
         child: ObjectId,
         parent: ObjectId,
-        mode: crate::groups_v1::NestingMode,
+        mode: crate::groups::NestingMode,
     ) -> ObjectId {
         let mut s = self.lock();
         let by = s.asker.clone();
         let id = s.fresh();
-        let edge = crate::groups_v1::Nesting {
+        let edge = crate::groups::Nesting {
             id,
-            revision: crate::groups_v1::shared::Revision(1),
+            revision: crate::groups::shared::Revision(1),
             child,
             parent,
             mode,

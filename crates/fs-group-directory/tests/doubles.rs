@@ -1,7 +1,7 @@
 //! `FailingGroups` and `SlowGroups`: the error, partly broken, disconnected and loading states of the frontends.
 
-use fs_group_directory::groups_v1::{
-    Error, GroupArt, GroupDraft, GroupMembers, GroupQuery, Groups, Mirroring, NestingMode,
+use fs_group_directory::groups::{
+    Error, GroupDraft, GroupMembers, GroupQuery, Groups, Mirroring, NestingMode,
     ParentFilter, Unreachable, Visibility,
 };
 use fs_group_directory::{
@@ -11,14 +11,12 @@ use std::sync::Arc;
 
 fn draft() -> GroupDraft {
     GroupDraft {
-        art: GroupArt::Group,
         name: "New".to_owned(),
         kind: None,
         description: None,
         default_mode: NestingMode::BottomUp,
         visibility: Visibility::Everyone,
         sensitive: false,
-        ai: false,
         mirror: false,
     }
 }

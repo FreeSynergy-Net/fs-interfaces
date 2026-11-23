@@ -2,8 +2,8 @@
 //!
 //! Pattern: Command handlers and queries (the AI rules guard `grant`; the answer of `may_do` names its reason).
 
-use crate::groups_v1::shared::{ObjectId, PersonArt, PersonRef, Revision};
-use crate::groups_v1::{
+use crate::groups::shared::{ObjectId, PersonArt, PersonRef, Revision};
+use crate::groups::{
     ChangeKind, Decision, Error, Field, Grant, HistoryKind, InForce, Missing, Result, Right,
 };
 use crate::ids::id_of_reference;

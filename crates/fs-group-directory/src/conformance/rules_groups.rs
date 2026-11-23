@@ -4,8 +4,8 @@
 
 use super::cx::{Cx, err};
 use super::fixture::Kind;
-use crate::groups_v1::shared::Revision;
-use crate::groups_v1::{Error, Field, GroupPatch, HistoryKind, NestingSide, ProblemKind, Right};
+use crate::groups::shared::Revision;
+use crate::groups::{Error, Field, GroupPatch, HistoryKind, NestingSide, ProblemKind, Right};
 use crate::ids::{object_id, reference_of};
 
 pub(crate) async fn rules(cx: &mut Cx<'_>) {
@@ -77,16 +77,6 @@ async fn create(cx: &mut Cx<'_>) {
             &ProblemKind::SensitiveNotMirrored,
         ),
         "create: mirror with sensitive is Invalid",
-    );
-    let mut d = cx.draft("bad");
-    d.ai = true;
-    cx.ensure(
-        invalid(
-            err(&cx.g.create(d).await),
-            Field::Mirror,
-            &ProblemKind::AiNotMirrored,
-        ),
-        "create: an AI group is refused (no AI groups, ADR 0091)",
     );
 }
 

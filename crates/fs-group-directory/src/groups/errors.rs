@@ -1,11 +1,11 @@
-//! Typisierte Fehler des Ordners `groups_v1/`. Jede Ursache ist eine Variante mit typisierten Zusatzfeldern, nie
+//! Typisierte Fehler des Ordners `groups/`. Jede Ursache ist eine Variante mit typisierten Zusatzfeldern, nie
 //! ein Text. `Display` dient nur Entwicklern (englisch); die Person sieht Übersetzungen über die Kennungen
 //! (ADR 0057).
 //!
 //! Pattern: Error Enum (typisierte Ursache + Zusatzfelder), `Display` nur zur Anzeige.
 
-use super::shared::{ObjectId, PersonArt, Reference, Revision, TypeProblem, Utc};
-use super::{InvitationState, RequestState, Right};
+use super::shared::{ObjectId, PersonArt, PersonRef, Reference, Revision, TypeProblem, Utc};
+use super::{InvitationState, Level, RequestState, Right, Scope};
 use std::fmt;
 
 /// Wovon etwas nicht gefunden wurde.
@@ -49,8 +49,6 @@ pub enum ProblemKind {
     InPast,
     /// `mirror` bei `sensitive`.
     SensitiveNotMirrored,
-    /// `mirror` bei `ai`: KI-Gruppen werden nie nach Kanidm gespiegelt (ADR 0056 Punkt 8: in Kanidm nur Menschen).
-    AiNotMirrored,
     /// `abzug` ist in diesem Thema nie erlaubt.
     NoAbzug,
 }
@@ -116,15 +114,9 @@ pub enum Error {
     },
     /// Modus oder Schutz passen nicht zusammen; nichts geschrieben. Nie `Forbidden`: das ist ein Rechtefehler.
     ModeConflict(ConflictKind),
-    /// KI-Regel beim SCHREIBEN verletzt (Nutzerentscheidung 2026-11-16, ADR 0054, 0056): ein KI-Konto in einer
-    /// Menschengruppe, ein Mensch in einer KI-Gruppe, `ai: false` an einer KI-Gruppe mit KI-Mitgliedern (je `path`
-    /// = nur die Gruppe), eine KI-Gruppe mit wirksamer Kante (BottomUp/TopDown) oder mit Kindern (`path` = Kind,
-    /// Eltern). `group` = die Gruppe, an der es scheitert. Nichts geschrieben, nie still. Altdaten und
-    /// Neumarkierung sind KEIN Fehler: die Mitgliedschaft zählt nur nicht (`InForce::KindMismatch`).
-    AiNesting {
-        group: ObjectId,
-        path: Vec<ObjectId>,
-    },
+    /// Ein KI-Konto ist nie Mitglied einer Gruppe (ADR 0091, 0095: KI nur über den Bot-Platz). `group` = die Gruppe,
+    /// an der es scheitert. Nichts geschrieben, nie still.
+    AiNotMember { group: ObjectId },
     /// Falsche Art im Verweis: eine Gruppe als Mitglied (dafür `request_nesting`), eine Organisation als
     /// Eingeladene usw.
     WrongArt {
@@ -145,8 +137,7 @@ pub enum Error {
     AlreadyThere(ObjectId),
     /// Admin-Rolle oder `Manage` für eine als KI markierte Person (ADR 0056 Punkt 6).
     AgentNotAdmin,
-    /// Admin-Rolle oder `Manage`, aber People sagt nicht, ob die Person ein Mensch ist (im Zweifel nein); auch:
-    /// eine Person mit unbekanntem Status soll in eine KI-Gruppe (in Menschengruppen erlaubt).
+    /// Admin-Rolle, `Manage` oder Mitgliedschaft, aber People sagt nicht, ob die Person ein Mensch ist (im Zweifel nein).
     AiStatusUnknown,
     /// `restore` nach Ablauf der Frist oder für eine nicht gelöschte Gruppe.
     NotRestorable(ObjectId),
@@ -157,6 +148,31 @@ pub enum Error {
     Invalid(Vec<FieldProblem>),
     Unavailable(Unreachable),
     Storage(StorageKind),
+    // ---- Eigentümer, Stufen, Eingriff, Zusätze (ADR 0095)
+    /// Die Handlung braucht die Stufe Eigentümer (ernennen, herabstufen, übergeben, löschen mit Eigentümer).
+    NeedsOwner { group: ObjectId },
+    /// Die Handlung braucht mindestens diese Stufe (Zusätze anhängen: Verwalter).
+    NeedsLevel { group: ObjectId, level: Level },
+    /// Danach hätte die Gruppe keinen Eigentümer mehr (nie automatisch ersetzt).
+    LastOwner { group: ObjectId, person: PersonRef },
+    /// Das Ziel einer Übergabe ist kein direktes Mitglied.
+    NotDirectMember { group: ObjectId, person: PersonRef },
+    /// Die Mitgliedschaft gehört nicht der handelnden Person, oder sie trägt die Rolle nicht.
+    NotYourMembership(ObjectId),
+    /// Die Gruppe darf die fragende Person nicht lesen: zurückgehalten, nie eine leere Liste.
+    Withheld { group: ObjectId },
+    /// Der Bereich ist nicht vergebbar (`Group(_)`) oder die handelnde Person hält ihn nicht.
+    ScopeDenied(Scope),
+    /// Der letzte Bereich `Project` lässt sich nicht entziehen.
+    LastScope,
+    /// Ein Eingriff braucht einen Grund.
+    ReasonMissing,
+    /// Der Eingriff ist unbekannt, fremd oder schon zu.
+    NoSuchIntervention(ObjectId),
+    /// Den Zusatz gibt es an dieser Gruppe schon (die Id des vorhandenen).
+    AddonAlreadyThere(ObjectId),
+    /// Den Zusatz gibt es nicht (oder er hängt an einer Gruppe, die die fragende Person nicht sieht).
+    NoSuchAddon(ObjectId),
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
