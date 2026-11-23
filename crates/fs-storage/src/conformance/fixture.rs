@@ -2,7 +2,7 @@
 //!
 //! Pattern: Test fixture (a fresh set of providers per rule) and Collecting parameter (`Report`).
 
-use crate::ctl::Ctl;
+use crate::ctl::{Blob, Ctl, MAX_READ};
 use crate::entry::{Entry, Kind, PageReq, RootKind};
 use crate::error::{Error, Result};
 use crate::ids::EntryId;
@@ -145,12 +145,50 @@ pub(super) async fn at(
     s(p.resolve_path(&root, path).await)
 }
 
+/// `length` bytes from `offset` through short reads: every answer is at most what was asked and at most `MAX_READ`, and
+/// not empty before the end (`size`); more bytes than the size means a provider that ignores the offset.
+pub(super) async fn read_range(
+    blob: &dyn Blob,
+    size: u64,
+    offset: u64,
+    length: u64,
+) -> std::result::Result<Vec<u8>, String> {
+    let mut out = Vec::new();
+    let mut at = offset;
+    let end = offset.saturating_add(length);
+    while at < end {
+        let ask = (end - at).min(MAX_READ);
+        let got = s(blob.read(at, ask).await)?;
+        if got.len() as u64 > ask {
+            return Err(format!(
+                "read({at}, {ask}) answered {} bytes: more than asked",
+                got.len()
+            ));
+        }
+        if got.is_empty() {
+            if at < size {
+                return Err(format!(
+                    "read({at}, {ask}) was empty before the end ({size})"
+                ));
+            }
+            break;
+        }
+        at += got.len() as u64;
+        out.extend(got);
+        if at > size.max(offset) && out.len() as u64 > size {
+            return Err("a read went on behind the size of the file".to_owned());
+        }
+    }
+    Ok(out)
+}
+
+/// The whole file through short reads.
 pub(super) async fn read_all(
     p: &dyn StorageProvider,
     e: &Entry,
 ) -> std::result::Result<Vec<u8>, String> {
     let blob = s(p.open(&e.id, &Ctl::none()).await)?;
-    s(blob.read(0, u64::MAX).await)
+    read_range(&*blob, e.size.unwrap_or(0), 0, u64::MAX).await
 }
 
 pub(super) fn sha(bytes: &[u8]) -> [u8; 32] {

@@ -77,10 +77,13 @@ impl Error {
             Self::Forbidden { .. } => "https://freesynergy.net/problems/storage/forbidden",
             Self::NotFound(_) => "https://freesynergy.net/problems/storage/not-found",
             Self::NameConflict { .. } => "https://freesynergy.net/problems/storage/name-conflict",
-            Self::InvalidName { .. }
-            | Self::Invalid(_)
-            | Self::NotAFolder(_)
-            | Self::LinkNotFollowed(_) => "https://freesynergy.net/problems/storage/invalid-name",
+            Self::InvalidName { .. } | Self::Invalid(_) => {
+                "https://freesynergy.net/problems/storage/invalid-name"
+            }
+            Self::NotAFolder(_) => "https://freesynergy.net/problems/storage/not-a-folder",
+            Self::LinkNotFollowed(_) => {
+                "https://freesynergy.net/problems/storage/link-not-followed"
+            }
             Self::Cycle(_) => "https://freesynergy.net/problems/storage/cycle",
             Self::Cancelled => "https://freesynergy.net/problems/storage/cancelled",
             Self::Timeout => "https://freesynergy.net/problems/storage/timeout",

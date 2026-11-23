@@ -6,6 +6,7 @@
 //! prepared with the same tree. Rights rules and name rules are the security part (ADR 0070 risks 1, 9).
 
 mod admin;
+mod changes;
 mod fixture;
 mod names;
 mod read;

@@ -18,6 +18,25 @@ pub(crate) struct MemBlob {
     pub data: Vec<u8>,
     /// Mutant: the offset is ignored.
     pub bad_range: bool,
+    /// Most bytes per read.
+    pub limit: u64,
+    /// Mutant: nothing is answered.
+    pub zero: bool,
+    /// Mutant: the length asked is ignored.
+    pub greedy: bool,
+}
+
+impl MemBlob {
+    pub(crate) fn new(entry: Entry, data: Vec<u8>) -> Self {
+        Self {
+            entry,
+            data,
+            bad_range: false,
+            limit: crate::ctl::MAX_READ,
+            zero: false,
+            greedy: false,
+        }
+    }
 }
 
 #[async_trait]
@@ -27,7 +46,15 @@ impl Blob for MemBlob {
     }
     async fn read(&self, offset: u64, length: u64) -> Result<Vec<u8>> {
         let len = self.data.len() as u64;
+        if self.zero {
+            return Ok(Vec::new());
+        }
         let offset = if self.bad_range { 0 } else { offset };
+        let length = if self.greedy {
+            u64::MAX
+        } else {
+            length.min(self.limit)
+        };
         let from = offset.min(len);
         let to = offset.saturating_add(length).min(len);
         Ok(
@@ -118,11 +145,24 @@ impl World {
 
     pub(super) fn stat_of(&self, a: &Actor, id: &EntryId) -> Result<Entry> {
         if id.as_str() == TRASH {
-            let mut e = self.nodes["mine-anna"].entry.clone();
-            e.id = id.clone();
-            e.name = "Papierkorb".into();
-            e.owner = a.who.clone();
-            return Ok(e);
+            if self.is_bot(a) {
+                return Err(Error::Forbidden {
+                    capability: "storage.read".to_owned(),
+                });
+            }
+            return Ok(Entry {
+                id: id.clone(),
+                name: "Papierkorb".into(),
+                kind: Kind::Folder,
+                size: None,
+                modified: None,
+                media_type: None,
+                file_ref: None,
+                owner: a.who.clone(),
+                etag: None,
+                link_target: None,
+                generator: None,
+            });
         }
         self.node_for(a, id, Mode::Structure)
             .map(|n| Self::present(a, n))
