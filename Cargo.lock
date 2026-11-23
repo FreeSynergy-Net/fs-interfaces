@@ -218,8 +218,8 @@ dependencies = [
 
 [[package]]
 name = "capnp-compiler"
-version = "0.2.2"
-source = "git+https://github.com/FreeSynergy/fs-capnpc?rev=a95a2a1571366ea4dc4f086f36929d69e7b6a52a#a95a2a1571366ea4dc4f086f36929d69e7b6a52a"
+version = "0.2.3"
+source = "git+https://github.com/FreeSynergy/fs-capnpc?rev=f600c8ee25b234b83b36fa6bfb8baa46b2eeb45f#f600c8ee25b234b83b36fa6bfb8baa46b2eeb45f"
 dependencies = [
  "capnp",
 ]
