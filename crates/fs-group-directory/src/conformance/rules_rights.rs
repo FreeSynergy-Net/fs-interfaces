@@ -108,7 +108,8 @@ async fn grants(cx: &mut Cx<'_>) {
     let h =
         cx.g.history(g.id, None, 50)
             .await
-            .map_or_default(|p| p.items);
+            .map(|p| p.items)
+            .unwrap_or_default();
     cx.ensure(h.iter().any(|e| matches!(&e.kind, HistoryKind::Granted { holder, right: Right::AddMembers } if *holder == p)) && h.iter().any(|e| matches!(e.kind, HistoryKind::GrantRevoked { .. })), "history: Granted and GrantRevoked");
     cx.ensure(
         h.iter().all(|e| e.actor == cx.me),
@@ -243,7 +244,8 @@ async fn feeds(cx: &mut Cx<'_>) {
     let more =
         cx.g.changes(small.ok().and_then(|s| s.next).as_ref(), 100)
             .await
-            .map_or_default(|p| p.items);
+            .map(|p| p.items)
+            .unwrap_or_default();
     cx.ensure(
         more.iter()
             .any(|c| c.kind == ChangeKind::Membership { group: g.id }),
@@ -252,7 +254,8 @@ async fn feeds(cx: &mut Cx<'_>) {
     let h =
         cx.g.history(g.id, None, 100)
             .await
-            .map_or_default(|p| p.items);
+            .map(|p| p.items)
+            .unwrap_or_default();
     cx.ensure(
         h.windows(2).all(|w| w[0].at <= w[1].at),
         "history: oldest first",
@@ -262,7 +265,8 @@ async fn feeds(cx: &mut Cx<'_>) {
     let rest =
         cx.g.history(g.id, page.next.as_ref(), 100)
             .await
-            .map_or_default(|p| p.items);
+            .map(|p| p.items)
+            .unwrap_or_default();
     cx.ensure(
         page.items.len() == 1 && page.next.is_some() && rest.len() + 1 == h.len(),
         "history: paging with a cursor",

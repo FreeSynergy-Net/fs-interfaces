@@ -39,7 +39,8 @@ async fn listing(cx: &mut Cx<'_>) {
     let rest =
         cx.g.list(&q, first.next.as_ref(), 10)
             .await
-            .map_or_default(|p| p.items);
+            .map(|p| p.items)
+            .unwrap_or_default();
     let mut ids: Vec<_> = first
         .items
         .iter()
@@ -72,7 +73,8 @@ async fn listing(cx: &mut Cx<'_>) {
             10,
         )
         .await
-        .map_or_default(|p| p.items);
+        .map(|p| p.items)
+        .unwrap_or_default();
     cx.ensure(
         kids.len() == 2,
         "list: ChildrenOf lists the direct children (all modes)",
@@ -87,7 +89,8 @@ async fn listing(cx: &mut Cx<'_>) {
             10,
         )
         .await
-        .map_or_default(|p| p.items);
+        .map(|p| p.items)
+        .unwrap_or_default();
     cx.ensure(
         roots.iter().all(|s| s.id != a.id && s.id != b.id) && roots.iter().any(|s| s.id == p.id),
         "list: Roots has no group with a parent",
@@ -117,12 +120,17 @@ async fn listing(cx: &mut Cx<'_>) {
             10,
         )
         .await
-        .map_or_default(|p| p.items);
+        .map(|p| p.items)
+        .unwrap_or_default();
     cx.ensure(
         mine.len() == 1 && mine[0].id == c.id,
         "list: the member filter keeps groups the person is a direct member of",
     );
-    let row = cx.g.list(&q, None, 10).await.map_or_default(|p| p.items);
+    let row =
+        cx.g.list(&q, None, 10)
+            .await
+            .map(|p| p.items)
+            .unwrap_or_default();
     let top = row.iter().find(|s| s.id == p.id);
     cx.ensure(
         top.is_some_and(|s| s.children == 2 && s.parents == 0),

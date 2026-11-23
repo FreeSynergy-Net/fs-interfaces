@@ -163,7 +163,8 @@ impl<'a> Cx<'a> {
         self.g
             .effective_members(group, None, 1000)
             .await
-            .map_or_default(|p| p.items)
+            .map(|p| p.items)
+            .unwrap_or_default()
     }
 
     /// Whether `person` is an effective member of `group`.
