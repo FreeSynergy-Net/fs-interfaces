@@ -23,7 +23,7 @@ pub struct ScopeGrant {
     pub granted: Utc,
 }
 
-/// Was mit einem Zusatz geschah (v2-eigene Handlung: `HistoryKind` aus `groups` ist gesperrt).
+/// Was mit einem Zusatz geschah (eigene Handlung der Verwaltung, nicht aus `HistoryKind`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AddonVerb {
     Attached,

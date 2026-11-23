@@ -31,7 +31,7 @@ pub async fn run_conformance(fixture: &dyn ConformanceFixture) -> Report {
 }
 
 /// Run the rules of `groups` (owners, levels, addons, interventions) against the provider of `fixture`; the
-/// fixture must offer `groups()`, else every rule is skipped. Run `run_conformance` too: v2 is a superset of v1.
+/// fixture must offer `groups()`, else every rule is skipped. Run `run_conformance` too: the governance rules come on top of the base rules.
 pub async fn run_conformance_governance(fixture: &dyn ConformanceFixture) -> Report {
     let Some(mut cx) = Cx::new(fixture).await else {
         return Report {

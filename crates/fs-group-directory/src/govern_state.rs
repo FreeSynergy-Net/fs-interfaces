@@ -1,4 +1,4 @@
-//! The v2 tables of a `FakeGroups` (addons, scope grants, interventions) and the questions on them: who is an owner,
+//! The governance tables of a `FakeGroups` (addons, scope grants, interventions) and the questions on them: who is an owner,
 //! which level has the asker, which intervention is open.
 //!
 //! Pattern: Specification (levels and interventions as questions on the state; `decide` in `access.rs` asks them).
@@ -8,7 +8,7 @@ use crate::groups::{Addon, Intervention, Level, ScopeGrant, role_manager, role_o
 use crate::groups::{Membership, RoleRef};
 use crate::state::State;
 
-/// The tables only v2 knows.
+/// The tables only governance knows.
 #[derive(Default)]
 pub(crate) struct GovernState {
     pub addons: Vec<Addon>,
@@ -91,7 +91,7 @@ impl State {
             .find(|i| i.group == g && &i.actor == who && i.closed.is_none() && now < i.ends)
     }
 
-    /// Whether the asker may read what v2 lists about `g` (owners, addons, interventions): the same view as the
+    /// Whether the asker may read what governance lists about `g` (owners, addons, interventions): the same view as the
     /// group itself; a sensitive group without an insight is `Withheld`.
     pub(crate) fn gov_readable(&self, g: ObjectId) -> bool {
         self.readable(g)
@@ -139,8 +139,8 @@ impl State {
 }
 
 impl State {
-    /// Taking an owner membership away or changing its role (v1 paths `remove_member`, `set_role`): only an owner may,
-    /// and never the last one (v1 error `LastManager`; the v2 paths say `NeedsOwner` and `LastOwner`).
+    /// Taking an owner membership away or changing its role (the member paths `remove_member`, `set_role`): only an owner may,
+    /// and never the last one (error `LastManager`; the governance paths say `NeedsOwner` and `LastOwner`).
     pub(crate) fn guard_owner_membership(&self, m: &Membership) -> crate::groups::Result<()> {
         use crate::groups::{Error, Right};
         if m.role.as_ref() != Some(&role_owner()) {
@@ -158,7 +158,7 @@ impl State {
         Ok(())
     }
 
-    /// Giving a role over a v1 path (`add_member`, `set_role`, `invite`): the owner role is only made by the v2
+    /// Giving a role over a member path (`add_member`, `set_role`, `invite`): the owner role is only made by the governance operations
     /// operations (`create_owned`, `appoint_owner`, `transfer_ownership`), the manager role needs `Manage`
     /// (ADR 0095 Pkt. 3). `granting` is false when the invitee accepts (the right was checked at `invite`).
     pub(crate) fn guard_role_grant(

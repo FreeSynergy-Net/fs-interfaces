@@ -66,7 +66,7 @@ async fn first_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
         cx.g.my_rights(g.id)
             .await
             .is_ok_and(|r| r.contains(&Right::Manage)),
-        "create_owned: Own includes Manage (v1 my_rights)",
+        "create_owned: Own includes Manage (my_rights)",
     );
     let Some(p2) = cx.person(Kind::Human).await else {
         return;
@@ -154,14 +154,14 @@ async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
                 err(&cx.g.set_role(mine.id, mine.revision, None).await),
                 Some(Error::Forbidden { .. })
             ),
-            "set_role: a manager cannot take the owner role away (v1 path)",
+            "set_role: a manager cannot take the owner role away (member path)",
         );
         cx.ensure(
             matches!(
                 err(&cx.g.remove_member(mine.id, mine.revision).await),
                 Some(Error::Forbidden { .. })
             ),
-            "remove_member: a manager cannot remove an owner (v1 path)",
+            "remove_member: a manager cannot remove an owner (member path)",
         );
         let rev = cx.rev(g.id).await;
         cx.ensure(
@@ -229,14 +229,14 @@ async fn last_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
             err(&cx.g.remove_member(mine.id, mine.revision).await),
             Some(Error::LastManager)
         ),
-        "remove_member: the last owner cannot leave (v1 path says LastManager)",
+        "remove_member: the last owner cannot leave (the member path says LastManager)",
     );
     cx.ensure(
         matches!(
             err(&cx.g.set_role(mine.id, mine.revision, None).await),
             Some(Error::LastManager)
         ),
-        "set_role: the last owner cannot be made a plain member (v1 path says LastManager)",
+        "set_role: the last owner cannot be made a plain member (the member path says LastManager)",
     );
     let Some(p2) = cx.person(Kind::Human).await else {
         return;

@@ -1,8 +1,7 @@
-//! Der Trait `GroupGovernance`: Eigentümer, Stufen, Voreinstellung der Vererbung, Zusätze. Ein Anbieter von v2 ist
-//! auch Anbieter von v1 (`Groups`, gleicher Anbieter, gleiche Verbindung; wie `GroupMembers` und `Mirroring`); die
-//! v1-Regeln gelten unverändert, mit zwei Anpassungen, die der Anbieter einhält:
-//! die Rolle Eigentümer lässt sich nur über die Methoden hier vergeben, und ein Eigentümer ist nur mit `LastManager`
-//! (v1-Pfad) bzw. `LastOwner` (v2-Pfad) zu entfernen.
+//! Der Trait `GroupGovernance`: Eigentümer, Stufen, Voreinstellung der Vererbung, Zusätze. Derselbe Anbieter trägt
+//! auch `Groups` (gleiche Verbindung; wie `GroupMembers` und `Mirroring`). Zwei Regeln hält der Anbieter ein: die Rolle
+//! Eigentümer lässt sich nur über die Methoden hier vergeben, und ein Eigentümer ist nur mit `LastManager`
+//! (Weg über `remove_member`) bzw. `LastOwner` (Weg über `demote_owner`) zu entfernen.
 //!
 //! Pattern: Repository + Port (Trait; alle Methoden Pflicht). Wer handelt, ist die Verbindung, nie ein Parameter.
 
@@ -11,11 +10,11 @@ use crate::groups::shared::{ObjectId, PersonRef, Revision};
 use crate::groups::{Group, GroupDraft, Membership, NestOutcome};
 use async_trait::async_trait;
 
-/// Die Methoden von v2.
+/// Die Methoden der Verwaltung (Eigentümer, Stufen, Zusätze).
 #[async_trait]
 pub trait GroupGovernance: Send + Sync {
     // ---- Eigentümer (ADR 0095)
-    /// Gruppe anlegen; die fragende Person wird erste Eigentümerin (v1 `create` gibt nur `Manage`).
+    /// Gruppe anlegen; die fragende Person wird erste Eigentümerin (`create` gibt nur `Manage`).
     async fn create_owned(&self, draft: GroupDraft) -> Result<Group>;
     /// Die Eigentümer (Mitgliedschaften mit der Rolle `owner`), nur Personenverweise. `Withheld`, wenn die fragende
     /// Person die Gruppe nicht lesen darf (sensible Gruppe ohne Einblick); nie eine leere Liste dafür.

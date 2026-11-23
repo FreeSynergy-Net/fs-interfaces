@@ -1,4 +1,4 @@
-//! Rules of `groups`, roles over v1 paths: the owner role only through v2, the manager role only with `Manage`
+//! Rules of `groups`, roles over the member paths: the owner role only through the governance operations, the manager role only with `Manage`
 //! (ADR 0095 Pkt. 3).
 //!
 //! Pattern: Template method (a fixed list of rules; each one is a mutant killer: drop the guard and a check fails).
@@ -10,7 +10,7 @@ use crate::groups::{role_manager, role_owner};
 
 /// The owner and manager roles are entries of the role book (ADR 0095 Pkt. 3), so the provider book knows both IRIs
 /// (the fixture puts them in); the refusal must come from the rule, not from a role the book does not know.
-/// The asker holds `Manage`. The owner role is made by the v2 operations only, over no v1 path.
+/// The asker holds `Manage`. The owner role is made by the governance operations only, over no member path.
 pub(super) async fn v1_role_paths(
     cx: &mut Cx<'_>,
     g: ObjectId,
@@ -23,14 +23,14 @@ pub(super) async fn v1_role_paths(
             err(&cx.g.add_member(g, other, Some(&owner)).await),
             Some(Error::Forbidden { .. })
         ),
-        "add_member: the owner role cannot be given over a v1 path",
+        "add_member: the owner role cannot be given over a member path",
     );
     cx.ensure(
         matches!(
             err(&cx.g.invite(g, other, Some(&owner), None).await),
             Some(Error::Forbidden { .. })
         ),
-        "invite: the owner role cannot be offered over a v1 path",
+        "invite: the owner role cannot be offered over a member path",
     );
     if let Some(m) = cand {
         cx.ensure(
@@ -38,7 +38,7 @@ pub(super) async fn v1_role_paths(
                 err(&cx.g.set_role(m.id, m.revision, Some(&owner)).await),
                 Some(Error::Forbidden { .. })
             ),
-            "set_role: a manager cannot make a member an owner (v1 path)",
+            "set_role: a manager cannot make a member an owner (member path)",
         );
     }
 }

@@ -2,7 +2,7 @@
 //! `resolve_owner`, and `nest_default`.
 //!
 //! Pattern: Command handlers on the state (visible, then the level, then the revision, then the input, then write and
-//! log). The owner role is written only here (and by `create_owned`), never over the v1 role book.
+//! log). The owner role is written only here (and by `create_owned`), never over the role book.
 
 use crate::groups::shared::{ObjectId, PersonArt, PersonRef, Revision};
 use crate::groups::{Error, Field, Group, GroupDraft, HistoryKind, Membership, NestOutcome, Right};
