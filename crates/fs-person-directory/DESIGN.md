@@ -1,4 +1,4 @@
-# fs-people-directory (design)
+# fs-person-directory (design)
 
 The light consumer side of People (ADR 0085 section 3, ADR 0087, plan O2). Calendar, tasks and groups hold only a
 `PersonRef` and ask this trait for display, suggestions, proposals, the asking person and an excerpt for a frozen
