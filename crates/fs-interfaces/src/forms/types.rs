@@ -72,18 +72,22 @@ impl Art {
     }
 }
 
-/// How many values a channel takes.
+/// How many fields a module maps onto a channel: from `min` to `max` (`None` = no upper limit). Written `1`, `0..1`, `0..4`, `0..n`
+/// or `1..n` in `forms.txt`; a `?` (not decided) is refused by the reader. A required channel has `min >= 1`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Count {
-    /// Not decided yet (`?` in the file).
-    Open,
-    /// From `min` to `max` (`None` = no upper limit).
-    Range {
-        /// Fewest values.
-        min: u32,
-        /// Most values.
-        max: Option<u32>,
-    },
+pub struct Count {
+    /// Fewest fields.
+    pub min: u32,
+    /// Most fields.
+    pub max: Option<u32>,
+}
+
+impl Count {
+    /// Whether `n` fields on the channel are within the count (`min <= n` and `n <= max`).
+    #[must_use]
+    pub fn allows(&self, n: usize) -> bool {
+        u32::try_from(n).is_ok_and(|n| n >= self.min && self.max.is_none_or(|m| n <= m))
+    }
 }
 
 /// One channel of a form.

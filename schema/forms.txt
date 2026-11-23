@@ -1,28 +1,28 @@
 # Form catalog (ADR 0068 style, read by `fs_interfaces::forms`; draft: PLAN-quelle-und-abgleich section 3). Two kinds of lines, `#` starts a comment:
 #   form line:    name@Major.Minor | display name | status | description        (status: stable | planned)
 #   channel line: > channel | art | required | count                            (belongs to the form line above it)
-# required: `!` = required, `-` = optional. count: `1`, `0..1`, `0..4`, `0..n`, or `?` = not decided yet.
+# required: `!` = required, `-` = optional. count = how many fields a module maps onto the channel: `1`, `0..1`, `0..4`, `0..n`, `1..n` (never `?`: the reader refuses it; a required channel starts at 1).
 # art: one of records text number flag time reference command (the seven basic kinds), or a set `text|number|time|flag` (no spaces, no duplicate, not empty): the field may have any art of the set. The reader refuses any other word. The reader holds the fixed table art -> allowed fs-types basic types.
 # Versions: Minor = an optional channel comes; Major = a channel goes or changes meaning. Only append, never rename or remove.
 # Sources of the entries: see the comment lines below (E = ENTSCHEID-form.md, K = kalender, C = fs-capture, F = fs-files, W = fs-components, S = groups). Open points: README of the draft.
 checklist@1.0 | Checklist | planned | A list of items that can be ticked off (Entscheid §3)
-> items | records | ! | ?
-> label | text | ! | ?
-> done | flag | ! | ?
-> order | number | - | ?
+> items | records | ! | 1
+> label | text | ! | 1
+> done | flag | ! | 1
+> order | number | - | 0..1
 
 cards-in-columns@1.0 | Cards in columns | planned | Cards sorted into columns, e.g. a board of tasks (Entscheid §3)
-> cards | records | ! | ?
-> column | text | ! | ?
-> title | text | ! | ?
+> cards | records | ! | 1
+> column | text | ! | 1
+> title | text | ! | 1
 > facts | text|number|time|flag | - | 0..4
-> lane | text | - | ?
-> move | command | - | ?
+> lane | text | - | 0..1
+> move | command | - | 0..1
 
 # 5d-3 (23.11.): bars-in-time@1.0 and tiles@1.0 set finally (still `planned`). Source tags: K = kalender/ENTSCHEID-schnitt.md (§d, line 40-43), E = ENTSCHEID-form.md, C = fs-capture crates/fs-capture/src/index.rs (Entry :36-52), F = fs-files crates/fs-files-types/src/file.rs (:24-35), W = fs-components contract/blocks (clone read 23.11., then removed).
 # Grundtyp: only where a source names it (time = DateTime, F:33; text = Text, F:24); else `offen` (fs-types BasicType list not fully read).
 bars-in-time@1.0 | Bars in time | planned | Bars on a time axis with start and end, e.g. calendar views, Gantt of tasks, Gantt of a workflow run (E:28, K:40-43)
-> items | records | ! | ?
+> items | records | ! | 1
 > start | time | ! | 1
 > end | time | ! | 1
 > label | text | ! | 1
@@ -39,7 +39,7 @@ bars-in-time@1.0 | Bars in time | planned | Bars on a time axis with start and e
 #   Components: calendar-grid (W widgets.toml:81) and timeline (W widgets.toml:283) -> `forms=["bars-in-time@1"]` (see README, point 3).
 
 tiles@1.0 | Tiles | planned | A grid of tiles with a preview picture, name and a line of facts: screenshots of capture and the file grid of files (E:60 Auftrag 2, E:61; INVENTUR e.1)
-> items | records | ! | ?
+> items | records | ! | 1
 > label | text | ! | 1
 > preview | reference | - | 0..1
 > kind | text | - | 0..1
@@ -54,16 +54,16 @@ tiles@1.0 | Tiles | planned | A grid of tiles with a preview picture, name and a
 
 # Added by GR3. Source for tree/members: woche-11-23/woche-11-23/groups/ENTSCHEID-schnitt.md (cited as S:line). Grundtyp per channel stays offen (as above).
 tree@1.0 | Tree | planned | A group tree: nodes joined by parent edges, optional inheritance mode per edge and owner mark (S:5, S:8-9, S:56)
-> nodes | records | ! | ?
-> parent | reference | ! | ?
-> label | text | ! | ?
-> edge-kind | text | - | ?
-> owner-mark | flag | - | ?
+> nodes | records | ! | 1
+> parent | reference | ! | 1
+> label | text | ! | 1
+> edge-kind | text | - | 0..1
+> owner-mark | flag | - | 0..1
 #   Block: tree (S:51). Mode lies on the edge, not on the group; the group only has default_mode (S:5).
 
 members@1.0 | Members | planned | A member list: person as PersonRef, role, optional owner level (S:15, S:56)
-> records | records | ! | ?
-> person | reference | ! | ?
-> role | reference | ! | ?
-> badge | text | - | ?
+> records | records | ! | 1
+> person | reference | ! | 1
+> role | reference | ! | 1
+> badge | text | - | 0..1
 #   Blocks: table + avatar-group (S:56, S:51). A member must not be a Profile (S:15).
