@@ -126,3 +126,7 @@ cargo test -p fs-interfaces
 `regenerate` uses our own compiler [`capnp-compiler`](https://github.com/FreeSynergy/fs-capnpc) with `capnpc` 0.27. The test
 `generated_matches_official` checks that the committed files are identical to what the official compiler
 (`capnpc-embedded` 0.2, capnp 1.4.0 as WASM) and our compiler produce.
+
+## AI help
+
+Built with help from Claude (AI).
