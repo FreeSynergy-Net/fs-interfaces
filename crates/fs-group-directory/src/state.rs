@@ -58,6 +58,7 @@ pub(crate) struct State {
     pub history: Vec<(u64, ObjectId, HistoryEntry)>,
     pub changes: Vec<(u64, Change)>,
     pub mirror: MirrorLog,
+    pub v2: crate::v2_state::V2State,
 }
 
 impl State {
@@ -79,6 +80,7 @@ impl State {
             history: Vec::new(),
             changes: Vec::new(),
             mirror: MirrorLog::default(),
+            v2: crate::v2_state::V2State::default(),
         }
     }
 
@@ -108,6 +110,8 @@ impl State {
             self.bags.remove(&id);
             self.requests.retain(|r| r.child != id && r.parent != id);
             self.history.retain(|(_, g, _)| *g != id);
+            self.v2.addons.retain(|a| a.group != id);
+            self.v2.interventions.retain(|i| i.group != id);
         }
     }
 
@@ -117,9 +121,10 @@ impl State {
         let entry = HistoryEntry {
             at: self.now,
             actor: self.asker.clone(),
-            kind,
+            kind: kind.clone(),
         };
         self.history.push((self.seq, group, entry));
+        self.note_intervention(group, kind);
     }
 
     /// Write a change-stream entry.

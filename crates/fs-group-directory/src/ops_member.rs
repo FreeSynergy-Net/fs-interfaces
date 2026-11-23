@@ -222,6 +222,7 @@ impl State {
     ) -> Result<Membership> {
         let m = self.member_by_id(id)?;
         self.need(m.group, Right::Manage)?;
+        self.guard_owner_membership(&m)?;
         Self::cas(m.revision, expected)?;
         let g = self.alive(m.group)?.clone();
         self.check_kind(&g, &m.person, role)?;
@@ -252,6 +253,7 @@ impl State {
         if m.person != self.asker {
             self.need(m.group, Right::RemoveMembers)?;
         }
+        self.guard_owner_membership(&m)?;
         Self::cas(m.revision, expected)?;
         let all: Vec<ObjectId> = self.groups.keys().copied().collect();
         if all

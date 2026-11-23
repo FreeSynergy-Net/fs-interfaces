@@ -150,6 +150,21 @@ impl State {
 
     /// The answer of `may_do` with its reason (the group is known to exist; no visibility rule here).
     pub(crate) fn decide(&self, g: ObjectId, who: &PersonRef, right: Right) -> Decision {
+        let base = self.decide_base(g, who, right);
+        if !base.allowed
+            && self.people.status(who) == Some(false)
+            && let Some(i) = self.open_iv(g, who)
+        {
+            return Decision {
+                allowed: true,
+                reason: Reason::Holder { grant: i.id },
+            };
+        }
+        base
+    }
+
+    /// `decide` without an intervention: rights of her own (grants, roles, installer).
+    pub(crate) fn decide_base(&self, g: ObjectId, who: &PersonRef, right: Right) -> Decision {
         let no = |reason| Decision {
             allowed: false,
             reason,
@@ -169,6 +184,12 @@ impl State {
             }
         } else if status.is_none() && right == Right::Manage {
             return no(Reason::AiStatusUnknown);
+        }
+        if let Some(m) = self.role_membership(g, who) {
+            return Decision {
+                allowed: true,
+                reason: Reason::Holder { grant: m.id },
+            };
         }
         for grant in self
             .grants
@@ -227,6 +248,7 @@ impl State {
                 who.push(grant.holder.clone());
             }
         }
+        who.extend(self.role_holders(g));
         who.retain(|p| self.people.status(p) == Some(false));
         let mut keys: Vec<String> = who.iter().map(key).collect();
         keys.sort();
