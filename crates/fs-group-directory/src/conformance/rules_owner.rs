@@ -43,6 +43,7 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
     only_owners_decide(cx, v).await;
     last_owner(cx, v).await;
     super::rules_owner_more::rules(cx, v).await;
+    super::rules_flow_owner::rules(cx, v).await;
     cx.act_me().await;
 }
 

@@ -49,6 +49,7 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
     };
     plan_and_run(cx, mir, dir).await;
     super::rules_mirror_more::rules(cx).await;
+    super::rules_mirror_trees::rules(cx).await;
 }
 
 async fn plan_and_run(cx: &mut Cx<'_>, mir: &dyn Mirroring, dir: &dyn GroupDirectory) {

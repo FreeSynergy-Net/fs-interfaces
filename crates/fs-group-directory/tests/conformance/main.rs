@@ -201,3 +201,44 @@ async fn an_addon_that_changes_members_fails() {
     let f = broken_gov(GovMutant::AddonChangesMembers).await;
     assert!(f.iter().any(|x| x.contains("only attached")), "{f:#?}");
 }
+
+// ---- direction: members and rights flow over BottomUp one way, over TopDown the other way, over Single not at all
+
+async fn broken_base(mutant: Mutant) -> Vec<String> {
+    let fake = Arc::new(FakeGroups::new());
+    run_conformance(&Fx::with(Arc::clone(&fake), Box::new(Wrap(fake, mutant))))
+        .await
+        .failures
+}
+
+#[tokio::test]
+async fn a_provider_that_swaps_the_direction_of_an_edge_fails_in_both_trees() {
+    let f = broken_base(Mutant::SwapDirection).await;
+    assert!(f.iter().any(|x| x.starts_with("bottom-up:")), "{f:#?}");
+    assert!(f.iter().any(|x| x.starts_with("top-down:")), "{f:#?}");
+    assert!(
+        f.iter().any(|x| x.starts_with("mirror trees: top-down")),
+        "{f:#?}"
+    );
+}
+
+#[tokio::test]
+async fn a_provider_where_a_single_edge_lets_things_flow_fails() {
+    let f = broken_base(Mutant::SingleFlows).await;
+    assert!(f.iter().any(|x| x.starts_with("single:")), "{f:#?}");
+    assert!(
+        f.iter().any(|x| x.contains("single edge is not mirrored")),
+        "{f:#?}"
+    );
+}
+
+#[tokio::test]
+async fn a_mirror_that_does_not_reverse_a_top_down_edge_fails() {
+    let f = broken_base(Mutant::TopDownNotReversed).await;
+    assert!(f.iter().any(|x| x.starts_with("top-down:")), "{f:#?}");
+    assert!(
+        f.iter().any(|x| x.starts_with("mirror trees: top-down")),
+        "{f:#?}"
+    );
+    assert!(!f.iter().any(|x| x.starts_with("bottom-up:")), "{f:#?}");
+}
