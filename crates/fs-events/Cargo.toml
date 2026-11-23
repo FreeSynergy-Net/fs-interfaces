@@ -13,9 +13,9 @@ publish = false
 async-trait = "0.1"
 chrono = { version = "0.4", default-features = false, features = ["std"] }
 chrono-tz = "0.10"
-# The shared types of the contract: fs-jscalendar v0.0.6 and fs-types v0.0.6 are the same pins as the rest of this workspace, so the lock holds ONE fs-types.
-fs-jscalendar = { git = "https://github.com/FreeSynergy/fs-jscalendar", tag = "v0.0.6" }
-fs-types = { git = "https://github.com/FreeSynergy/fs-types", tag = "v0.0.6" }
+# The shared types of the contract: fs-jscalendar v0.0.7 and fs-types v0.0.6 are the same pins as the rest of this workspace, so the lock holds ONE fs-types.
+fs-jscalendar = { git = "https://github.com/FreeSynergy-Net/fs-jscalendar", tag = "v0.0.7" }
+fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", tag = "v0.0.6" }
 tokio = { version = "1", features = ["time"] }
 
 [dev-dependencies]

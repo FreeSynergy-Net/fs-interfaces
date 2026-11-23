@@ -460,7 +460,7 @@ dependencies = [
 
 [[package]]
 name = "fs-events"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "async-trait",
  "chrono",
@@ -472,7 +472,7 @@ dependencies = [
 
 [[package]]
 name = "fs-group-directory"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "async-trait",
  "fs-types",
@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "fs-interfaces"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "capnp",
  "capnp-compiler",
@@ -493,8 +493,8 @@ dependencies = [
 
 [[package]]
 name = "fs-jscalendar"
-version = "0.0.6"
-source = "git+https://github.com/FreeSynergy/fs-jscalendar?tag=v0.0.6#bd6f5945bd2718a71ffa9370770af05cab45d4da"
+version = "0.0.7"
+source = "git+https://github.com/FreeSynergy-Net/fs-jscalendar?tag=v0.0.7#14c7026184720fb3c4d179b11a549739498a3efa"
 dependencies = [
  "calcard",
  "chrono",
@@ -509,7 +509,7 @@ dependencies = [
 
 [[package]]
 name = "fs-mcp"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "capnp",
  "capnp-compiler",
@@ -524,7 +524,7 @@ dependencies = [
 
 [[package]]
 name = "fs-person-directory"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "async-trait",
  "fs-types",
@@ -544,7 +544,7 @@ dependencies = [
 
 [[package]]
 name = "fs-storage"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "async-trait",
  "fs-types",
@@ -555,7 +555,7 @@ dependencies = [
 [[package]]
 name = "fs-types"
 version = "0.0.5"
-source = "git+https://github.com/FreeSynergy/fs-types?tag=v0.0.6#2f45110417cf42311d5dee72287b7644312d4bc4"
+source = "git+https://github.com/FreeSynergy-Net/fs-types?tag=v0.0.6#2f45110417cf42311d5dee72287b7644312d4bc4"
 dependencies = [
  "capnp",
  "chrono",
@@ -1448,7 +1448,7 @@ dependencies = [
 
 [[package]]
 name = "regenerate"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "capnp-compiler",
  "capnpc",
