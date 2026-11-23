@@ -21,6 +21,7 @@ pub(super) struct Own {
     pub tfile: EntryId,
     pub tfolder: EntryId,
     pub tsub: EntryId,
+    pub tsubfile: EntryId,
 }
 
 /// The ids of one cell.
@@ -96,6 +97,7 @@ async fn own(p: &dyn StorageProvider) -> Result<Own, String> {
     trash(p, &tfile).await?;
     let tfolder = folder(p, &root, "otf").await?;
     let tsub = folder(p, &tfolder, "otfs").await?;
+    let tsubfile = file(p, &tfolder, "otfs.txt").await?;
     trash(p, &tfolder).await?;
     Ok(Own {
         root,
@@ -107,6 +109,7 @@ async fn own(p: &dyn StorageProvider) -> Result<Own, String> {
         tfile,
         tfolder,
         tsub,
+        tsubfile,
     })
 }
 
@@ -185,7 +188,7 @@ impl Setup {
         self.own[usize::from(a == Actor::E)].as_ref()
     }
 
-    /// The id of target `t` for actor `a`; `folder` asks for the folder variant. `None`: the target does not exist for this
+    /// The id of target `t` for actor `a` (the bot has no trash: it is asked for the id of Anna's trash root); `folder` asks for the folder variant. `None`: the target does not exist for this
     /// actor ("n/a" in the table).
     pub(super) fn target(&self, a: Actor, t: Target, folder: bool) -> Option<EntryId> {
         let pick = |o: Option<&Own>, f: fn(&Own) -> &EntryId, g: fn(&Own) -> &EntryId| {
@@ -202,12 +205,9 @@ impl Setup {
             } else {
                 self.gfile.clone()
             }),
-            Target::T7 => Some(
-                self.of(a)
-                    .map_or_else(|| EntryId("trash".into()), |o| o.trash.clone()),
-            ),
+            Target::T7 => self.of(a).or(self.own[0].as_ref()).map(|o| o.trash.clone()),
             Target::T8 => pick(self.of(a), |o| &o.tfolder, |o| &o.tfile),
-            Target::T8B => self.of(a).map(|o| o.tsub.clone()),
+            Target::T8B => pick(self.of(a), |o| &o.tsub, |o| &o.tsubfile),
             Target::T9 => pick(self.other(a), |o| &o.tfolder, |o| &o.tfile),
             Target::T10 => Some(if folder {
                 self.trashed_gfolder.clone()

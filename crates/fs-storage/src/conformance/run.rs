@@ -3,7 +3,7 @@
 //! Pattern: Template method.
 
 use super::fixture::{Fixture, Report};
-use super::{admin, names, read, rights, scope, write};
+use super::{admin, names, operator_log, read, rights, scope, write};
 
 /// Run all rules. `make` builds a fresh fixture (a fresh sample world) for every rule, so no rule sees the changes of
 /// another.
@@ -46,7 +46,7 @@ pub async fn run(make: &dyn Fn() -> Fixture) -> Report {
     r.record("changes.delta", write::delta(&make()).await);
     r.record("write.cancel", write::cancel(&make()).await);
     r.record("conflict.rename", write::rename_conflict(&make()).await);
-    r.record("operator.log", admin::operator_log(&make()).await);
+    r.record("operator.log", operator_log::operator_log(&make()).await);
     super::matrix::run_rows(&mut r, make, &super::matrix::rows()).await;
     r
 }

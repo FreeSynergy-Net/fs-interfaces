@@ -267,7 +267,7 @@ impl World {
         } else {
             self.node_for(a, id, Mode::Read)?
         };
-        if self.in_trash(id.as_str()) {
+        if self.in_trash(id.as_str()) && a.fault != Some(Fault::OpenInTrash) {
             return Err(Error::Invalid(vec![Problem {
                 field: "id".into(),
                 reason: "trashed".into(),
