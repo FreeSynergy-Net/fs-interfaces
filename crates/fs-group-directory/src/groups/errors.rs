@@ -51,6 +51,8 @@ pub enum ProblemKind {
     SensitiveNotMirrored,
     /// `abzug` ist in diesem Thema nie erlaubt.
     NoAbzug,
+    /// Der Name (oder die Art) ist für die Gruppe der Betreiber reserviert (`is_reserved_group_name`).
+    ReservedName,
 }
 
 /// Ein Prüffehler an einem Feld.

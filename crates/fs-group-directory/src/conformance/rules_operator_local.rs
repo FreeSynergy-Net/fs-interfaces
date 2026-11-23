@@ -22,23 +22,25 @@ pub(super) async fn rules(
     v: &dyn GroupGovernance,
     local: &dyn LocalOperator,
 ) -> Option<PersonRef> {
-    let (Some(p), Some(agent), Some(unknown), Some(sup), Some(q)) = (
+    let (Some(p), Some(agent), Some(unknown), Some(sup), Some(unsup), Some(q)) = (
         cx.person(Kind::Human).await,
         cx.person(Kind::Agent).await,
         cx.person(Kind::Unknown).await,
+        cx.person(Kind::Human).await,
         cx.person(Kind::Human).await,
         cx.person(Kind::Human).await,
     ) else {
         return None;
     };
     cx.ensure(
-        cx.fx.supervise(&sup, true).await,
-        "setup: a supervised account",
+        cx.fx.supervise(&sup, Some(true)).await && cx.fx.supervise(&unsup, None).await,
+        "setup: a supervised account and one of unknown supervision",
     );
     let refused = [
         (&agent, "an AI account"),
         (&unknown, "an account of unknown kind"),
         (&sup, "a supervised account"),
+        (&unsup, "an account whose supervision is not known"),
     ];
     for (who, what) in refused {
         let r = local.operator_set_local(who).await;
@@ -107,12 +109,17 @@ pub(super) async fn rules(
         listed(v, &p).await,
         "operators: the human mark brings her back",
     );
-    cx.fx.supervise(&p, true).await;
+    cx.fx.supervise(&p, Some(true)).await;
     cx.ensure(
         !listed(v, &p).await,
         "operators: an operator who becomes supervised is not listed any more",
     );
-    cx.fx.supervise(&p, false).await;
+    cx.fx.supervise(&p, None).await;
+    cx.ensure(
+        !listed(v, &p).await,
+        "operators: an operator whose supervision is not known is not listed",
+    );
+    cx.fx.supervise(&p, Some(false)).await;
     cx.ensure(listed(v, &p).await, "operators: unsupervised, she is back");
     // unset
     cx.ensure(

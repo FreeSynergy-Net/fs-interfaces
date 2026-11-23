@@ -9,7 +9,7 @@ use crate::groups::{
 };
 use crate::ids::reference_of;
 use crate::state::{Row, State};
-use crate::validate::{NAME_MAX, TEXT_MAX, mirror, text};
+use crate::validate::{NAME_MAX, TEXT_MAX, mirror, reserved, text};
 
 impl State {
     pub(crate) fn create(&mut self, d: GroupDraft) -> Result<Group> {
@@ -20,6 +20,8 @@ impl State {
         }
         let mut problems = Vec::new();
         text(Field::Name, &d.name, NAME_MAX, &mut problems);
+        reserved(Field::Name, &d.name, &mut problems);
+        reserved(Field::Kind, d.kind.as_deref().unwrap_or(""), &mut problems);
         optional(Field::Kind, d.kind.as_deref(), NAME_MAX, &mut problems);
         optional(
             Field::Description,
@@ -77,11 +79,13 @@ impl State {
         let mut problems: Vec<FieldProblem> = Vec::new();
         if let Some(v) = p.name.filter(|v| *v != old.name) {
             text(Field::Name, &v, NAME_MAX, &mut problems);
+            reserved(Field::Name, &v, &mut problems);
             new.name = v;
             fields.push(GroupField::Name);
         }
         if let Some(v) = p.kind.filter(|v| *v != old.kind) {
             optional(Field::Kind, v.as_deref(), NAME_MAX, &mut problems);
+            reserved(Field::Kind, v.as_deref().unwrap_or(""), &mut problems);
             new.kind = v;
             fields.push(GroupField::Kind);
         }

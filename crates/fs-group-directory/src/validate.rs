@@ -34,3 +34,13 @@ pub(crate) fn mirror(on: bool, sensitive: bool, out: &mut Vec<FieldProblem>) {
         });
     }
 }
+
+/// A name or kind that only the group of the operators carries is refused.
+pub(crate) fn reserved(field: Field, value: &str, out: &mut Vec<FieldProblem>) {
+    if crate::groups::is_reserved_group_name(value) {
+        out.push(FieldProblem {
+            field,
+            problem: ProblemKind::ReservedName,
+        });
+    }
+}

@@ -56,6 +56,41 @@ pub fn check_operator_candidate(
     }
 }
 
+/// Namen, die nur die Gruppe der Betreiber trägt (nach `fold_name`): eine Gruppe, die sich so nennt, täuschte Menschen,
+/// denn die Oberfläche nennt die Betreiber mit Namen.
+const RESERVED_NAMES: [&str; 7] = [
+    "betreiber",
+    "betreiberin",
+    "betreiberinnen",
+    "serverbetreiber",
+    "operator",
+    "operators",
+    "serveroperator",
+];
+
+/// Der Name ohne Schreibvarianten: Voll- zu Halbbreite (U+FF01..FF5E), nur Buchstaben und Ziffern (Leerzeichen,
+/// Satzzeichen, Bindestriche, unsichtbare und kombinierende Zeichen fallen weg), Kleinschreibung nach Unicode.
+/// Nicht gedeckt: Zeichen, die nur ähnlich aussehen (kyrillisches `е` statt `e`) und Übersetzungen in andere Sprachen.
+fn fold_name(name: &str) -> String {
+    name.chars()
+        .map(|c| match c {
+            '\u{FF01}'..='\u{FF5E}' => char::from_u32(u32::from(c) - 0xFEE0).unwrap_or(c),
+            _ => c,
+        })
+        .filter(|c| c.is_alphanumeric())
+        .flat_map(char::to_lowercase)
+        .collect()
+}
+
+/// Ob ein Gruppenname (oder eine Gruppenart) für die Gruppe der Betreiber reserviert ist. Der Anbieter ruft sie bei
+/// `create` und `update` für `name` und `kind`; die Betreiber-Gruppe selbst legt nur der lokale Befehl an. Wer die
+/// Betreiber zeigt, nimmt sie aus `operators()`, nie aus einem Namen.
+#[must_use]
+pub fn is_reserved_group_name(name: &str) -> bool {
+    let folded = fold_name(name);
+    RESERVED_NAMES.contains(&folded.as_str())
+}
+
 /// NUR LOKAL: der Eingang des lokalen Befehls auf dem Server (gehört dem Server-Programm; das Programm ruft ihn nach
 /// dem Beleg „läuft als root auf diesem Server“). KEIN Teil von `GroupGovernance`, nicht über Netz, MCP oder
 /// `groups.capnp` erreichbar; `RemoteGroups` implementiert ihn nie. Wer ihn aufrufen kann, hat ohnehin root und könnte

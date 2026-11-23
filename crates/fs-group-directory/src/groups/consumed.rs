@@ -30,7 +30,7 @@ pub trait PersonDirectory: Send + Sync {
 pub trait PersonFacts: Send + Sync {
     async fn is_agent(&self, person: &PersonRef) -> Result<Option<bool>>;
     /// Ob das Konto betreut ist (ADR 0095 Pkt. 14, Betreuung liefert fs-people). `None` = unbekannt oder nicht
-    /// lesbar: wird für Betreiber und Eigentümer wie `Some(true)` behandelt (im Zweifel nein).
+    /// lesbar: wird für Betreiber wie `Some(true)` behandelt (im Zweifel nein). Für Eigentümer fragt der Vertrag die Betreuung noch nicht ab (ADR 0095 Pkt. 14, `SupervisedCannotOwn`: offen).
     async fn is_supervised(&self, person: &PersonRef) -> Result<Option<bool>>;
 }
 

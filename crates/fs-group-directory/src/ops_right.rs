@@ -51,6 +51,15 @@ impl State {
     ) -> Result<Grant> {
         self.visible(group)?;
         self.need(group, Right::Manage)?;
+        if holder.art == PersonArt::Group
+            && id_of_reference(&holder.id).is_some_and(|h| self.is_operator_group(h))
+        {
+            // The group Betreiber holds no right anywhere (operator and Project/group administration are two roles).
+            return Err(Error::Forbidden {
+                group,
+                right: Right::Manage,
+            });
+        }
         let closed = self.alive(group)?.sensitive || self.is_admin_group(group);
         let denied = closed || right == Right::Manage;
         match holder.art {

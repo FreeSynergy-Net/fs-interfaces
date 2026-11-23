@@ -4,7 +4,7 @@
 use async_trait::async_trait;
 use fs_group_directory::FakeGroups;
 use fs_group_directory::groups::shared::{
-    ObjectId, Page, PersonRef, Place, Reference, Revision, Utc,
+    ObjectId, Page, PersonArt, PersonRef, Place, Reference, Revision, Utc,
 };
 use fs_group_directory::groups::{
     Change, Decision, Deleted, EffectiveGroup, EffectiveMember, Error, Grant, Group, GroupDraft,
@@ -38,6 +38,10 @@ pub enum Mutant {
     CreatorKeepsManage,
     /// `add_member` with the role operator makes an operator (a way to the operator over the contract).
     OperatorViaAddMember,
+    /// `create` takes the reserved name of the group Betreiber (made under another name instead).
+    ReservedNameFree,
+    /// `grant` lets the group Betreiber hold a right (a dummy grant answers the refusal).
+    OperatorGroupHoldsGrant,
 }
 
 /// The forwarding provider.
@@ -73,7 +77,15 @@ impl Groups for Wrap {
         self.0.get_by_reference(r).await
     }
     async fn create(&self, d: GroupDraft) -> Result<Group> {
-        let made = self.0.create(d).await?;
+        let mut again = d.clone();
+        "Zzconf free".clone_into(&mut again.name);
+        again.kind = None;
+        let made = match self.0.create(d).await {
+            Err(Error::Invalid(_)) if self.1 == Mutant::ReservedNameFree => {
+                self.0.create(again).await?
+            }
+            other => other?,
+        };
         if self.1 == Mutant::CreatorKeepsManage {
             let me = self.0.asker();
             self.0.grant(made.id, &me, Right::Manage).await?;
@@ -247,7 +259,21 @@ impl Groups for Wrap {
         self.0.grants(g).await
     }
     async fn grant(&self, g: ObjectId, h: &PersonRef, r: Right) -> Result<Grant> {
-        self.0.grant(g, h, r).await
+        let done = self.0.grant(g, h, r).await;
+        if self.1 == Mutant::OperatorGroupHoldsGrant && h.art == PersonArt::Group && done.is_err() {
+            let me = self.0.asker();
+            return Ok(Grant {
+                id: g,
+                revision: Revision(1),
+                group: g,
+                holder: h.clone(),
+                right: r,
+                granted_by: me,
+                granted: Utc::from_millis(0),
+                in_force: InForce::Yes,
+            });
+        }
+        done
     }
     async fn revoke_grant(&self, g: ObjectId, e: Revision) -> Result<()> {
         self.0.revoke_grant(g, e).await

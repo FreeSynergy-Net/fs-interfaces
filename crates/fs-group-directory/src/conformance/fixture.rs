@@ -74,8 +74,9 @@ pub trait ConformanceFixture: Send + Sync {
         false
     }
 
-    /// Mark an account as supervised (`true`) or not (ADR 0095 Pkt. 14). `true` when done.
-    async fn supervise(&self, _person: &PersonRef, _on: bool) -> bool {
+    /// Mark an account as supervised (`Some(true)`), not (`Some(false)`) or not known (`None`, ADR 0095 Pkt. 14).
+    /// `true` when done.
+    async fn supervise(&self, _person: &PersonRef, _on: Option<bool>) -> bool {
         false
     }
 

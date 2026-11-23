@@ -16,8 +16,20 @@ pub struct Report {
     pub failures: Vec<String>,
     /// Rules a fixture could not set up (it has no such mutator); not a failure, but not proven either.
     pub skipped: Vec<String>,
+    /// Rules that CANNOT be checked on this provider (it offers no way in that the rule needs, e.g. `LocalOperator`).
+    /// Its own result, never a pass: a provider with entries here is NOT fully conformant (`is_complete`).
+    pub unverifiable: Vec<String>,
     /// How many checks ran (a rule whose setup fails quietly is not counted; a test asserts a floor).
     pub checked: usize,
+}
+
+impl Report {
+    /// Fully conformant: nothing failed, and nothing was skipped or unverifiable. A skipped or unverifiable rule
+    /// never counts as conformant.
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        self.failures.is_empty() && self.skipped.is_empty() && self.unverifiable.is_empty()
+    }
 }
 
 /// Fixture, report and a counter for names of one run.
@@ -53,6 +65,10 @@ impl<'a> Cx<'a> {
         if !ok {
             self.report.failures.push(rule.to_owned());
         }
+    }
+
+    pub(crate) fn unverifiable(&mut self, rule: &str) {
+        self.report.unverifiable.push(rule.to_owned());
     }
 
     pub(crate) fn skip(&mut self, rule: &str) {

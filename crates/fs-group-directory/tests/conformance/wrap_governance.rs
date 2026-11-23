@@ -36,6 +36,8 @@ pub enum GovMutant {
     ProjectHolderBecomesOperator,
     /// `operators` lists everybody in the group, marks ignored (an AI marked later stays on the list).
     OperatorsUnfiltered,
+    /// `grant_scope` lets the group Betreiber hold `Project` or `AllGroups` too (a dummy grant answers the refusal).
+    OperatorGroupGetsScope,
 }
 
 pub struct WrapGov(pub Arc<FakeGroups>, pub GovMutant);
@@ -113,6 +115,17 @@ impl GroupGovernance for WrapGov {
         let r = self.0.grant_scope(a, s).await;
         if self.1 == GovMutant::ServerScopeGrantable && s == Scope::Server && r.is_err() {
             self.0.operator_set_local(&self.0.asker()).await?;
+            return Ok(ScopeGrant {
+                id: a,
+                revision: Revision(1),
+                admin_group: a,
+                scope: s,
+                granted_by: self.0.asker(),
+                granted: Utc::from_millis(0),
+            });
+        }
+        let og = self.0.operators().await.is_ok_and(|l| l.group == Some(a));
+        if self.1 == GovMutant::OperatorGroupGetsScope && og && s != Scope::Server && r.is_err() {
             return Ok(ScopeGrant {
                 id: a,
                 revision: Revision(1),

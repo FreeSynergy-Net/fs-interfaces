@@ -13,7 +13,7 @@ use std::sync::Arc;
 pub struct Fx {
     pub fake: Arc<FakeGroups>,
     gov: Option<Box<dyn GroupGovernance>>,
-    local: Arc<dyn LocalOperator>,
+    local: Option<Arc<dyn LocalOperator>>,
     provider: Box<dyn Groups>,
     mirror: FakeMirror,
     roles: (RoleRef, RoleRef),
@@ -40,7 +40,7 @@ impl Fx {
         );
         Self {
             gov: None,
-            local: Arc::clone(&fake) as Arc<dyn LocalOperator>,
+            local: Some(Arc::clone(&fake) as Arc<dyn LocalOperator>),
             fake,
             provider,
             mirror: FakeMirror::new(),
@@ -52,7 +52,13 @@ impl Fx {
 impl Fx {
     /// Another way in for the local command (a mutant in front of the fake).
     pub fn with_local(mut self, local: Arc<dyn LocalOperator>) -> Self {
-        self.local = local;
+        self.local = Some(local);
+        self
+    }
+
+    /// A provider that offers no local entry (like `RemoteGroups`).
+    pub fn without_local(mut self) -> Self {
+        self.local = None;
         self
     }
 
@@ -72,7 +78,7 @@ impl ConformanceFixture for Fx {
         self.gov.as_deref()
     }
     fn local_operator(&self) -> Option<&dyn LocalOperator> {
-        Some(self.local.as_ref())
+        self.local.as_deref()
     }
     fn facade(&self) -> Option<&dyn GroupMembers> {
         Some(self.fake.as_ref())
@@ -99,8 +105,8 @@ impl ConformanceFixture for Fx {
         };
         self.fake.people().mark(person, mark)
     }
-    async fn supervise(&self, person: &PersonRef, on: bool) -> bool {
-        self.fake.people().supervise(person, Some(on))
+    async fn supervise(&self, person: &PersonRef, on: Option<bool>) -> bool {
+        self.fake.people().supervise(person, on)
     }
     async fn roles(&self) -> Option<(RoleRef, RoleRef)> {
         Some(self.roles.clone())

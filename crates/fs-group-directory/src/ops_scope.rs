@@ -38,7 +38,12 @@ impl State {
     }
 
     pub(crate) fn grant_scope(&mut self, admin: ObjectId, scope: Scope) -> Result<ScopeGrant> {
-        if matches!(scope, Scope::Group(_) | Scope::Server) || !self.may_hand_out() {
+        // The group Betreiber holds no scope but `Server` (user decision 16.1: operator and Project administration are
+        // two roles; whoever is both is a member of both groups).
+        if matches!(scope, Scope::Group(_) | Scope::Server)
+            || self.is_operator_group(admin)
+            || !self.may_hand_out()
+        {
             return Err(Error::ScopeDenied(scope));
         }
         self.visible(admin)?;
