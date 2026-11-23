@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/fs-interfaces", "crates/regenerate", "crates/fs-mcp", "crates/fs-person-directory", "crates/fs-events", "crates/fs-group-directory", "crates/fs-storage"]
 
 [workspace.package]
-version = "0.0.31"
+version = "0.0.32"
 authors = ["FreeSynergy <support@freesynergy.net>"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
