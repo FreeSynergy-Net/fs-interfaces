@@ -84,7 +84,7 @@ struct ImportReport {
 }
 
 # root capability (capability ids: task.create, task.edit, task.assign, relation.create, label.assign,
-# task.read, task.query, task.delete, task.import, task.export, task.subscribe; boards: board.open, board.create,
+# task.read, task.query, task.delete, task.import, task.export, task.subscribe, task.claim; boards: board.open, board.create,
 # column.create, column.limit, card.move)
 interface Tasks {
   capabilities @0 () -> (capabilities :CapabilityList);
@@ -120,6 +120,12 @@ interface Items {
   createRelationWithGap @16 (id :Uuid, otherUid :Text, relation :Relation, gap :Text) -> (task :Task);   # relation.create
   # A relation that would close a dependency cycle is refused by `createRelation*`: the problem type is `cycle` (status 409),
   # its extension `path` repeats once for every uid of the cycle, in order.
+
+  # Appended in SW-1. A claim holds a task for one person for a limited time (the 24-hour limit is the module's rule, enforced by the provider).
+  # The person is always the caller of the connection: there is NO `by` parameter, nobody claims for somebody else. `until` is the end of the claim.
+  # Both are compare-and-set on `revision` like `editIf`: a changed task or a foreign claim fails with a reason starting `conflict:`. Capability id `task.claim`.
+  claim   @17 (id :Uuid, revision :UInt64, until :Timestamp) -> (task :Task);    # task.claim
+  release @18 (id :Uuid, revision :UInt64) -> (task :Task);                       # task.claim (only the claimer lets go)
 }
 
 # Boards (methods appended in 0.0.29; the interface was empty before). The Rust form is the trait `Boards` in

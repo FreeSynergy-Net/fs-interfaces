@@ -289,6 +289,40 @@ pub const COMMANDS: &[Command] = &[
         annotations: &[],
     },
     Command {
+        words: &["items", "claim"],
+        key: "tasks/Items.claim",
+        iface_id: 0xf3afbd1650ce9661,
+        ordinal: 17,
+        params: &[
+            Param { path: "id", ty: ParamTy::Struct, ty_name: "Uuid", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.hi", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.lo", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "revision", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "until", ty: ParamTy::Struct, ty_name: "Timestamp", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "until.unix-millis", ty: ParamTy::Int { signed: true, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+        ],
+        watch: false,
+        renamed: false,
+        doc: "task.claim",
+        annotations: &[],
+    },
+    Command {
+        words: &["items", "release"],
+        key: "tasks/Items.release",
+        iface_id: 0xf3afbd1650ce9661,
+        ordinal: 18,
+        params: &[
+            Param { path: "id", ty: ParamTy::Struct, ty_name: "Uuid", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.hi", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "id.lo", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+            Param { path: "revision", ty: ParamTy::Int { signed: false, bits: 64 }, ty_name: "", union_of: None, hint: "", secret: false, doc: "" },
+        ],
+        watch: false,
+        renamed: false,
+        doc: "task.claim (only the claimer lets go)",
+        annotations: &[],
+    },
+    Command {
         words: &["subscribe"],
         key: "tasks/Tasks.subscribe",
         iface_id: 0xb8a98bc6d030a118,
@@ -436,6 +470,8 @@ pub fn dispatch(words: &[&str]) -> Option<Runner> {
         ["items", "blocked-by"] => Some(|r, i, o| Box::pin(run_items_blocked_by(r, i, o))),
         ["items", "dependents"] => Some(|r, i, o| Box::pin(run_items_dependents(r, i, o))),
         ["items", "create-relation-with-gap"] => Some(|r, i, o| Box::pin(run_items_create_relation_with_gap(r, i, o))),
+        ["items", "claim"] => Some(|r, i, o| Box::pin(run_items_claim(r, i, o))),
+        ["items", "release"] => Some(|r, i, o| Box::pin(run_items_release(r, i, o))),
         ["subscribe"] => Some(|r, i, o| Box::pin(run_tasks_subscribe(r, i, o))),
         ["boards", "create"] => Some(|r, i, o| Box::pin(run_boards_create(r, i, o))),
         ["boards", "list"] => Some(|r, i, o| Box::pin(run_boards_list(r, i, o))),
@@ -640,6 +676,26 @@ pub async fn run_items_create_relation_with_gap(root: &::fs_interfaces::tasks_ca
     set_tasks_capnp_items_create_relation_with_gap_params(req.get(), inp, "")?;
     let resp = req.send().promise.await?;
     out_tasks_capnp_items_create_relation_with_gap_results(resp.get()?, "", out)?;
+    Ok(Outcome::none())
+}
+
+/// `tasks/Items.claim` task.claim
+pub async fn run_items_claim(root: &::fs_interfaces::tasks_capnp::tasks::Client, inp: &mut dyn Input, out: &mut dyn Output) -> Result<Outcome, CallError> {
+    let c0 = root.items_request().send().pipeline.get_items();
+    let mut req = c0.claim_request();
+    set_tasks_capnp_items_claim_params(req.get(), inp, "")?;
+    let resp = req.send().promise.await?;
+    out_tasks_capnp_items_claim_results(resp.get()?, "", out)?;
+    Ok(Outcome::none())
+}
+
+/// `tasks/Items.release` task.claim (only the claimer lets go)
+pub async fn run_items_release(root: &::fs_interfaces::tasks_capnp::tasks::Client, inp: &mut dyn Input, out: &mut dyn Output) -> Result<Outcome, CallError> {
+    let c0 = root.items_request().send().pipeline.get_items();
+    let mut req = c0.release_request();
+    set_tasks_capnp_items_release_params(req.get(), inp, "")?;
+    let resp = req.send().promise.await?;
+    out_tasks_capnp_items_release_results(resp.get()?, "", out)?;
     Ok(Outcome::none())
 }
 
@@ -922,6 +978,19 @@ fn set_tasks_capnp_items_blocked_by_params(mut b: ::fs_interfaces::tasks_capnp::
 }
 
 #[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_items_claim_params(mut b: ::fs_interfaces::tasks_capnp::items::claim_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    let p = join(path, "id");
+    if inp.has(&p) { set_common_capnp_uuid(b.reborrow().init_id(), inp, &p)?; }
+    let p = join(path, "revision");
+    if let Some(v) = inp.int(&p)? {
+        b.set_revision(u64::try_from(v).map_err(|_| CallError::out_of_range(&p, "u64"))?);
+    }
+    let p = join(path, "until");
+    if inp.has(&p) { set_common_capnp_timestamp(b.reborrow().init_until(), inp, &p)?; }
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
 fn set_tasks_capnp_items_create_params(mut b: ::fs_interfaces::tasks_capnp::items::create_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
     let p = join(path, "jscalendar");
     if let Some(v) = inp.text(&p)? {
@@ -1062,6 +1131,17 @@ fn set_tasks_capnp_items_query_params(mut b: ::fs_interfaces::tasks_capnp::items
 fn set_tasks_capnp_items_readiness_params(mut b: ::fs_interfaces::tasks_capnp::items::readiness_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
     let p = join(path, "id");
     if inp.has(&p) { set_common_capnp_uuid(b.reborrow().init_id(), inp, &p)?; }
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn set_tasks_capnp_items_release_params(mut b: ::fs_interfaces::tasks_capnp::items::release_params::Builder<'_>, inp: &mut dyn Input, path: &str) -> Result<(), CallError> {
+    let p = join(path, "id");
+    if inp.has(&p) { set_common_capnp_uuid(b.reborrow().init_id(), inp, &p)?; }
+    let p = join(path, "revision");
+    if let Some(v) = inp.int(&p)? {
+        b.set_revision(u64::try_from(v).map_err(|_| CallError::out_of_range(&p, "u64"))?);
+    }
     Ok(())
 }
 
@@ -1522,6 +1602,14 @@ fn out_tasks_capnp_items_blocked_by_results(r: ::fs_interfaces::tasks_capnp::ite
 }
 
 #[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_items_claim_results(r: ::fs_interfaces::tasks_capnp::items::claim_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "");
+    out_tasks_capnp_task(r.get_task()?, "task", out)?;
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
 fn out_tasks_capnp_items_create_relation_results(r: ::fs_interfaces::tasks_capnp::items::create_relation_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
     out.begin_struct(name, "");
     out_tasks_capnp_task(r.get_task()?, "task", out)?;
@@ -1637,6 +1725,14 @@ fn out_tasks_capnp_items_query_results(r: ::fs_interfaces::tasks_capnp::items::q
 fn out_tasks_capnp_items_readiness_results(r: ::fs_interfaces::tasks_capnp::items::readiness_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
     out.begin_struct(name, "");
     out_tasks_capnp_readiness_report(r.get_report()?, "report", out)?;
+    out.end();
+    Ok(())
+}
+
+#[allow(unused_variables, unused_mut)]
+fn out_tasks_capnp_items_release_results(r: ::fs_interfaces::tasks_capnp::items::release_results::Reader<'_>, name: &str, out: &mut dyn Output) -> Result<(), CallError> {
+    out.begin_struct(name, "");
+    out_tasks_capnp_task(r.get_task()?, "task", out)?;
     out.end();
     Ok(())
 }

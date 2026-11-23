@@ -26,12 +26,17 @@ struct RecordView {
   values @3 :List(Value);
 }
 
+# What a write made or changed (appended with `invoke` in SW-1): the record it points at and a short text for people (a code, never a foreign sentence).
+# Both empty = the command made or changed no record (for example a delete).
+struct WriteResult { record @0 :Text; text @1 :Text; }
+
 struct RecordPage {
   records        @0 :List(RecordView);
   total          @1 :UInt64;                     # exact total; read `hasTotal`
   hasTotal       @2 :Bool;
   totalEstimated @3 :UInt64;                     # estimated total; read `hasEstimate`
   hasEstimate    @4 :Bool;
+  may            @5 :List(Text);                 # commands the asking person may run on the SET (not on one record), e.g. `task.create`: whether a "new card" control is open
 }
 
 interface FormSource {
@@ -47,7 +52,9 @@ interface FormSource {
   blob @2 (record :Text, field :Text) -> (blob :Common.Blob);
   # The bytes of an image or file field of one record (screenshots of capture).
 
-  invoke @3 (command :Text, record :Text, args :List(Value)) -> (failed :Bool, problem :Common.Problem);
+  invoke @3 (command :Text, record :Text, args :List(Value)) -> (failed :Bool, problem :Common.Problem, result :WriteResult);
   # Writing, for example "move a card". Only commands of the module's own `commands.json` are allowed; the service checks the rights.
   # `failed = false`: done, `problem` empty.
+  # `result` (appended): the record the command made or changed (`record`, empty for a delete) and a short text. A caller that creates a card and
+  # moves it at once, or a workflow step that hands on the new record, reads it from here; an old service leaves it empty.
 }

@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use super::types::{Art, Channel, Count, Form, Status, number, parse_version};
+use super::types::{Art, Channel, Count, Form, Status, Write, number, parse_version};
 
 /// Why a line was refused.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -37,6 +37,18 @@ pub enum ErrorKind {
     NoChannel,
     /// A form without a required channel (a module could fill nothing).
     NoRequiredChannel,
+    /// A 5th field (`writes`) on a channel whose art is not `command`.
+    WritesOnNonCommand,
+    /// An entry of `writes` is not a channel name (lower-case words joined by `-`, optional trailing `!`).
+    WritesName,
+    /// The same channel twice in one `writes`.
+    WritesDuplicate,
+    /// `writes` names a channel the form does not have.
+    WritesUnknownChannel,
+    /// `writes` names a channel of art `command` (a command writes data channels only).
+    WritesCommandChannel,
+    /// `writes` names a channel whose count allows more than one field (`facts 0..4`): the gesture would have to carry the field path.
+    WritesManyChannel,
 }
 
 /// A refused line (number counted from 1).
@@ -122,9 +134,32 @@ fn parse_arts(text: &str) -> Result<Vec<Art>, ErrorKind> {
     Ok(arts)
 }
 
+/// `column! order lane`: channel names separated by blanks, `!` behind a name = the gesture must deliver it. Empty text = writes nothing.
+fn parse_writes(text: &str) -> Result<Vec<Write>, ErrorKind> {
+    let mut writes: Vec<Write> = Vec::new();
+    for word in text.split_whitespace() {
+        let (channel, required) = word
+            .strip_suffix('!')
+            .map_or((word, false), |name| (name, true));
+        if !is_word_name(channel) {
+            return Err(ErrorKind::WritesName);
+        }
+        if writes.iter().any(|w| w.channel == channel) {
+            return Err(ErrorKind::WritesDuplicate);
+        }
+        writes.push(Write {
+            channel: channel.to_owned(),
+            required,
+        });
+    }
+    Ok(writes)
+}
+
 fn parse_channel(fields: &[&str]) -> Result<Channel, ErrorKind> {
-    let [name, art, required, count] = fields else {
-        return Err(ErrorKind::Shape);
+    let (name, art, required, count, writes) = match fields {
+        [name, art, required, count] => (name, art, required, count, None),
+        [name, art, required, count, writes] => (name, art, required, count, Some(writes)),
+        _ => return Err(ErrorKind::Shape),
     };
     if !is_word_name(name) {
         return Err(ErrorKind::ChannelName);
@@ -139,11 +174,17 @@ fn parse_channel(fields: &[&str]) -> Result<Channel, ErrorKind> {
     if required && count.min == 0 {
         return Err(ErrorKind::RequiredButOptionalCount);
     }
+    let writes = match writes {
+        None => None,
+        Some(_) if arts != [Art::Command] => return Err(ErrorKind::WritesOnNonCommand),
+        Some(text) => Some(parse_writes(text)?),
+    };
     Ok(Channel {
         name: (*name).to_owned(),
         arts,
         required,
         count,
+        writes,
     })
 }
 
@@ -155,6 +196,7 @@ fn parse_channel(fields: &[&str]) -> Result<Channel, ErrorKind> {
 pub fn parse(text: &str) -> Result<Vec<Form>, ParseError> {
     let mut forms: Vec<Form> = Vec::new();
     let mut form_line = 0;
+    let mut channel_lines: Vec<usize> = Vec::new();
     for (index, raw) in text.lines().enumerate() {
         let line = index + 1;
         let trimmed = raw.trim();
@@ -163,7 +205,16 @@ pub fn parse(text: &str) -> Result<Vec<Form>, ParseError> {
         }
         let err = |kind| ParseError { line, kind };
         if let Some(rest) = trimmed.strip_prefix('>') {
-            let fields: Vec<&str> = rest.trim().split(" | ").map(str::trim).collect();
+            let rest = rest.trim();
+            // A trailing ` |` is an empty 5th field: a command that writes nothing.
+            let (rest, empty_writes) = match rest.strip_suffix('|') {
+                Some(body) if body.ends_with(' ') => (body.trim_end(), true),
+                _ => (rest, false),
+            };
+            let mut fields: Vec<&str> = rest.split(" | ").map(str::trim).collect();
+            if empty_writes {
+                fields.push("");
+            }
             let channel = parse_channel(&fields).map_err(err)?;
             let form = forms
                 .last_mut()
@@ -172,8 +223,10 @@ pub fn parse(text: &str) -> Result<Vec<Form>, ParseError> {
                 return Err(err(ErrorKind::DuplicateChannel));
             }
             form.channels.push(channel);
+            channel_lines.push(line);
         } else {
-            check_complete(forms.last(), form_line)?;
+            check_complete(forms.last(), form_line, &channel_lines)?;
+            channel_lines.clear();
             let fields: Vec<&str> = trimmed.splitn(4, '|').map(str::trim).collect();
             let form = parse_form(&fields).map_err(err)?;
             if forms
@@ -186,11 +239,33 @@ pub fn parse(text: &str) -> Result<Vec<Form>, ParseError> {
             forms.push(form);
         }
     }
-    check_complete(forms.last(), form_line)?;
+    check_complete(forms.last(), form_line, &channel_lines)?;
     Ok(forms)
 }
 
-fn check_complete(form: Option<&Form>, line: usize) -> Result<(), ParseError> {
+/// `writes` may name only data channels of the same form with room for one field; the error carries the line of the command channel.
+fn check_writes(form: &Form, channel_lines: &[usize]) -> Result<(), ParseError> {
+    for (channel, &line) in form.channels.iter().zip(channel_lines) {
+        for write in channel.writes.iter().flatten() {
+            let kind = match form.channel(&write.channel) {
+                None => Some(ErrorKind::WritesUnknownChannel),
+                Some(c) if c.arts == [Art::Command] => Some(ErrorKind::WritesCommandChannel),
+                Some(c) if c.count.max != Some(1) => Some(ErrorKind::WritesManyChannel),
+                Some(_) => None,
+            };
+            if let Some(kind) = kind {
+                return Err(ParseError { line, kind });
+            }
+        }
+    }
+    Ok(())
+}
+
+fn check_complete(
+    form: Option<&Form>,
+    line: usize,
+    channel_lines: &[usize],
+) -> Result<(), ParseError> {
     let Some(form) = form else { return Ok(()) };
     if form.channels.is_empty() {
         return Err(ParseError {
@@ -204,5 +279,5 @@ fn check_complete(form: Option<&Form>, line: usize) -> Result<(), ParseError> {
             kind: ErrorKind::NoRequiredChannel,
         });
     }
-    Ok(())
+    check_writes(form, channel_lines)
 }

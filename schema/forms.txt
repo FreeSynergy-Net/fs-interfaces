@@ -66,3 +66,20 @@ members@1.0.0 | Members | planned | A member list: person as PersonRef, role, op
 > role | reference | ! | 1
 > badge | text | - | 0..1
 #   Blocks: table + avatar-group (S:56, S:51). A member must not be a Profile (S:15).
+
+# SW-1 (23.11., Schreibweg; source: woche-11-23/schreibweg/ENTSCHEID-schnitt.md section 3). Appended only: cards-in-columns@1.0.0 above stays as it is.
+# Column `writes` (5th field, only on a channel of art `command`): the channels of the SAME form the gesture writes; `!` = the gesture must deliver it; empty = writes nothing.
+#   A line without a 5th field stays readable (no statement). `writes` names only data channels of the form with room for ONE field (count 1 or 0..1): a channel like `facts 0..4` is refused by the reader, so a write never needs a field path.
+# Minor 1.1.0 (optional channels come, nothing goes): order (place in the column: read = sequence, write = target), column-label (display name of the column; the move target stays the ID in `column`), progress (its own channel, NOT a fact: a bar on the card; `facts` stays 0..4), and the commands create and remove.
+cards-in-columns@1.1.0 | Cards in columns | planned | Cards sorted into columns, e.g. a board of tasks; cards can be placed, created and removed (Entscheid §3, SW-1)
+> cards | records | ! | 1
+> column | text | ! | 1
+> title | text | ! | 1
+> facts | text|number|time|flag | - | 0..4
+> lane | text | - | 0..1
+> order | number | - | 0..1
+> column-label | text | - | 0..1
+> progress | number | - | 0..1
+> move | command | - | 0..1 | column! order lane
+> create | command | - | 0..1 | title! column! lane
+> remove | command | - | 0..1 |

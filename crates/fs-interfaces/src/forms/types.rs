@@ -102,6 +102,18 @@ pub struct Channel {
     pub required: bool,
     /// How many values.
     pub count: Count,
+    /// Only for a channel of art `command`: the channels of the same form the gesture writes (5th field, `column! order lane`).
+    /// `None` = the line has no 5th field (old lines stay readable); `Some(empty)` = writes nothing (e.g. remove).
+    pub writes: Option<Vec<Write>>,
+}
+
+/// One entry of the `writes` column: a channel of the form the command writes. `required` (`!`) = the gesture must deliver it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Write {
+    /// The channel name (not a command channel).
+    pub channel: String,
+    /// The gesture must deliver a value (`!`).
+    pub required: bool,
 }
 
 /// The version of a form: `SemVer` `Major.Minor.Patch` (the crate `semver`, no adapter). Minor when an optional channel comes, Major when a channel

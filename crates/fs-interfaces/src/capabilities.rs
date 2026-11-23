@@ -52,6 +52,12 @@ pub mod name {
     pub const COLUMN_LIMIT: &str = "column.limit";
     /// Placing a card in a column.
     pub const CARD_MOVE: &str = "card.move";
+    /// Creating a task.
+    pub const TASK_CREATE: &str = "task.create";
+    /// Deleting a task.
+    pub const TASK_DELETE: &str = "task.delete";
+    /// Claiming a task for at most 24 hours (and releasing the claim).
+    pub const TASK_CLAIM: &str = "task.claim";
     /// A storage provider.
     pub const STORAGE_PROVIDER: &str = "storage.provider";
     /// Sign-in with `OpenID` Connect.
