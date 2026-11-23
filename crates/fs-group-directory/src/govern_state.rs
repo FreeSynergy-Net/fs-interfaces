@@ -159,7 +159,7 @@ impl State {
     }
 
     /// Giving a role over a member path (`add_member`, `set_role`, `invite`): the owner role is only made by the governance operations
-    /// operations (`create_owned`, `appoint_owner`, `transfer_ownership`), the manager role needs `Manage`
+    /// operations (`create`, `appoint_owner`, `transfer_ownership`), the manager role needs `Manage`
     /// (ADR 0095 Pkt. 3). `granting` is false when the invitee accepts (the right was checked at `invite`).
     pub(crate) fn guard_role_grant(
         &self,

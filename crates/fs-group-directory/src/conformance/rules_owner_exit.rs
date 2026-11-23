@@ -8,12 +8,80 @@ use super::cx::{Cx, err};
 use super::fixture::Kind;
 use super::rules_owner::{owned, owner_of};
 use crate::groups::shared::{ObjectId, PersonRef};
-use crate::groups::{Error, GroupGovernance, Right, role_manager};
+use crate::groups::{Error, GroupGovernance, NestingMode, Right, role_manager};
 
 pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     handed_over_and_left(cx, v).await;
     demoted(cx, v).await;
     last_manager_in_set_role(cx).await;
+    for (label, mode) in [
+        ("bottom-up", NestingMode::BottomUp),
+        ("top-down", NestingMode::TopDown),
+        ("single", NestingMode::Single),
+    ] {
+        last_owner_stays(cx, v, label, mode).await;
+    }
+}
+
+/// The last owner cannot leave (`remove_member`) or step down (`set_role`) even when a manager exists; with a second
+/// owner she may (ADR 0095 Pkt. 8 and 11). The group sits on an edge of every mode (the member paths do not care).
+async fn last_owner_stays(
+    cx: &mut Cx<'_>,
+    v: &dyn GroupGovernance,
+    label: &str,
+    mode: NestingMode,
+) {
+    let (Some(g), Some(other)) = (
+        owned(cx, &format!("{label} last owner")).await,
+        owned(cx, &format!("{label} last owner edge")).await,
+    ) else {
+        return;
+    };
+    cx.link(g.id, other.id, mode).await;
+    let (Some(mgr), Some(second)) = (cx.person(Kind::Human).await, cx.person(Kind::Human).await)
+    else {
+        return;
+    };
+    cx.ensure(
+        cx.g.add_member(g.id, &mgr, Some(&role_manager()))
+            .await
+            .is_ok(),
+        "setup: a manager next to the last owner",
+    );
+    cx.member(g.id, &second).await;
+    let me = cx.me.clone();
+    let Some(mine) = owner_of(v, g.id, &me).await else {
+        return;
+    };
+    cx.ensure(
+        matches!(
+            err(&cx.g.remove_member(mine.id, mine.revision).await),
+            Some(Error::LastManager)
+        ),
+        &format!("{label}: the last owner cannot leave while a manager exists (remove_member)"),
+    );
+    cx.ensure(
+        matches!(
+            err(&cx.g.set_role(mine.id, mine.revision, None).await),
+            Some(Error::LastManager)
+        ),
+        &format!("{label}: the last owner cannot step down while a manager exists (set_role)"),
+    );
+    cx.ensure(
+        v.owners(g.id).await.is_ok_and(|o| o.len() == 1),
+        &format!("{label}: she is still the only owner"),
+    );
+    cx.ensure(
+        v.appoint_owner(g.id, &second).await.is_ok(),
+        "setup: a second owner",
+    );
+    let Some(mine) = owner_of(v, g.id, &me).await else {
+        return;
+    };
+    cx.ensure(
+        cx.g.set_role(mine.id, mine.revision, None).await.is_ok(),
+        &format!("{label}: with a second owner the first may step down (set_role)"),
+    );
 }
 
 /// Whether `who` holds `Manage` at `g` now.
