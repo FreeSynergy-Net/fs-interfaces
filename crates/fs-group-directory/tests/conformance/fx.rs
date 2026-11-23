@@ -6,11 +6,13 @@ use async_trait::async_trait;
 use fs_group_directory::conformance::{ByHand, ConformanceFixture, Kind};
 use fs_group_directory::groups_v1::shared::{ObjectId, PersonRef, Utc};
 use fs_group_directory::groups_v1::{GroupDirectory, GroupMembers, Groups, Mirroring, RoleRef};
+use fs_group_directory::groups_v2::GroupsV2;
 use fs_group_directory::{FakeGroups, FakeMirror};
 use std::sync::Arc;
 
 pub struct Fx {
     pub fake: Arc<FakeGroups>,
+    v2: Option<Box<dyn GroupsV2>>,
     provider: Box<dyn Groups>,
     mirror: FakeMirror,
     roles: (RoleRef, RoleRef),
@@ -32,6 +34,7 @@ impl Fx {
             people.add_role("Conf admin", true),
         );
         Self {
+            v2: None,
             fake,
             provider,
             mirror: FakeMirror::new(),
@@ -40,10 +43,21 @@ impl Fx {
     }
 }
 
+impl Fx {
+    /// Offer a `GroupsV2` view (the fake itself or a mutant in front of it).
+    pub fn with_v2(mut self, v2: Box<dyn GroupsV2>) -> Self {
+        self.v2 = Some(v2);
+        self
+    }
+}
+
 #[async_trait]
 impl ConformanceFixture for Fx {
     fn groups(&self) -> &dyn Groups {
         self.provider.as_ref()
+    }
+    fn groups_v2(&self) -> Option<&dyn GroupsV2> {
+        self.v2.as_deref()
     }
     fn facade(&self) -> Option<&dyn GroupMembers> {
         Some(self.fake.as_ref())
