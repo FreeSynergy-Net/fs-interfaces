@@ -64,10 +64,12 @@ impl State {
             .cloned()
             .filter(|_| deleted)
             .ok_or(Error::NotRestorable(id))?;
-        let base = self.grants.len();
+        let (base, base_members) = (self.grants.len(), self.members.len());
         self.grants.extend(bag.grants.clone());
+        self.members.extend(bag.members.clone());
         let allowed = self.may_ask(id, Right::Manage);
         self.grants.truncate(base);
+        self.members.truncate(base_members);
         if !allowed {
             return Err(Error::Forbidden {
                 group: id,

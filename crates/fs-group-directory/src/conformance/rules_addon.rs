@@ -34,7 +34,7 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
 }
 
 async fn attach(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let Some(g) = owned(cx, v, "add base").await else {
+    let Some(g) = owned(cx, "add base").await else {
         return;
     };
     cx.ensure(
@@ -129,7 +129,7 @@ async fn attach(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 }
 
 async fn rights(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let Some(g) = owned(cx, v, "add rights").await else {
+    let Some(g) = owned(cx, "add rights").await else {
         return;
     };
     let (Some(stranger), Some(plain), Some(mgr)) = (
@@ -181,7 +181,7 @@ async fn rights(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     }
     // a foreign group of the stranger is not reachable through the addon of this one
     if cx.act(&stranger).await {
-        let theirs = owned(cx, v, "add theirs").await;
+        let theirs = owned(cx, "add theirs").await;
         if let Some(t) = theirs {
             cx.ensure(
                 v.update_addon(a.id, a.revision, formal("Zzconf y"))

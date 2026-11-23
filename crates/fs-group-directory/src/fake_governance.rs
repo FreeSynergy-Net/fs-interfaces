@@ -7,14 +7,11 @@ use crate::groups::shared::{ObjectId, PersonRef, Revision};
 use crate::groups::{
     Addon, AddonKind, GroupGovernance, Intervention, Level, Result, Scope, ScopeGrant,
 };
-use crate::groups::{Group, GroupDraft, Membership, NestOutcome};
+use crate::groups::{Membership, NestOutcome};
 use async_trait::async_trait;
 
 #[async_trait]
 impl GroupGovernance for FakeGroups {
-    async fn create_owned(&self, draft: GroupDraft) -> Result<Group> {
-        self.lock().create_owned(draft)
-    }
     async fn owners(&self, group: ObjectId) -> Result<Vec<Membership>> {
         self.lock().owners(group)
     }

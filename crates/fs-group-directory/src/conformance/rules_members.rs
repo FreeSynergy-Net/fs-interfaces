@@ -55,8 +55,8 @@ async fn members(cx: &mut Cx<'_>) {
     cx.ensure(
         cx.g.members(g.id, None, 10)
             .await
-            .is_ok_and(|v| v.items.len() == 1),
-        "members: the direct members",
+            .is_ok_and(|v| v.items.len() == 2),
+        "members: the direct members (the owner and the member)",
     );
     cx.ensure(
         cx.g.groups_of(&p)

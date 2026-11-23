@@ -4,7 +4,7 @@
 
 use crate::groups::shared::{ObjectId, PersonArt, PersonRef};
 use crate::groups::{
-    Decision, Error, Grant, InForce, Membership, Reason, Result, Right, Visibility,
+    Decision, Error, Grant, InForce, Membership, Reason, Result, Right, RoleRef, Visibility,
 };
 use crate::ids::{id_of_reference, key};
 use crate::nesting_logic::hull;
@@ -163,19 +163,13 @@ impl State {
         base
     }
 
-    /// `decide` without an intervention: rights of her own (grants, roles, installer).
+    /// `decide` without an intervention: rights of her own (grants and the owner/manager roles; the installer has no standing right: she only hands out the first `Project` scope).
     pub(crate) fn decide_base(&self, g: ObjectId, who: &PersonRef, right: Right) -> Decision {
         let no = |reason| Decision {
             allowed: false,
             reason,
         };
         let status = self.people.status(who);
-        if status != Some(true) && self.installer.as_ref() == Some(who) {
-            return Decision {
-                allowed: true,
-                reason: Reason::Installer,
-            };
-        }
         if status == Some(true) {
             let closed =
                 self.groups.get(&g).is_some_and(|r| r.group.sensitive) || self.is_admin_group(g);
@@ -269,6 +263,24 @@ impl State {
         self.grants.retain(|x| Some(x.id) != grant);
         let after = self.manage_holders(g);
         (self.members, self.grants) = (members, grants);
+        before > 0 && after == 0
+    }
+
+    /// Whether giving membership `member` the role `role` leaves the group without any `Manage` holder (it had one).
+    /// A group with an owner never ends up there: the owner role is itself `Manage` (ADR 0095 Pkt. 8).
+    pub(crate) fn would_orphan_role(
+        &mut self,
+        g: ObjectId,
+        member: ObjectId,
+        role: Option<&RoleRef>,
+    ) -> bool {
+        let before = self.manage_holders(g);
+        let members = self.members.clone();
+        if let Some(row) = self.members.iter_mut().find(|m| m.id == member) {
+            row.role = role.cloned();
+        }
+        let after = self.manage_holders(g);
+        self.members = members;
         before > 0 && after == 0
     }
 }

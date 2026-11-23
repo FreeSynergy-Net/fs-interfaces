@@ -90,8 +90,8 @@ async fn trash(cx: &mut Cx<'_>) {
     cx.ensure(
         cx.g.members(g.id, None, 10)
             .await
-            .is_ok_and(|m| m.items.len() == 1),
-        "restore: the memberships come back",
+            .is_ok_and(|m| m.items.len() == 2),
+        "restore: the memberships come back (the owner and the member)",
     );
     cx.ensure(
         cx.g.my_rights(g.id)

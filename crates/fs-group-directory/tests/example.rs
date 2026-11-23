@@ -1,7 +1,10 @@
 //! The example trees: a network built from below and a company built from above (invented names). What the fake says
 //! about them: shape, owners, moderators, who is a member of what in which direction, the Kanidm tree of both.
 
-use fs_group_directory::groups::{GroupGovernance, Groups, Mirroring, Right};
+use fs_group_directory::groups::{
+    GroupDraft, GroupGovernance, GroupQuery, Groups, Mirroring, NestingMode, ParentFilter, Right,
+    Scope, Visibility,
+};
 use fs_group_directory::{EXAMPLE_LOCAL_MEMBERS, FakeMirror, ROLE_TEMPLATES, example};
 
 #[tokio::test]
@@ -146,9 +149,48 @@ async fn the_network_flows_upward_the_company_downward_and_the_advisory_group_no
 #[tokio::test]
 async fn both_trees_give_the_member_tree_in_the_directory_with_the_company_reversed() {
     let e = example(10);
-    // The installer (the setup person) runs the mirror; she manages every group.
+    // Every group manages itself and the founder is gone from all of them, so the setup person (the installer) runs
+    // the mirror the open way: a Project scope for an admin group of hers, then an intervention with a reason per group.
+    let founder = e.person("Gruendungsperson Beispiel").expect("installer");
+    e.groups.set_asker(founder);
+    let admins = e
+        .groups
+        .create(GroupDraft {
+            name: "Projektverwaltung Beispiel".to_owned(),
+            kind: None,
+            description: None,
+            default_mode: NestingMode::Single,
+            visibility: Visibility::Everyone,
+            sensitive: false,
+            mirror: false,
+        })
+        .await
+        .expect("admin group");
     e.groups
-        .set_asker(e.person("Gruendungsperson Beispiel").expect("installer"));
+        .grant_scope(admins.id, Scope::Project)
+        .await
+        .expect("first Project scope");
+    let all = e
+        .groups
+        .list(
+            &GroupQuery {
+                text: String::new(),
+                parent: ParentFilter::Any,
+                member: None,
+                include_deleted: false,
+            },
+            None,
+            100,
+        )
+        .await
+        .expect("list")
+        .items;
+    for g in all.iter().map(|s| s.id).filter(|g| *g != admins.id) {
+        e.groups
+            .open_intervention(g, Scope::Project, "Beispieldaten: Spiegel-Lauf")
+            .await
+            .expect("intervention");
+    }
     let mirror = FakeMirror::new();
     let plan = e.groups.mirror_plan(&mirror).await.expect("plan");
     let report = e

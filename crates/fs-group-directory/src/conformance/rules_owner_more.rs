@@ -19,7 +19,7 @@ pub(super) async fn rules(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 }
 
 async fn candidates(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let Some(g) = owned(cx, v, "own cand").await else {
+    let Some(g) = owned(cx, "own cand").await else {
         return;
     };
     let (Some(bot), Some(unk), Some(h)) = (
@@ -69,7 +69,7 @@ async fn candidates(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 }
 
 async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let Some(g) = owned(cx, v, "own transfer").await else {
+    let Some(g) = owned(cx, "own transfer").await else {
         return;
     };
     let (Some(p), Some(q)) = (cx.person(Kind::Human).await, cx.person(Kind::Human).await) else {
@@ -141,7 +141,7 @@ async fn transfer(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 async fn withheld(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let mut d = cx.draft("own sens");
     (d.sensitive, d.visibility) = (true, Visibility::Members);
-    let Some(g) = owned_from(cx, v, d).await else {
+    let Some(g) = owned_from(cx, d).await else {
         return;
     };
     let Some(s) = cx.person(Kind::Human).await else {
@@ -179,7 +179,7 @@ async fn withheld(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 }
 
 async fn object_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let Some(g) = owned(cx, v, "own object").await else {
+    let Some(g) = owned(cx, "own object").await else {
         return;
     };
     let Some(p) = cx.person(Kind::Human).await else {
@@ -214,9 +214,9 @@ async fn modes(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
     let (mut dt, mut db) = (cx.draft("mode top"), cx.draft("mode bottom"));
     (dt.default_mode, db.default_mode) = (NestingMode::TopDown, NestingMode::BottomUp);
     let (Some(top), Some(bottom), Some(child)) = (
-        owned_from(cx, v, dt).await,
-        owned_from(cx, v, db).await,
-        owned(cx, v, "mode child").await,
+        owned_from(cx, dt).await,
+        owned_from(cx, db).await,
+        owned(cx, "mode child").await,
     ) else {
         return;
     };

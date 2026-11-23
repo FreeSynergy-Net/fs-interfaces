@@ -16,17 +16,20 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
         cx.person(Kind::Human).await,
         cx.person(Kind::Human).await,
         cx.person(Kind::Human).await,
-        owned(cx, v, "sc target").await,
+        owned(cx, "sc target").await,
     ) else {
         return;
     };
-    let (Some(admin_a), Some(admin_b)) =
-        (cx.group("sc admin a").await, cx.group("sc admin b").await)
-    else {
+    // Each admin group is made by its own person (the creator is its owner and so a direct member): the installer
+    // must not be a member of them, else she would hold the scope herself.
+    cx.act(&x).await;
+    let made_a = cx.group("sc admin a").await;
+    cx.act(&y).await;
+    let made_b = cx.group("sc admin b").await;
+    cx.act_me().await;
+    let (Some(admin_a), Some(admin_b)) = (made_a, made_b) else {
         return;
     };
-    cx.member(admin_a.id, &x).await;
-    cx.member(admin_b.id, &y).await;
     cx.ensure(
         matches!(
             err(&v.grant_scope(admin_a.id, Scope::Group(owner_g.id)).await),

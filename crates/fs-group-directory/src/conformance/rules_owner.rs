@@ -9,21 +9,17 @@ use crate::groups::shared::{ObjectId, PersonRef};
 use crate::groups::{Error, Group, GroupDraft, Membership, Right};
 use crate::groups::{GroupGovernance, Level, role_owner};
 
-/// A group the asker created with `create_owned` (she is its first owner).
-pub(super) async fn owned(cx: &mut Cx<'_>, v: &dyn GroupGovernance, label: &str) -> Option<Group> {
+/// A group the asker created with `create` (she is its first owner).
+pub(super) async fn owned(cx: &mut Cx<'_>, label: &str) -> Option<Group> {
     let d = cx.draft(label);
-    owned_from(cx, v, d).await
+    owned_from(cx, d).await
 }
 
-pub(super) async fn owned_from(
-    cx: &mut Cx<'_>,
-    v: &dyn GroupGovernance,
-    d: GroupDraft,
-) -> Option<Group> {
-    let made = v.create_owned(d).await;
+pub(super) async fn owned_from(cx: &mut Cx<'_>, d: GroupDraft) -> Option<Group> {
+    let made = cx.g.create(d).await;
     cx.ensure(
         made.is_ok(),
-        &format!("setup: create_owned ({:?})", made.as_ref().err()),
+        &format!("setup: create ({:?})", made.as_ref().err()),
     );
     made.ok()
 }
@@ -44,11 +40,12 @@ pub(crate) async fn rules(cx: &mut Cx<'_>) {
     last_owner(cx, v).await;
     super::rules_owner_more::rules(cx, v).await;
     super::rules_flow_owner::rules(cx, v).await;
+    super::rules_owner_exit::rules(cx, v).await;
     cx.act_me().await;
 }
 
 async fn first_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let Some(g) = owned(cx, v, "own first").await else {
+    let Some(g) = owned(cx, "own first").await else {
         return;
     };
     let me = cx.me.clone();
@@ -56,7 +53,7 @@ async fn first_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
         v.owners(g.id)
             .await
             .is_ok_and(|o| o.len() == 1 && o[0].person == me && o[0].role == Some(role_owner())),
-        "create_owned: the creator is the first owner (direct member with the owner role)",
+        "create: the creator is the first owner (direct member with the owner role)",
     );
     cx.ensure(
         v.my_level(g.id).await == Ok(Level::Owner),
@@ -66,7 +63,7 @@ async fn first_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
         cx.g.my_rights(g.id)
             .await
             .is_ok_and(|r| r.contains(&Right::Manage)),
-        "create_owned: Own includes Manage (my_rights)",
+        "create: Own includes Manage (my_rights)",
     );
     let Some(p2) = cx.person(Kind::Human).await else {
         return;
@@ -101,7 +98,7 @@ async fn first_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 }
 
 async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let Some(g) = owned(cx, v, "own gate").await else {
+    let Some(g) = owned(cx, "own gate").await else {
         return;
     };
     let (Some(mgr), Some(stranger), Some(cand)) = (
@@ -210,7 +207,7 @@ async fn only_owners_decide(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
 }
 
 async fn last_owner(cx: &mut Cx<'_>, v: &dyn GroupGovernance) {
-    let Some(g) = owned(cx, v, "own last").await else {
+    let Some(g) = owned(cx, "own last").await else {
         return;
     };
     let me = cx.me.clone();

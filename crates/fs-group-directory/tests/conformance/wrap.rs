@@ -33,6 +33,8 @@ pub enum Mutant {
     SingleFlows,
     /// `request_nesting` stores a `TopDown` edge as `BottomUp` (the mirror then does not reverse it).
     TopDownNotReversed,
+    /// `create` also gives the founder a personal `Manage` grant (the old way): it outlives handing over and leaving.
+    CreatorKeepsManage,
 }
 
 /// The forwarding provider.
@@ -68,7 +70,12 @@ impl Groups for Wrap {
         self.0.get_by_reference(r).await
     }
     async fn create(&self, d: GroupDraft) -> Result<Group> {
-        self.0.create(d).await
+        let made = self.0.create(d).await?;
+        if self.1 == Mutant::CreatorKeepsManage {
+            let me = self.0.asker();
+            self.0.grant(made.id, &me, Right::Manage).await?;
+        }
+        Ok(made)
     }
     async fn update(&self, id: ObjectId, expected: Revision, p: GroupPatch) -> Result<Group> {
         if self.1 == Mutant::NoCompareAndSet {

@@ -47,8 +47,10 @@ pub trait Groups: Send + Sync {
     async fn get(&self, id: ObjectId) -> Result<Option<Group>>;
     /// Über den Verweis (`urn:uuid:…`), z. B. aus einem `PersonRef { art: Group }` des Kalenders.
     async fn get_by_reference(&self, reference: &Reference) -> Result<Option<Group>>;
-    /// Die fragende Person bekommt `Manage` an der neuen Gruppe; ist sie eine KI: `AgentNotAdmin`, nichts
-    /// geschrieben.
+    /// Die einzige Art, eine Gruppe anzulegen (ADR 0095 Pkt. 6): die fragende Person wird erste Eigentümerin (direkte
+    /// Mitgliedschaft mit der Rolle `owner`). Sie bekommt KEIN eigenes, dauerhaftes `Manage`; verliert sie die Rolle
+    /// (Übergabe, Herabstufen, Austritt), verliert sie jedes Recht an der Gruppe. Ist sie eine KI: `AgentNotAdmin`,
+    /// nichts geschrieben.
     async fn create(&self, draft: GroupDraft) -> Result<Group>;
     async fn update(&self, id: ObjectId, expected: Revision, patch: GroupPatch) -> Result<Group>;
     /// In den Papierkorb, mit Mitgliedschaften, Einladungen, Rechten, Kanten und offenen Anfragen (Kinder

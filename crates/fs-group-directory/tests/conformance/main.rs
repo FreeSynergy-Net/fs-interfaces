@@ -242,3 +242,22 @@ async fn a_mirror_that_does_not_reverse_a_top_down_edge_fails() {
     );
     assert!(!f.iter().any(|x| x.starts_with("bottom-up:")), "{f:#?}");
 }
+
+/// MUST 1 of the review: a founder with a hidden personal `Manage` keeps it after handing over and leaving.
+#[tokio::test]
+async fn a_provider_where_the_founder_keeps_a_personal_manage_grant_fails() {
+    let people = Arc::new(fs_group_directory::FakePeople::new());
+    let me = people.human("Alex Installer");
+    let fake = Arc::new(FakeGroups::with_people(people, me.clone()).with_installer(me));
+    let gov = Box::new(WrapGov(Arc::clone(&fake), GovMutant::None));
+    let fx = Fx::with(
+        Arc::clone(&fake),
+        Box::new(Wrap(fake, Mutant::CreatorKeepsManage)),
+    )
+    .with_governance(gov);
+    let f = run_conformance_governance(&fx).await.failures;
+    assert!(
+        f.iter().any(|x| x.contains("former owner holds no Manage")),
+        "{f:#?}"
+    );
+}

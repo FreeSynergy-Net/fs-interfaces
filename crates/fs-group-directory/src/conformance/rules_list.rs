@@ -3,6 +3,7 @@
 //! Pattern: Template method (a fixed list of rules; each rule seeds its own data through the trait).
 
 use super::cx::Cx;
+use super::fixture::Kind;
 use crate::groups::{GroupQuery, NestingMode, ParentFilter};
 use crate::ids::object_id;
 
@@ -108,12 +109,14 @@ async fn listing(cx: &mut Cx<'_>) {
         .is_err(),
         "list: ChildrenOf of an unknown group is an error",
     );
-    let me = cx.me.clone();
-    cx.member(c.id, &me).await;
+    let Some(who) = cx.person(Kind::Human).await else {
+        return;
+    };
+    cx.member(c.id, &who).await;
     let mine =
         cx.g.list(
             &GroupQuery {
-                member: Some(me),
+                member: Some(who),
                 ..q.clone()
             },
             None,
@@ -139,7 +142,7 @@ async fn listing(cx: &mut Cx<'_>) {
     cx.ensure(
         row.iter()
             .find(|s| s.id == c.id)
-            .is_some_and(|s| s.direct_members == Some(1)),
+            .is_some_and(|s| s.direct_members == Some(2)),
         "list: direct_members counts where the list may be seen",
     );
 }

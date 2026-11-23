@@ -56,8 +56,6 @@ pub enum Reason {
         /// `Inherited::from`: eine KI bei Admin-/sensiblen Gruppen, ein Mensch ohne Leserecht an einer sensiblen).
         holder: Option<ObjectId>,
     },
-    /// Wer installiert hat, ist oberster Admin (ADR 0056 Punkt 1), nicht auf einer Schleife.
-    Installer,
     NoGrant,
     /// Als KI markiert: nie `Manage` (ADR 0056 Punkt 6). Ein Recht, das ihr nach Neumarkierung noch anhängt (`InForce::KindMismatch`), ergibt `Agent`. An einer Gruppe mit
     /// Admin-Recht (Admin-Rolle vergeben) und an einer sensiblen Gruppe hat eine KI gar keinen Zugriff, auch nicht

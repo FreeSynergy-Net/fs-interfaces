@@ -7,15 +7,13 @@
 
 use super::{Addon, AddonKind, Intervention, Level, Result, Scope, ScopeGrant};
 use crate::groups::shared::{ObjectId, PersonRef, Revision};
-use crate::groups::{Group, GroupDraft, Membership, NestOutcome};
+use crate::groups::{Membership, NestOutcome};
 use async_trait::async_trait;
 
 /// Die Methoden der Verwaltung (Eigentümer, Stufen, Zusätze).
 #[async_trait]
 pub trait GroupGovernance: Send + Sync {
     // ---- Eigentümer (ADR 0095)
-    /// Gruppe anlegen; die fragende Person wird erste Eigentümerin (`create` gibt nur `Manage`).
-    async fn create_owned(&self, draft: GroupDraft) -> Result<Group>;
     /// Die Eigentümer (Mitgliedschaften mit der Rolle `owner`), nur Personenverweise. `Withheld`, wenn die fragende
     /// Person die Gruppe nicht lesen darf (sensible Gruppe ohne Einblick); nie eine leere Liste dafür.
     async fn owners(&self, group: ObjectId) -> Result<Vec<Membership>>;

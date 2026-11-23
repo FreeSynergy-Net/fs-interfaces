@@ -107,7 +107,7 @@ async fn paging(cx: &mut Cx<'_>) {
             .map(|p| p.items)
             .unwrap_or_default();
     cx.ensure(
-        rest.len() == 1 && first.items.iter().all(|m| m.id != rest[0].id),
+        rest.len() == 2 && first.items.iter().all(|m| m.id != rest[0].id),
         "members: the next page has the rest, none twice",
     );
     let eff = cx.g.effective_members(b.id, None, 2).await;
@@ -122,7 +122,7 @@ async fn paging(cx: &mut Cx<'_>) {
             .map(|p| p.items)
             .unwrap_or_default();
     cx.ensure(
-        rest.len() == 1,
+        rest.len() == 2,
         "effective_members: the stable order, the rest on the next page",
     );
 }

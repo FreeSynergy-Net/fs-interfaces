@@ -16,7 +16,7 @@ pub const START_MS: i64 = 1_794_819_600_000;
 pub const DECISIONS: [&str; 13] = [
     "Every write takes one second on the fake's own clock (set_now moves it); the trash deadline is 30 days.",
     "Order of checks for a call with a group id: hidden or unknown or deleted (NotFound), then Forbidden, then Changed, then the input (Invalid), then the rule errors.",
-    "Rights: Manage covers every right; every right covers Read; AddMembers and RemoveMembers are separate. The installer (if set) may everything and is never counted for LastManager.",
+    "Rights: Manage covers every right; every right covers Read; AddMembers and RemoveMembers are separate. The installer (if set) has no standing right in any group (ADR 0095: no special account); she only hands out the first `Project` scope.",
     "A group is an admin group when a living membership carries an admin role of the role book; it is hidden from an asking AI like a sensitive one.",
     "A person is an AI when people say so (Some(true)); a person people do not mark counts as unknown (None) and never gets Manage or an admin role; a person people do not know at all is NotFound(Person).",
     "InForce is computed when read: KindMismatch when the kind of account does not fit the group (an AI account in any group, an AI with an admin role or Manage; there are no AI groups, ADR 0091), AiStatusUnknown for an unknown with an admin role or Manage.",
@@ -86,7 +86,7 @@ impl FakeGroups {
         self.lock().asker = who;
     }
 
-    /// The installer: oberster Admin (`Reason::Installer`).
+    /// The installer: she hands out the first `Project` scope and has no standing right in any group.
     #[must_use]
     pub fn with_installer(self, who: PersonRef) -> Self {
         self.lock().installer = Some(who);
