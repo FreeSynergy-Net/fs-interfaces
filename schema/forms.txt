@@ -31,7 +31,11 @@ bars-in-time@1.0.0 | Bars in time | planned | Bars on a time axis with start and
 > progress | number | - | 0..1
 > all-day | flag | - | 0..1
 > move | command | - | 0..1
-#   Range: comes as `scope` (K:42, text cut at the line end: offen, read the line before building). Nummer "n" of depends and 1/0..1 values are 5d-3 proposals (sources only say "offen"): offen for the user.
+#   Range (time window): NOT a channel. It comes as the parameter `scope` of `FormSource.page` (formsource.capnp `page @1`: "a board, a group, a time range; its meaning belongs to the module"); the module expands series (contract `events`, occurrences), never the block. The counts `0..n` of depends and `0..1` of the others are proposals of 5d-3 (the sources only say "offen").
+#   Channels and standards (read in the text, 24.11.2026; every channel that has no line here is own and open):
+#     start, end: art `time` = a point in time, written by the module as RFC 3339 section 5.6 `date-time` (ISO 8601 profile, https://www.rfc-editor.org/rfc/rfc3339); local calendar time with a zone is the module's job (JSCalendar, RFC 8984), the block shows what it is given. `all-day` (flag): the span covers whole days (RFC 3339 `full-date`, RFC 5545 DATE value).
+#     depends: art `reference`, 0..n = the items this one depends on or follows. Standard: iCalendar RELATED-TO (RFC 5545 section 3.8.4.5) with the RELTYPE values of RFC 9253 (https://www.rfc-editor.org/rfc/rfc9253): section 5 `DEPENDS-ON` ("the current calendar component depends on the referenced calendar component", e.g. a task blocked by another) and section 4 the temporal relations `FINISHTOSTART`, `FINISHTOFINISH`, `STARTTOFINISH`, `STARTTOSTART` (the property stands in the PREDECESSOR and refers to the SUCCESSOR; the GAP parameter, section 6.2, is the lead/lag). The kind of relation is not a channel of this version: the module maps `DEPENDS-ON`; a finer kind would be an optional channel (minor).
+#     lane, state, label, progress, move: own and open (no standard names them); `move` is a command of the module (`events.update`, `planning.move`).
 #   Version rule: label was added to a form that is still `planned`; no one has pinned 1.0 yet, so no jump to 2.0 (K:40 "kein Sprung nötig").
 #   Workflow run (P-WORKFLOW-SICHT, K:43): items = step, label = step name, start/end = START/ENDE of the run list, depends = order of steps, state = run verdict, lane = workflow/role.
 #   Views (Components, not forms): week/day/month/agenda/Gantt (K:40, E §1 "eine Quelle, mehrere Sichten").
@@ -48,6 +52,7 @@ tiles@1.0.0 | Tiles | planned | A grid of tiles with a preview picture, name and
 > order | number | - | 0..1
 > open | command | - | 0..1
 #   Why: the two sources share name, a point in time, a kind and a few facts; they differ in preview (capture has the picture, files has none) and size (files only). So preview/size/time/kind are optional and facts takes the rest. Only `items` and `label` are required, so every module with a name per record can fill the form.
+#   Standards: `time` = RFC 3339 section 5.6 `date-time`; `preview` refers to the picture of the record (a file or an ActivityStreams 2 `Image`, W3C ActivityStreams 2.0 `Image` type); the media type of a file is RFC 6838; `kind`, `facts`, `order`, `open` are own and open.
 #   Mapping examples (proposal, field names from the sources): capture `map={items="Entry", label="title", preview="file", kind="kind", time="time", order="nr", facts=["app_name","width","height"]}`; files `map={items="File", label="name", kind="mediaType", time="updated", facts=["folder","state"]}`.
 #   Components: tile-grid (W frames.toml:97, Craft look, numbered tiles) and file-tile (W widgets.toml:92, icon/name/facts line) -> `forms=["tiles@^1.0.0"]` (see README, point 3).
 
