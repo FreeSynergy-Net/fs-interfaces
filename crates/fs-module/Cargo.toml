@@ -10,6 +10,8 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+# The rule "watch sees the change within 1 s" waits with a timer (the host and the tests run on tokio anyway).
+tokio = { version = "1", features = ["time"] }
 capnp = "0.27"
 # Same crate as the rest of this workspace; NO fs-rpc here (it depends on fs-interfaces itself: two sources in the lock).
 fs-interfaces = { path = "../fs-interfaces" }

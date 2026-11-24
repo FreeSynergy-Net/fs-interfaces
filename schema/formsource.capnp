@@ -2,7 +2,7 @@
 # own contract, the way it serves `Control`: the host (fs-starter) finds the service, checks it and connects; fs-forms draws by the
 # form (`schema/forms.txt`). The form names are NOT part of this file (they are data in `forms.txt`, read by `fs_interfaces::forms`).
 # Handshake: `hello` answers a plain level number (`FORM_SOURCE_LEVEL` in `fs_interfaces::forms`), never a name like `_v2`. A change that
-# breaks a reader raises the number; a new method is appended. Evolution (Cap'n Proto): only append, never renumber or remove.
+# breaks a reader, or a new method a host must ask for first, raises the number; the wire only appends. Evolution (Cap'n Proto): only append, never renumber or remove.
 # Answers are foreign data for the caller: it keeps its own limits (page size, bytes, time) and masks control characters before drawing.
 # A service that serves example data says `provider = "fake"`; the window then shows "example data" and never passes it off as real.
 
@@ -64,6 +64,7 @@ struct ChangeRef {
   undoes   @7 :Common.Uuid;   # at kind = Undo: the change taken back; else 0
 }
 
+# Pattern: Value Object - one field of the conflict: what the record has now and what the caller wanted.
 struct FieldClash { path @0 :Text; current @1 :Text; mine @2 :Text; }
 
 # Pattern: Value Object - the conflict, typed, in the answer.

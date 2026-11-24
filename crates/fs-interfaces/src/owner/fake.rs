@@ -1,7 +1,6 @@
 //! Test sources of the local owner and the contract check every source must pass (feature `fake`).
 //!
-//! Pattern: Strategy (test variants of [`LocalOwner`]) plus Template Method for [`check`]: the same three rules for
-//! every source, the source is the only thing that varies.
+//! Pattern: Strategy (test variants of [`LocalOwner`]) plus Specification for [`check`] (a fixed set of three rules a source must satisfy). Deviation: not a Template Method, there are no overridable steps; the same rules run for every source and the source is the only thing that varies.
 
 use fs_types::{BasicValue, PersonArt, PersonRef};
 
@@ -50,6 +49,8 @@ pub fn person(iri: &str) -> PersonRef {
 }
 
 /// The contract of every [`LocalOwner`]. Returns the first broken rule.
+///
+/// Pattern: Specification - the same three rules for every source; the rules are fixed, the source varies.
 ///
 /// 1. `Ok` means kind `Person`, `abzug == None`, and an id `urn:uuid:` with a UUIDv7.
 /// 2. Asked twice, the same id comes back.

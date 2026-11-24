@@ -11,6 +11,7 @@
 mod cx;
 mod rules_blob;
 mod rules_errors;
+mod rules_level2;
 mod rules_limits;
 mod rules_order;
 mod rules_read;

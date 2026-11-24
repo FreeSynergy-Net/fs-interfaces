@@ -4,7 +4,8 @@
 
 use super::cx::{Cx, Report};
 use super::{
-    rules_blob, rules_errors, rules_limits, rules_order, rules_read, rules_rights, rules_shape,
+    rules_blob, rules_errors, rules_level2, rules_limits, rules_order, rules_read, rules_rights,
+    rules_shape,
 };
 use crate::FormSourceFixture;
 
@@ -28,6 +29,7 @@ pub async fn run_conformance(fx: &dyn FormSourceFixture) -> Report {
     rules_limits::keys_strict(&mut cx).await;
     rules_shape::host_id(&mut cx).await;
     rules_shape::hidden_fields(&mut cx).await;
+    rules_level2::level2(&mut cx).await;
     rules_rights::invoke_valid(&mut cx).await;
     rules_order::twice(&mut cx).await;
     rules_order::by_neighbours(&mut cx).await;

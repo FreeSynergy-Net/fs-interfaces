@@ -8,7 +8,9 @@ use super::{Form, Version, parse, parse_version};
 pub const SOURCE: &str = include_str!("../../../../schema/forms.txt");
 
 /// The level of the `FormSource` handshake (`hello`): a plain number, never a name with a version suffix. A caller refuses a
-/// level it does not know. A change that breaks a reader raises it; a new method does not.
+/// level it does not know and takes `FORM_SOURCE_MIN_LEVEL..=FORM_SOURCE_LEVEL`. A level is raised when a service must be asked
+/// differently (a change that breaks a reader) or when it gains methods a host must ask for first (`hello`, then use them only
+/// from that level); the wire only appends either way.
 /// Level 1 = `hello`/`page`/`blob`/`invoke` with the rules written in `formsource.capnp`; Level 2 = Stufe 3: heeds `expect`, `step`, `introduce`, `watch` (`invokeIf`, `revert`, `changes`, `introduce`, `watch`).
 pub const FORM_SOURCE_LEVEL: u32 = 2;
 

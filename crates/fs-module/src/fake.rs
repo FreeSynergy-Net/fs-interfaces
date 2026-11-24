@@ -1,8 +1,9 @@
-//! `FakeSource`: a small, complete `FormSource` of level 1 with example data (a board with cards).
+//! `FakeSource`: a small, complete `FormSource` of level 2 (level 1 on request) with example data (a board with cards).
 //!
 //! Pattern: Fake Object (a small, complete source with example data; see the type).
 
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use fs_interfaces::formsource_capnp::form_source;
 
@@ -12,12 +13,14 @@ use crate::fixture::{CommandKind, DeclaredCommand, DeclaredForm, Param, Sample, 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Mode {
-    /// All rules of level 1 hold.
+    /// All rules hold.
     Strict,
     /// Breaks the error channel: a refusal at `invoke` is an RPC exception, not `failed = true` + `problem`.
     LaxErrors,
     /// Breaks the shape of a refusal: a foreign problem type, `title` = the kind (no human text), and a `result` left on a refused write.
     LaxShape,
+    /// Level 2: ignores the step key: the same `step` at `invokeIf` or `revert` runs again (a second effect, a second change).
+    IgnoreStep,
 }
 
 /// The form the fake serves.
@@ -28,11 +31,12 @@ pub(crate) const SET_LOCKED: &str = "card.clear";
 /// The bytes of the image the fake serves for card `c1`, field `image` (when built `with_blob`).
 pub const IMAGE: &[u8] = b"\x89PNG-fake-image-bytes";
 
-/// Pattern: Fake Object (Test Double) – ein vollständiger, kleiner `FormSource` nach allen Regeln von Level 1; Modi brechen gezielt eine Regel.
+/// Pattern: Fake Object (Test Double) – ein vollständiger, kleiner `FormSource` nach allen Regeln von Level 1 und 2 (eigenes Mini-Log im Speicher); Modi brechen gezielt eine Regel.
 pub struct FakeSource {
     pub(crate) mode: Mode,
-    pub(crate) cards: RefCell<Vec<(String, String, String)>>,
-    pub(crate) next: RefCell<u32>,
+    pub(crate) sh: Rc<crate::fake_l2::Shared>,
+    pub(crate) who: RefCell<crate::fake_l2::Who>,
+    pub(crate) level: u32,
     pub(crate) blob: bool,
     pub(crate) boards: usize,
 }
@@ -41,18 +45,33 @@ impl FakeSource {
     /// The fake with three cards (`c3` is locked: the asking person may not change it).
     #[must_use]
     pub fn new(mode: Mode) -> Self {
-        let card =
-            |id: &str, title: &str, col: &str| (id.to_owned(), title.to_owned(), col.to_owned());
         Self {
             mode,
-            cards: RefCell::new(vec![
-                card("c1", "One", "todo"),
-                card("c2", "Two", "todo"),
-                card(LOCKED, "Three", "done"),
-            ]),
-            next: RefCell::new(4),
+            sh: Rc::new(crate::fake_l2::Shared::new()),
+            who: RefCell::default(),
+            level: crate::fake_l2::OWN_LEVEL,
             blob: false,
             boards: 1,
+        }
+    }
+
+    /// The same fake, but saying `level` in `hello`. Below 2 it answers `invokeIf`, `revert`, `changes`, `introduce` and `watch` with `unimplemented`.
+    #[must_use]
+    pub fn with_level(mut self, level: u32) -> Self {
+        self.level = level;
+        self
+    }
+
+    /// Another connection to the SAME module (same cards and log, own `introduce`): it stands for another program.
+    #[must_use]
+    pub fn connection(&self) -> Self {
+        Self {
+            mode: self.mode,
+            sh: Rc::clone(&self.sh),
+            who: RefCell::default(),
+            level: self.level,
+            blob: self.blob,
+            boards: self.boards,
         }
     }
 

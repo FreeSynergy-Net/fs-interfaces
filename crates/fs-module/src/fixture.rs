@@ -9,6 +9,21 @@ pub trait FormSourceFixture {
     /// The service under test.
     fn client(&self) -> form_source::Client;
 
+    /// The level the service speaks (`hello`). Level 1 = the rules L2-* are skipped, never passed; from 2 they run.
+    fn level(&self) -> u32 {
+        1
+    }
+
+    /// A second connection to the SAME module: it stands for another program (`None` = rules L2-8 and L2-11 skipped).
+    fn second(&self) -> Option<form_source::Client> {
+        None
+    }
+
+    /// Whether the service can black out a change (`false` = the rule "gone" of L2-9 is skipped).
+    fn can_redact(&self) -> bool {
+        false
+    }
+
     /// The `provider` the service must say in `hello` (`None` = any non-empty text).
     fn provider(&self) -> Option<&str> {
         None
