@@ -8,6 +8,9 @@
 pub mod conformance;
 mod fake;
 mod fake_l2;
+mod fake_l2_wire;
+mod fake_l2_write;
+mod fake_run;
 mod fake_server;
 mod fixture;
 

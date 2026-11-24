@@ -9,6 +9,7 @@
 #![allow(clippy::many_single_char_names)]
 
 mod cx;
+mod cx_level2;
 mod rules_blob;
 mod rules_errors;
 mod rules_level2;

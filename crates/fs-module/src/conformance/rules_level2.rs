@@ -10,7 +10,8 @@ use std::time::Duration;
 
 use fs_interfaces::formsource_capnp::change_sink;
 
-use super::cx::{self, Change, Cx, IfAnswer, is_v7};
+use super::cx::Cx;
+use super::cx_level2::{self as cx, Change, IfAnswer, is_v7};
 use crate::{CommandKind, Sample};
 
 const RUN: &str = "conf-run-a";

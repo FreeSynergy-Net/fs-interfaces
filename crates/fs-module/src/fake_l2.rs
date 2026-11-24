@@ -6,14 +6,12 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use fs_interfaces::formsource_capnp::{change_ref, change_sink, conflict, origin};
+use fs_interfaces::formsource_capnp::change_sink;
 
-use crate::fake::{FORM, Mode, Refusal, refuse};
+use crate::fake::{FORM, Mode, Refusal};
 
 /// The level the fake itself speaks (a plain number; never the constant of the contract).
 pub(crate) const OWN_LEVEL: u32 = 2;
-/// The person the fake says for every connection (a UUIDv7 as IRI): the connection tells the person, never the caller.
-const PERSON: &str = "urn:uuid:018f3a52-7c1e-7b3a-9d4e-5a6b7c8d9e0f";
 
 /// What `introduce` said on one connection.
 #[derive(Clone, Debug, Default)]
@@ -102,7 +100,7 @@ impl Shared {
         }
     }
 
-    fn image(&self, id: &str) -> Option<Img> {
+    pub(crate) fn image(&self, id: &str) -> Option<Img> {
         let cards = self.cards.borrow();
         let at = cards.iter().position(|c| c.0 == id)?;
         Some(Img {
@@ -112,7 +110,7 @@ impl Shared {
         })
     }
 
-    fn put(&self, id: &str, img: Option<&Img>) {
+    pub(crate) fn put(&self, id: &str, img: Option<&Img>) {
         let mut cards = self.cards.borrow_mut();
         let old = cards
             .iter()
@@ -139,7 +137,7 @@ impl Shared {
             .cloned()
     }
 
-    fn last_of(&self, object: &str) -> Option<Entry> {
+    pub(crate) fn last_of(&self, object: &str) -> Option<Entry> {
         self.log
             .borrow()
             .entries
@@ -161,7 +159,7 @@ impl Shared {
 
     /// Writes one entry: moves the revision, remembers the step. Returns it for the push.
     #[allow(clippy::too_many_arguments)]
-    fn commit(
+    pub(crate) fn commit(
         &self,
         object: &str,
         who: &Who,
@@ -201,94 +199,6 @@ impl Shared {
         }
         log.entries.push(entry.clone());
         entry
-    }
-
-    /// `invokeIf`: compare-and-set, then the command of level 1, then the log.
-    pub(crate) fn write_if(
-        &self,
-        run_command: impl FnOnce() -> Result<(String, &'static str), Refusal>,
-        record: &str,
-        args: &[(String, String)],
-        expect: &str,
-        who: &Who,
-        step: (&str, &str),
-    ) -> Outcome {
-        let stale = !expect.is_empty()
-            && self
-                .rev_of(record)
-                .is_some_and(|rev| rev.to_string() != expect);
-        if stale {
-            let cur = self.image(record);
-            let fields = args
-                .iter()
-                .filter_map(|(p, mine)| {
-                    let c = cur.as_ref()?;
-                    let now = match p.as_str() {
-                        "title" => &c.title,
-                        "column" => &c.column,
-                        _ => return None,
-                    };
-                    Some((p.clone(), now.clone(), mine.clone()))
-                })
-                .collect();
-            return Outcome::Clash {
-                by: self.last_of(record),
-                fields,
-            };
-        }
-        let before = self.image(record);
-        let (id, text) = match run_command() {
-            Ok(done) => done,
-            Err(why) => return Outcome::Refused(why),
-        };
-        let object = if id.is_empty() { record } else { id.as_str() };
-        let after = self.image(object);
-        let kind = match (&before, &after) {
-            (None, _) => "Create",
-            (_, None) => "Delete",
-            _ => "Update",
-        };
-        Outcome::Done(self.commit(
-            object,
-            who,
-            kind,
-            0,
-            (false, step.0, step.1),
-            text,
-            (before, after),
-        ))
-    }
-
-    /// `revert`: the before-image of the change as a new `Undo`, if the record is still as the change left it.
-    pub(crate) fn revert(&self, id: u128, who: &Who, step: (&str, &str)) -> Outcome {
-        let Some(e) = self.find(id) else {
-            return Outcome::Refused(refuse("unknown-change", 404, "no such change"));
-        };
-        if let Some(last) = self.last_of(&e.object).filter(|l| l.id != e.id) {
-            let (now, mine) = (self.image(&e.object), e.before.clone());
-            let mut fields = Vec::new();
-            if let (Some(n), Some(m)) = (now, mine) {
-                for (p, a, b) in [("title", n.title, m.title), ("column", n.column, m.column)] {
-                    if a != b {
-                        fields.push((p.to_owned(), a, b));
-                    }
-                }
-            }
-            return Outcome::Clash {
-                by: Some(last),
-                fields,
-            };
-        }
-        self.put(&e.object, e.before.as_ref());
-        Outcome::Done(self.commit(
-            &e.object,
-            who,
-            "Undo",
-            e.id,
-            (true, step.0, step.1),
-            "undone",
-            (e.after.clone(), e.before.clone()),
-        ))
     }
 
     /// The changes, newest first: those of a run, or those of a program.
@@ -333,48 +243,4 @@ impl Shared {
             .map(|w| w.sink.clone())
             .collect()
     }
-}
-
-pub(crate) fn fill_change(mut out: change_ref::Builder<'_>, e: &Entry) {
-    set_uuid(out.reborrow().init_activity(), e.id);
-    out.set_object(e.object.as_str());
-    out.set_revision(e.rev.to_string().as_str());
-    out.set_before(
-        e.before_rev
-            .map(|r| r.to_string())
-            .unwrap_or_default()
-            .as_str(),
-    );
-    let mut o: origin::Builder<'_> = out.reborrow().init_origin();
-    o.set_person(PERSON);
-    o.set_program(e.who.program.as_str());
-    o.set_instance(e.who.instance.as_str());
-    o.set_device(e.who.device.as_str());
-    out.set_kind(e.kind);
-    out.reborrow().init_at().set_unix_millis(e.at);
-    if e.undoes != 0 {
-        set_uuid(out.init_undoes(), e.undoes);
-    }
-}
-
-pub(crate) fn fill_conflict(mut out: conflict::Builder<'_>, by: Option<&Entry>, fields: &[Field]) {
-    if let Some(e) = by {
-        fill_change(out.reborrow().init_by(), e);
-    }
-    let mut list = out.init_fields(u32::try_from(fields.len()).unwrap_or(0));
-    for (i, (p, cur, mine)) in (0u32..).zip(fields) {
-        let mut f = list.reborrow().get(i);
-        f.set_path(p.as_str());
-        f.set_current(cur.as_str());
-        f.set_mine(mine.as_str());
-    }
-}
-
-fn set_uuid(mut u: fs_interfaces::common_capnp::uuid::Builder<'_>, id: u128) {
-    u.set_hi(u64::try_from(id >> 64).unwrap_or(0));
-    u.set_lo(u64::try_from(id & u128::from(u64::MAX)).unwrap_or(0));
-}
-
-pub(crate) fn uuid_of(u: fs_interfaces::common_capnp::uuid::Reader<'_>) -> u128 {
-    (u128::from(u.get_hi()) << 64) | u128::from(u.get_lo())
 }

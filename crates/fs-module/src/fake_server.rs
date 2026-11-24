@@ -3,14 +3,15 @@
 //! Pattern: Fake Object (the server side of the fake: the rules of level 1 in one place).
 #![allow(clippy::unused_async_trait_impl)] // the generated server trait is async
 
-use fs_interfaces::common_capnp::{blob, problem, subscription};
+use fs_interfaces::common_capnp::problem;
 use fs_interfaces::forms::parse_key;
 use fs_interfaces::formsource_capnp::{form_source, value};
 use std::rc::Rc;
 
-use crate::fake::{FakeSource, LOCKED, Mode, Refusal, SET_LOCKED, refuse};
+use crate::fake::{FakeSource, LOCKED, Mode, refuse};
 use crate::fake_l2::{self, Outcome};
-use crate::fixture::CommandKind;
+use crate::fake_l2_wire::{self, Sub};
+use crate::fake_run::Image;
 
 type Reply = Result<(), capnp::Error>;
 
@@ -192,7 +193,7 @@ impl form_source::Server for FakeSource {
     ) -> Reply {
         self.need_level2()?;
         let p = p.get()?;
-        let id = fake_l2::uuid_of(p.get_change()?);
+        let id = fake_l2_wire::uuid_of(p.get_change()?);
         let step = p.get_step()?;
         let (run, key) = (step.get_run()?.to_str()?, step.get_step()?.to_str()?);
         let entry = if let Some(done) = self.sh.replay(self.mode, true, run, key) {
@@ -234,7 +235,7 @@ impl form_source::Server for FakeSource {
             .reborrow()
             .init_items(u32::try_from(rows.len()).unwrap_or(0));
         for (i, e) in (0u32..).zip(rows) {
-            fake_l2::fill_change(list.reborrow().get(i), e);
+            fake_l2_wire::fill_change(list.reborrow().get(i), e);
         }
         if end < all.len() {
             out.init_next().set_opaque(end.to_string().as_bytes());
@@ -275,210 +276,6 @@ impl form_source::Server for FakeSource {
             sh: Rc::clone(&self.sh),
             id,
         }));
-        Ok(())
-    }
-}
-
-/// The subscription of `watch`: dropping it ends it.
-struct Sub {
-    sh: Rc<fake_l2::Shared>,
-    id: u64,
-}
-
-impl subscription::Server for Sub {}
-
-impl Drop for Sub {
-    fn drop(&mut self) {
-        self.sh.unwatch(self.id);
-    }
-}
-
-impl FakeSource {
-    fn need_level2(&self) -> Result<(), capnp::Error> {
-        if self.level < 2 {
-            return Err(capnp::Error::unimplemented(
-                "level 1: no level 2 method".into(),
-            ));
-        }
-        Ok(())
-    }
-
-    /// The answer of `invokeIf`/`revert` (the same four fields) and then the push to the watchers.
-    async fn answer<R: L2Answer>(&self, out: &mut R, outcome: Outcome) -> Reply {
-        match outcome {
-            Outcome::Done(e) => {
-                out.done(&e);
-                for sink in self.sh.sinks() {
-                    let mut req = sink.changed_request();
-                    fake_l2::fill_change(req.get().init_change(), &e);
-                    req.send().await?;
-                }
-            }
-            Outcome::Refused(why) => out.refuse(&why, None),
-            Outcome::Clash { by, fields } => {
-                out.refuse(
-                    &refuse("conflict", 409, "changed since"),
-                    Some((by, fields)),
-                );
-            }
-        }
-        Ok(())
-    }
-}
-
-/// What `invokeIf` and `revert` answer alike.
-trait L2Answer {
-    fn done(&mut self, e: &fake_l2::Entry);
-    fn refuse(
-        &mut self,
-        why: &Refusal,
-        clash: Option<(Option<fake_l2::Entry>, Vec<fake_l2::Field>)>,
-    );
-}
-
-macro_rules! l2_answer {
-    ($t:ty) => {
-        impl L2Answer for $t {
-            fn done(&mut self, e: &fake_l2::Entry) {
-                let mut made = self.get().init_result();
-                made.set_record(if e.after.is_some() {
-                    e.object.as_str()
-                } else {
-                    ""
-                });
-                made.set_text(e.text);
-                fake_l2::fill_change(made.init_change(), e);
-            }
-            fn refuse(
-                &mut self,
-                why: &Refusal,
-                clash: Option<(Option<fake_l2::Entry>, Vec<fake_l2::Field>)>,
-            ) {
-                let mut out = self.get();
-                out.set_failed(true);
-                if let Some((by, fields)) = clash {
-                    fake_l2::fill_conflict(out.reborrow().init_conflict(), by.as_ref(), &fields);
-                }
-                let mut prob = out.init_problem();
-                prob.set_type(why.kind.as_str());
-                prob.set_title(why.title.as_str());
-                prob.set_detail(why.detail.as_str());
-                prob.set_status(why.status);
-            }
-        }
-    };
-}
-l2_answer!(form_source::InvokeIfResults);
-l2_answer!(form_source::RevertResults);
-
-impl FakeSource {
-    /// One command: known, then allowed, then its arguments, then the record. Returns the record made or changed.
-    pub(crate) fn run(
-        &self,
-        command: &str,
-        record: &str,
-        args: &[(String, String)],
-    ) -> Result<(String, &'static str), Refusal> {
-        let kind = Self::kind_of(command)
-            .ok_or_else(|| refuse("unknown-command", 404, "no such command"))?;
-        if (kind == CommandKind::Record && record == LOCKED) || command == SET_LOCKED {
-            return Err(refuse("forbidden", 403, "this card is locked"));
-        }
-        let params = Self::commands()
-            .into_iter()
-            .find(|c| c.key == command)
-            .map(|c| c.params)
-            .unwrap_or_default();
-        for (i, (name, _)) in args.iter().enumerate() {
-            if !params.iter().any(|p| &p.name == name) || args[..i].iter().any(|(n, _)| n == name) {
-                return Err(refuse("bad-arguments", 400, "unknown or doubled argument"));
-            }
-        }
-        if params
-            .iter()
-            .any(|p| p.required && !args.iter().any(|(n, _)| n == &p.name))
-        {
-            return Err(refuse(
-                "bad-arguments",
-                400,
-                "a required argument is missing",
-            ));
-        }
-        let arg = |n: &str, d: &str| {
-            args.iter()
-                .find(|(k, _)| k == n)
-                .map_or_else(|| d.to_owned(), |(_, v)| v.clone())
-        };
-        let mut cards = self.sh.cards.borrow_mut();
-        if kind == CommandKind::Set {
-            if command == "card.create"
-                && !args.iter().any(|(n, _)| n == "lane")
-                && self.boards != 1
-            {
-                return Err(refuse(
-                    "bad-arguments",
-                    400,
-                    "lane is missing and there is not exactly one board",
-                ));
-            }
-            let id = format!("c{}", self.sh.next.replace_with(|n| *n + 1));
-            cards.push((id.clone(), arg("title", ""), arg("column", "todo")));
-            return Ok((id, "created"));
-        }
-        let at = cards
-            .iter()
-            .position(|c| c.0 == record)
-            .ok_or_else(|| refuse("unknown-record", 404, "no such record"))?;
-        if command == "card.delete" {
-            cards.remove(at);
-            return Ok((String::new(), "deleted"));
-        }
-        // Resolve the neighbours BEFORE anything changes: a refusal leaves the set as it was.
-        let neighbour = |n: &str| {
-            let id = arg(n, "");
-            if id.is_empty() {
-                return Ok(None);
-            }
-            cards
-                .iter()
-                .position(|c| c.0 == id)
-                .map(Some)
-                .ok_or_else(|| refuse("unknown-record", 404, "no such neighbour record"))
-        };
-        let (after, before) = (neighbour("after")?, neighbour("before")?);
-        let mut card = cards.remove(at);
-        card.2 = arg("column", "todo");
-        // The place is named by the neighbours (record ids), never by an integer index. Indexes are of the set before the removal.
-        let to = match (after, before) {
-            (Some(a), _) => a + 1 - usize::from(a > at),
-            (None, Some(b)) => b - usize::from(b > at),
-            (None, None) => at,
-        };
-        cards.insert(to, card);
-        Ok((record.to_owned(), "moved"))
-    }
-}
-
-/// The image of card `c1`: bytes behind a `Blob` capability.
-struct Image;
-
-impl blob::Server for Image {
-    async fn size(self: Rc<Self>, _: blob::SizeParams, mut r: blob::SizeResults) -> Reply {
-        r.get().set_bytes(crate::fake::IMAGE.len() as u64);
-        r.get().set_media_type("image/png");
-        Ok(())
-    }
-
-    async fn read(self: Rc<Self>, p: blob::ReadParams, mut r: blob::ReadResults) -> Reply {
-        let p = p.get()?;
-        let at = usize::try_from(p.get_offset()).unwrap_or(usize::MAX);
-        let end = at
-            .saturating_add(p.get_length() as usize)
-            .min(crate::fake::IMAGE.len());
-        // At most 4 bytes per answer ("may answer fewer bytes than asked") so a reader must loop.
-        let end = end.min(at.saturating_add(4));
-        r.get()
-            .set_data(crate::fake::IMAGE.get(at..end).unwrap_or_default());
         Ok(())
     }
 }
