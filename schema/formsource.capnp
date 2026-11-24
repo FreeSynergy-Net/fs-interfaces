@@ -45,7 +45,7 @@ interface FormSource {
   # A caller refuses a level it does not know, visibly.
 
   page @1 (form :Text, scope :Text, cursor :Common.Cursor, limit :UInt32) -> (page :RecordPage, next :Common.Cursor);
-  # Records for a form (`name@H.N` of `forms.txt`), values by the field names of the module. `scope` narrows them (a board, a group, a
+  # Records for a form (`name@x.y.z` of `forms.txt`), values by the field names of the module. `scope` narrows them (a board, a group, a
   # time range; its meaning belongs to the module, empty = all the person may see). `next` empty = the end. Unknown form or scope:
   # the call fails with a `Common.Problem` (`form-source-unknown-form`, `form-source-unknown-scope`).
 

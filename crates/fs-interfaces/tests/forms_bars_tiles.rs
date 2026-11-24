@@ -40,6 +40,27 @@ fn tiles_has_only_items_and_label_required() {
     assert_eq!(names(f.required()), ["items", "label"]);
     assert_eq!(f.channel("preview").unwrap().arts, [Art::Reference]);
     assert_eq!(f.channel("time").unwrap().arts, [Art::Time]);
+    for (name, art) in [
+        ("items", Art::Records),
+        ("label", Art::Text),
+        ("preview", Art::Reference),
+        ("kind", Art::Text),
+        ("time", Art::Time),
+        ("size", Art::Number),
+        ("order", Art::Number),
+        ("open", Art::Command),
+    ] {
+        let c = f.channel(name).unwrap_or_else(|| panic!("channel {name}"));
+        assert_eq!(c.arts, [art], "{name}");
+    }
+    assert_eq!(
+        f.channel("facts").unwrap().count,
+        Count {
+            min: 0,
+            max: Some(4)
+        }
+    );
+    assert_eq!(f.channels.len(), 9);
 }
 
 #[test]
