@@ -6,7 +6,7 @@ use std::collections::HashSet;
 
 use fs_interfaces::forms::{FORM_SOURCE_LEVEL, find_key, parse_key};
 
-use super::cx::{Cx, names};
+use super::cx::Cx;
 
 fn short(key: &str) -> Option<String> {
     let (n, v) = parse_key(key)?;
@@ -86,6 +86,18 @@ pub(crate) async fn reading(cx: &mut Cx<'_>) {
             }
             Err(e) => cx.ensure(false, &rule(&format!("walk failed: {e}"))),
         }
+        for (_, path) in cx.fx.time_fields().into_iter().filter(|(k, _)| k == &f.key) {
+            cx.ensure(
+                all.rows
+                    .iter()
+                    .flat_map(|r| &r.values)
+                    .filter(|(p, _)| p == &path)
+                    .all(|(_, t)| t.parse::<jiff::Timestamp>().is_ok()),
+                &rule(&format!(
+                    "time field {path} is RFC 3339 date-time with an offset or Z"
+                )),
+            );
+        }
         if all.has_total {
             cx.ensure(
                 usize::try_from(all.total).is_ok_and(|t| t == ids.len()),
@@ -119,7 +131,7 @@ pub(crate) async fn keys(cx: &mut Cx<'_>) {
             .page(&format!("{n}@{}.0.0", v.major + 1), &f.scope, &[], 1)
             .await;
         cx.ensure(
-            names(&other, "unknown-form"),
+            cx.names(&other, "unknown-form"),
             &format!("4 keys: another major of {n} is unknown-form"),
         );
     }

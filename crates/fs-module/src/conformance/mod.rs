@@ -1,4 +1,4 @@
-//! The 13 rules of `module_v1` (`FormSource` level 1), runnable against any [`FormSourceFixture`](crate::FormSourceFixture).
+//! The 21 rules of `module_v1` (`FormSource` level 1), runnable against any [`FormSourceFixture`](crate::FormSourceFixture).
 //!
 //! Pattern: Template Method (a fixed list of rules; the fixture supplies client, declared forms and valid calls). A rule the fixture
 //! cannot set up is reported as skipped, never as passed. Rule 13 (the counter-proof: a fake that breaks a rule must turn red) is
@@ -9,9 +9,13 @@
 #![allow(clippy::many_single_char_names)]
 
 mod cx;
+mod rules_blob;
 mod rules_errors;
+mod rules_limits;
+mod rules_order;
 mod rules_read;
 mod rules_rights;
+mod rules_shape;
 
 mod run;
 

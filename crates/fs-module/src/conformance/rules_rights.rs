@@ -4,7 +4,7 @@
 
 use std::collections::HashSet;
 
-use super::cx::{Cx, NOWHERE, first_record, names, refused};
+use super::cx::{Cx, NOWHERE, first_record, refused};
 use crate::{CommandKind, Verify};
 
 /// 11. `may` lists only declared commands of the right kind; what is not in `may` is forbidden.
@@ -62,6 +62,23 @@ pub(crate) async fn may_and_forbidden(cx: &mut Cx<'_>) {
     );
 }
 
+/// 11b. a command on the whole set that the person may not run: not in `RecordPage.may`, and `forbidden` 403 in the answer.
+pub(crate) async fn forbidden_set(cx: &mut Cx<'_>) {
+    let (Some(cmd), Some(f)) = (cx.fx.forbidden_set(), cx.fx.forms().into_iter().next()) else {
+        return cx.skip("11 forbidden on the set (the fixture has no locked set command)");
+    };
+    let page = cx.page(&f.key, &f.scope, &[], 100).await;
+    cx.ensure(
+        page.is_ok_and(|p| !p.set_may.contains(&cmd)),
+        "11 a set command not in `RecordPage.may`",
+    );
+    let r = cx.invoke(&cmd, "", &[]).await;
+    cx.ensure(
+        r.as_ref().is_ok_and(|a| refused(a, "forbidden", 403)),
+        "11 what is not in `RecordPage.may` is forbidden 403 in the answer",
+    );
+}
+
 /// 12. blob without an image field.
 pub(crate) async fn blob(cx: &mut Cx<'_>) {
     if cx.fx.has_blob() {
@@ -73,7 +90,7 @@ pub(crate) async fn blob(cx: &mut Cx<'_>) {
     req.get().set_field(NOWHERE);
     let r = req.send().promise.await.map(|_| ());
     cx.ensure(
-        names(&r, "unsupported"),
+        cx.names(&r, "unsupported"),
         "12 blob without an image field is an exception form-source-unsupported",
     );
 }

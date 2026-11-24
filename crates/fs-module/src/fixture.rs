@@ -33,10 +33,59 @@ pub trait FormSourceFixture {
         None
     }
 
+    /// A command on the whole set that the asking person may NOT run (not in `RecordPage.may`; `None` = rule skipped).
+    fn forbidden_set(&self) -> Option<String> {
+        None
+    }
+
     /// Whether some form has an image or file field (`false` = `blob` must say `form-source-unsupported`).
     fn has_blob(&self) -> bool {
-        false
+        self.blob_sample().is_some()
     }
+
+    /// Fields of art `time` as (form key, path): every value read must be an RFC 3339 `date-time` with an offset or `Z`, never a local time.
+    fn time_fields(&self) -> Vec<(String, String)> {
+        Vec::new()
+    }
+
+    /// A create without the optional `lane` (`None` = skipped); see [`LaneCase`].
+    fn create_without_lane(&self) -> Option<LaneCase> {
+        None
+    }
+
+    /// One image or file field with content (`None` = rule 20 skipped).
+    fn blob_sample(&self) -> Option<BlobSample> {
+        None
+    }
+
+    /// A move in an ordered set by neighbours (`None` = rule 21 skipped).
+    fn ordered(&self) -> Option<Ordered> {
+        None
+    }
+}
+
+/// A field with bytes: the record and the field name for `blob`.
+#[derive(Clone, Debug)]
+pub struct BlobSample {
+    /// The record.
+    pub record: String,
+    /// The field name.
+    pub field: String,
+}
+
+/// A command that places a record by its neighbours: `args` are the other required arguments (for example the column).
+#[derive(Clone, Debug)]
+pub struct Ordered {
+    /// The contract key of the move command.
+    pub command: String,
+    /// The form to read the order from.
+    pub form: String,
+    /// The record that moves.
+    pub record: String,
+    /// The record it is placed next to (it must exist and differ from `record`).
+    pub neighbour: String,
+    /// The other required arguments.
+    pub args: Vec<(String, String)>,
 }
 
 /// A declared form: key `name@x.y.z`, the scope to read it with (empty = all) and the field names (dotted paths) its records may carry.
@@ -108,4 +157,16 @@ pub struct Sample {
     pub makes_record: bool,
     /// The read-back.
     pub verify: Verify,
+}
+
+/// A create command called WITHOUT `lane`. Rule: exactly ONE board = that board (`accepted`); no or several boards = `bad-arguments` 400 with a
+/// text for people, never a silent guess.
+#[derive(Clone, Debug)]
+pub struct LaneCase {
+    /// The contract key of the create command.
+    pub command: String,
+    /// The arguments (no `lane`).
+    pub args: Vec<(String, String)>,
+    /// `true`: the service has exactly one board, the create is done. `false`: none or several, it is refused.
+    pub accepted: bool,
 }

@@ -3,12 +3,12 @@
 //! Pattern: Fake Object (the server side of the fake: the rules of level 1 in one place).
 #![allow(clippy::unused_async_trait_impl)] // the generated server trait is async
 
-use fs_interfaces::common_capnp::problem;
+use fs_interfaces::common_capnp::{blob, problem};
 use fs_interfaces::forms::{FORM_SOURCE_LEVEL, parse_key};
 use fs_interfaces::formsource_capnp::{form_source, value};
 use std::rc::Rc;
 
-use crate::fake::{FakeSource, LOCKED, Mode, Refusal, refuse};
+use crate::fake::{FakeSource, LOCKED, Mode, Refusal, SET_LOCKED, refuse};
 use crate::fixture::CommandKind;
 
 type Reply = Result<(), capnp::Error>;
@@ -46,13 +46,13 @@ impl form_source::Server for FakeSource {
                 .and_then(|t| t.parse::<usize>().ok())
                 .ok_or_else(|| refuse("bad-arguments", 400, "bad cursor").error())?,
         };
-        let limit = if p.get_limit() == 0 {
-            100
-        } else {
-            p.get_limit() as usize
+        // limit 0 = the service's default page size; a larger limit is capped to the service's own maximum.
+        let limit = match p.get_limit() {
+            0 => 100,
+            n => (n as usize).min(1000),
         };
         let cards = self.cards.borrow();
-        let end = (skip + limit).min(cards.len());
+        let end = skip.saturating_add(limit).min(cards.len());
         let mut out = r.get();
         {
             let mut page = out.reborrow().init_page();
@@ -71,8 +71,13 @@ impl form_source::Server for FakeSource {
                     may.set(0, "card.move");
                     may.set(1, "card.delete");
                 }
-                let mut values = view.init_values(2);
-                for (j, (path, text)) in (0u32..).zip([("title", title), ("column", col)]) {
+                let due = "2026-11-30T12:00:00+01:00".to_owned();
+                let mut cols = vec![("title", title), ("column", col)];
+                if id == "c1" {
+                    cols.push(("due", &due));
+                }
+                let mut values = view.init_values(u32::try_from(cols.len()).unwrap_or(0));
+                for (j, (path, text)) in (0u32..).zip(cols) {
                     let mut v: value::Builder<'_> = values.reborrow().get(j);
                     v.set_path(path);
                     v.set_text(text.as_str());
@@ -87,10 +92,18 @@ impl form_source::Server for FakeSource {
 
     async fn blob(
         self: Rc<Self>,
-        _: form_source::BlobParams,
-        _: form_source::BlobResults,
+        p: form_source::BlobParams,
+        mut r: form_source::BlobResults,
     ) -> Reply {
-        Err(refuse("unsupported", 501, "the fake has no image or file field").error())
+        if !self.blob {
+            return Err(refuse("unsupported", 501, "the fake has no image or file field").error());
+        }
+        let p = p.get()?;
+        if p.get_record()?.to_str()? != "c1" || p.get_field()?.to_str()? != "image" {
+            return Err(refuse("unknown-record", 404, "no such image").error());
+        }
+        r.get().set_blob(capnp_rpc::new_client(Image));
+        Ok(())
     }
 
     async fn invoke(
@@ -115,10 +128,19 @@ impl form_source::Server for FakeSource {
             }
             Err(why) if self.mode == Mode::LaxErrors => Err(why.error()),
             Err(why) => {
+                let lax = self.mode == Mode::LaxShape;
                 out.set_failed(true);
+                if lax {
+                    out.reborrow().init_result().set_record("c1");
+                }
                 let mut prob: problem::Builder<'_> = out.init_problem();
-                prob.set_type(why.kind.as_str());
-                prob.set_title(why.kind.as_str());
+                if lax {
+                    prob.set_type(&format!("https://freesynergy.net/problems/{}", why.kind));
+                    prob.set_title(why.kind.as_str());
+                } else {
+                    prob.set_type(why.kind.as_str());
+                    prob.set_title(why.title.as_str());
+                }
                 prob.set_detail(why.detail.as_str());
                 prob.set_status(why.status);
                 Ok(())
@@ -129,7 +151,7 @@ impl form_source::Server for FakeSource {
 
 impl FakeSource {
     /// One command: known, then allowed, then its arguments, then the record. Returns the record made or changed.
-    fn run(
+    pub(crate) fn run(
         &self,
         command: &str,
         record: &str,
@@ -137,7 +159,7 @@ impl FakeSource {
     ) -> Result<(String, &'static str), Refusal> {
         let kind = Self::kind_of(command)
             .ok_or_else(|| refuse("unknown-command", 404, "no such command"))?;
-        if kind == CommandKind::Record && record == LOCKED {
+        if (kind == CommandKind::Record && record == LOCKED) || command == SET_LOCKED {
             return Err(refuse("forbidden", 403, "this card is locked"));
         }
         let params = Self::commands()
@@ -167,6 +189,16 @@ impl FakeSource {
         };
         let mut cards = self.cards.borrow_mut();
         if kind == CommandKind::Set {
+            if command == "card.create"
+                && !args.iter().any(|(n, _)| n == "column")
+                && self.boards != 1
+            {
+                return Err(refuse(
+                    "bad-arguments",
+                    400,
+                    "lane is missing and there is not exactly one board",
+                ));
+            }
             let id = format!("c{}", self.next.replace_with(|n| *n + 1));
             cards.push((id.clone(), arg("title", ""), arg("column", "todo")));
             return Ok((id, "created"));
@@ -179,7 +211,51 @@ impl FakeSource {
             cards.remove(at);
             return Ok((String::new(), "deleted"));
         }
-        cards[at].2 = arg("column", "todo");
+        let mut card = cards.remove(at);
+        card.2 = arg("column", "todo");
+        // The place is named by the neighbours (record ids), never by an integer index.
+        let neighbour = |n: &str, cards: &[(String, String, String)]| {
+            let id = arg(n, "");
+            if id.is_empty() {
+                return Ok(None);
+            }
+            cards
+                .iter()
+                .position(|c| c.0 == id)
+                .map(Some)
+                .ok_or_else(|| refuse("unknown-record", 404, "no such neighbour record"))
+        };
+        let (after, before) = (neighbour("after", &cards), neighbour("before", &cards));
+        let to = match (after?, before?) {
+            (Some(a), _) => a + 1,
+            (None, Some(b)) => b,
+            (None, None) => at.min(cards.len()),
+        };
+        cards.insert(to, card);
         Ok((record.to_owned(), "moved"))
+    }
+}
+
+/// The image of card `c1`: bytes behind a `Blob` capability.
+struct Image;
+
+impl blob::Server for Image {
+    async fn size(self: Rc<Self>, _: blob::SizeParams, mut r: blob::SizeResults) -> Reply {
+        r.get().set_bytes(crate::fake::IMAGE.len() as u64);
+        r.get().set_media_type("image/png");
+        Ok(())
+    }
+
+    async fn read(self: Rc<Self>, p: blob::ReadParams, mut r: blob::ReadResults) -> Reply {
+        let p = p.get()?;
+        let at = usize::try_from(p.get_offset()).unwrap_or(usize::MAX);
+        let end = at
+            .saturating_add(p.get_length() as usize)
+            .min(crate::fake::IMAGE.len());
+        // At most 4 bytes per answer ("may answer fewer bytes than asked") so a reader must loop.
+        let end = end.min(at.saturating_add(4));
+        r.get()
+            .set_data(crate::fake::IMAGE.get(at..end).unwrap_or_default());
+        Ok(())
     }
 }

@@ -2,14 +2,14 @@
 //!
 //! Pattern: Template Method (a fixed list of rules, each one checked against the service of the fixture).
 
-use super::cx::{Cx, NOWHERE, first_record, names, refused};
+use super::cx::{Cx, NOWHERE, refused};
 use crate::CommandKind;
 
 /// 5. unknown form = RPC exception `form-source-unknown-form`.
 pub(crate) async fn unknown_form(cx: &mut Cx<'_>) {
     let r = cx.page(&format!("{NOWHERE}@1.0.0"), "", &[], 1).await;
     cx.ensure(
-        names(&r, "unknown-form"),
+        cx.names(&r, "unknown-form"),
         "5 unknown form is an exception form-source-unknown-form",
     );
 }
@@ -21,7 +21,7 @@ pub(crate) async fn unknown_scope(cx: &mut Cx<'_>) {
     };
     let r = cx.page(&f.key, NOWHERE, &[], 1).await;
     cx.ensure(
-        names(&r, "unknown-scope"),
+        cx.names(&r, "unknown-scope"),
         "6 unknown scope is an exception form-source-unknown-scope",
     );
 }
@@ -35,17 +35,32 @@ pub(crate) async fn unknown_command(cx: &mut Cx<'_>) {
     );
 }
 
-/// 9. unknown, doubled or missing arguments.
+/// 9. unknown, doubled or missing arguments. Asked on a record (or the set) the person MAY use the command on: the rights come before
+/// the arguments (see rule 11), so a locked record would answer `forbidden` and say nothing about the arguments.
 pub(crate) async fn bad_arguments(cx: &mut Cx<'_>) {
-    let Some(rec) = first_record(cx).await else {
-        return cx.skip("9 bad arguments (no record to ask with)");
+    let Some(f) = cx.fx.forms().into_iter().next() else {
+        return cx.skip("9 bad arguments (no form to read)");
+    };
+    let Ok(page) = cx.page(&f.key, &f.scope, &[], 100).await else {
+        return cx.ensure(false, "9 bad arguments: the page failed");
     };
     for c in cx.fx.commands() {
-        let record = if c.kind == CommandKind::Record {
-            rec.as_str()
-        } else {
-            ""
+        let record = match c.kind {
+            CommandKind::Record => page
+                .rows
+                .iter()
+                .find(|r| r.may.contains(&c.key))
+                .map(|r| r.id.clone()),
+            CommandKind::Set => page.set_may.contains(&c.key).then(String::new),
         };
+        let Some(record) = record else {
+            cx.skip(&format!(
+                "9 {}: no record or set where the person may use it",
+                c.key
+            ));
+            continue;
+        };
+        let record = record.as_str();
         let r = cx.invoke(&c.key, record, &[("zz-unknown", "x")]).await;
         cx.ensure(
             r.as_ref().is_ok_and(|a| refused(a, "bad-arguments", 400)),

@@ -15,17 +15,25 @@ pub enum Mode {
     Strict,
     /// Breaks the error channel: a refusal at `invoke` is an RPC exception, not `failed = true` + `problem`.
     LaxErrors,
+    /// Breaks the shape of a refusal: a foreign problem type, `title` = the kind (no human text), and a `result` left on a refused write.
+    LaxShape,
 }
 
 /// The form the fake serves.
 pub const FORM: &str = "cards-in-columns@1.0.0";
 pub(crate) const LOCKED: &str = "c3";
+/// A command on the whole set that the asking person may NOT run (it is not in `RecordPage.may`).
+pub(crate) const SET_LOCKED: &str = "card.clear";
+/// The bytes of the image the fake serves for card `c1`, field `image` (when built `with_blob`).
+pub const IMAGE: &[u8] = b"\x89PNG-fake-image-bytes";
 
 /// Pattern: Fake Object (Test Double) – ein vollständiger, kleiner `FormSource` nach allen Regeln von Level 1; Modi brechen gezielt eine Regel.
 pub struct FakeSource {
     pub(crate) mode: Mode,
     pub(crate) cards: RefCell<Vec<(String, String, String)>>,
     pub(crate) next: RefCell<u32>,
+    pub(crate) blob: bool,
+    pub(crate) boards: usize,
 }
 
 impl FakeSource {
@@ -42,7 +50,37 @@ impl FakeSource {
                 card(LOCKED, "Three", "done"),
             ]),
             next: RefCell::new(4),
+            blob: false,
+            boards: 1,
         }
+    }
+
+    /// The same fake, but with an image field (`image` of card `c1`): `blob` answers instead of `unsupported`.
+    #[must_use]
+    pub fn with_blob(mut self) -> Self {
+        self.blob = true;
+        self
+    }
+
+    /// The same fake with `n` boards (default 1). A create without `lane` is only done with exactly one board.
+    #[must_use]
+    pub fn with_boards(mut self, n: usize) -> Self {
+        self.boards = n;
+        self
+    }
+
+    /// One command, decided without any RPC: the record made or changed (empty for a delete) and a short text, or the refusal as a VALUE
+    /// (kind, status, human text). A host shell turns the refusal into its own problem type; the fake needs no `fs-rpc` for that.
+    ///
+    /// # Errors
+    /// The [`Refusal`] the service gives for this call.
+    pub fn try_invoke(
+        &self,
+        command: &str,
+        record: &str,
+        args: &[(String, String)],
+    ) -> Result<(String, &'static str), Refusal> {
+        self.run(command, record, args)
     }
 
     /// A client of a new fake in this process.
@@ -57,7 +95,12 @@ impl FakeSource {
         vec![DeclaredForm {
             key: FORM.into(),
             scope: String::new(),
-            fields: vec!["title".into(), "column".into()],
+            fields: vec![
+                "title".into(),
+                "column".into(),
+                "image".into(),
+                "due".into(),
+            ],
         }]
     }
 
@@ -72,7 +115,12 @@ impl FakeSource {
             DeclaredCommand {
                 key: "card.move".into(),
                 kind: CommandKind::Record,
-                params: vec![p("column", true)],
+                params: vec![p("column", true), p("after", false), p("before", false)],
+            },
+            DeclaredCommand {
+                key: SET_LOCKED.into(),
+                kind: CommandKind::Set,
+                params: vec![],
             },
             DeclaredCommand {
                 key: "card.delete".into(),
@@ -107,7 +155,7 @@ impl FakeSource {
             Sample {
                 command: "card.create".into(),
                 record: String::new(),
-                args: vec![a("title", "Made")],
+                args: vec![a("title", "Made"), a("column", "todo")],
                 makes_record: true,
                 verify: Verify::Value {
                     form: FORM.into(),
@@ -138,17 +186,35 @@ impl FakeSource {
 }
 
 pub(crate) fn refuse(kind: &str, status: u16, detail: &str) -> Refusal {
+    let title = match kind {
+        "unknown-form" => "This form is not known",
+        "unknown-scope" => "This scope is not known",
+        "unknown-command" => "This command is not known",
+        "unknown-record" => "This record is not known",
+        "forbidden" => "You may not do this",
+        "bad-arguments" => "The arguments are not right",
+        "unsupported" => "This is not supported",
+        _ => "The service could not do this",
+    };
     Refusal {
         kind: format!("form-source-{kind}"),
         status,
+        title: title.to_owned(),
         detail: detail.to_owned(),
     }
 }
 
-pub(crate) struct Refusal {
-    pub(crate) kind: String,
-    pub(crate) status: u16,
-    pub(crate) detail: String,
+/// A refusal as a value: the problem kind (`form-source-<kind>`), the HTTP-like status, a short text for people and the detail.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Refusal {
+    /// `form-source-<kind>` (the problem type of the contract).
+    pub kind: String,
+    /// The status of the table in `formsource.capnp`.
+    pub status: u16,
+    /// A short text for people (RFC 9457 `title`), never the kind.
+    pub title: String,
+    /// What exactly was wrong.
+    pub detail: String,
 }
 
 impl Refusal {

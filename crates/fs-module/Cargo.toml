@@ -14,6 +14,8 @@ capnp = "0.27"
 # Same crate as the rest of this workspace; NO fs-rpc here (it depends on fs-interfaces itself: two sources in the lock).
 fs-interfaces = { path = "../fs-interfaces" }
 capnp-rpc = "0.27"
+# RFC 3339 date-time (offset or Z required) for time channels; already in the lock.
+jiff = "0.2"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros"] }

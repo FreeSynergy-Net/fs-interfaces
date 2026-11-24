@@ -529,6 +529,7 @@ dependencies = [
  "capnp",
  "capnp-rpc",
  "fs-interfaces",
+ "jiff",
  "tokio",
 ]
 

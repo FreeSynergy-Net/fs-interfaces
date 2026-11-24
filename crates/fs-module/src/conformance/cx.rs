@@ -2,6 +2,8 @@
 //!
 //! Pattern: Test helper (plain functions; a setup that fails is a failure of the rule, never a panic).
 
+use std::cell::RefCell;
+
 use fs_interfaces::formsource_capnp::form_source;
 
 use crate::FormSourceFixture;
@@ -21,6 +23,15 @@ pub(crate) struct Cx<'a> {
     pub fx: &'a dyn FormSourceFixture,
     pub src: form_source::Client,
     pub report: Report,
+    /// Every refusal seen so far (an exception text or an answer); rule 14 checks the shape of all of them.
+    pub seen: RefCell<Vec<Seen>>,
+}
+
+/// A refusal as it came in: an RPC exception (its text) or an `invoke` answer with `failed = true`.
+#[derive(Debug)]
+pub(crate) enum Seen {
+    Exception(String),
+    Answer(Answer),
 }
 
 /// One record of a page.
@@ -29,6 +40,7 @@ pub(crate) struct Row {
     pub id: String,
     pub may: Vec<String>,
     pub values: Vec<(String, String)>,
+    pub hidden: Vec<String>,
 }
 
 #[derive(Debug, Default)]
@@ -44,8 +56,10 @@ pub(crate) struct Page {
 pub(crate) struct Answer {
     pub failed: bool,
     pub kind: String,
+    pub title: String,
     pub status: u16,
     pub record: String,
+    pub text: String,
 }
 
 impl<'a> Cx<'a> {
@@ -54,6 +68,7 @@ impl<'a> Cx<'a> {
             fx,
             src: fx.client(),
             report: Report::default(),
+            seen: RefCell::default(),
         }
     }
 
@@ -62,6 +77,15 @@ impl<'a> Cx<'a> {
         if !ok {
             self.report.failures.push(rule.to_owned());
         }
+    }
+
+    /// An RPC exception that names the problem kind `form-source-<kind>` as a whole word (not a part of a longer name).
+    pub(crate) fn names(&self, e: &capnp::Result<impl Sized>, kind: &str) -> bool {
+        let Some(text) = e.as_ref().err().map(ToString::to_string) else {
+            return false;
+        };
+        self.seen.borrow_mut().push(Seen::Exception(text.clone()));
+        has_word(&text, &format!("form-source-{kind}"))
     }
 
     pub(crate) fn skip(&mut self, rule: &str) {
@@ -98,10 +122,16 @@ impl<'a> Cx<'a> {
                 .iter()
                 .map(|v| Ok((v.get_path()?.to_string()?, v.get_text()?.to_string()?)))
                 .collect::<capnp::Result<_>>()?;
+            let hidden = r
+                .get_hidden()?
+                .iter()
+                .map(|h| Ok(h.get_path()?.to_string()?))
+                .collect::<capnp::Result<_>>()?;
             rows.push(Row {
                 id: r.get_id()?.to_string()?,
                 may: texts(r.get_may()?)?,
                 values,
+                hidden,
             });
         }
         Ok(Page {
@@ -123,6 +153,11 @@ impl<'a> Cx<'a> {
         let (mut rows, mut cursor) = (Vec::new(), Vec::new());
         for _ in 0..10_000 {
             let p = self.page(form, scope, &cursor, limit).await?;
+            if p.rows.is_empty() && !p.next.is_empty() {
+                return Err(capnp::Error::failed(
+                    "an empty page with a next cursor".into(),
+                ));
+            }
             rows.extend(p.rows);
             if p.next.is_empty() {
                 return Ok(rows);
@@ -153,20 +188,35 @@ impl<'a> Cx<'a> {
         let answer = req.send().promise.await?;
         let a = answer.get()?;
         let prob = a.get_problem()?;
-        Ok(Answer {
+        let answer = Answer {
             failed: a.get_failed(),
             kind: prob.get_type()?.to_string()?,
+            title: prob.get_title()?.to_string()?,
             status: prob.get_status(),
             record: a.get_result()?.get_record()?.to_string()?,
-        })
+            text: a.get_result()?.get_text()?.to_string()?,
+        };
+        if answer.failed {
+            self.seen.borrow_mut().push(Seen::Answer(Answer {
+                kind: answer.kind.clone(),
+                title: answer.title.clone(),
+                record: answer.record.clone(),
+                text: answer.text.clone(),
+                ..answer
+            }));
+        }
+        Ok(answer)
     }
 }
 
-/// An RPC exception that names the kind `form-source-<kind>`.
-pub(crate) fn names(e: &capnp::Result<impl Sized>, kind: &str) -> bool {
-    e.as_ref()
-        .err()
-        .is_some_and(|e| e.to_string().contains(&format!("form-source-{kind}")))
+/// `word` stands in `text` not as the start of a longer name (`form-source-unknown-form-x` is not `form-source-unknown-form`).
+pub(crate) fn has_word(text: &str, word: &str) -> bool {
+    text.match_indices(word).any(|(i, _)| {
+        !text[i + word.len()..]
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_alphanumeric() || c == '-')
+    })
 }
 
 pub(crate) const NOWHERE: &str = "zz-no-such";
