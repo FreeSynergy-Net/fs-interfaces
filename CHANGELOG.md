@@ -2,6 +2,10 @@
 
 Version = tag; all crates of the workspace (`fs-interfaces`, `fs-mcp`, `regenerate`) carry the same version. The Cap'n Proto schema and the capability list only grow (append only). Details: `DESIGN.md`.
 
+## Unreleased
+
+- A5 I1 (schema `layouts.capnp`, appended only; no version bump, no tag): the place tree. New structs `Attr{elem,name,value :Value}`, `Frame{elem,place,frame,set :List(Attr),children :List(PlaceNode)}` and `PlaceNode{union{block :Block, frame :Frame}}` (at the end of the file); `Block.set @7` and `Page.places @5` appended (the free numbers after `binds @6` and `blocks @4`); `Page.blocks @4` stays but is documented as neither written nor read since 0.1.2 (slot never reused). No field number of an existing field changed, nothing removed. Generated `layouts_capnp.rs` by `cargo run -p regenerate`. Pattern: Composite (value object). Auf Deutsch: A5 I1 (Schema `layouts.capnp`, nur angehaengt, keine Version, kein Tag): der Platzbaum. Neu `Attr`, `Frame`, `PlaceNode` (am Dateiende); `Block.set @7` und `Page.places @5` angehaengt (die freien Nummern); `Page.blocks @4` bleibt, ist aber ab 0.1.2 als weder geschrieben noch gelesen vermerkt (Platz nie wieder vergeben). Keine vorhandene Feldnummer geaendert, nichts entfernt; erzeugte Datei per `regenerate`.
+
 ## 0.1.1 (24.11.2026)
 
 - Form `single-record@1.1.0` (appended in `forms.txt`, `planned`; `single-record@1.0.0` stays unchanged): the channels of 1.0.0 plus `media-type` (art `text`, 0..1; ActivityStreams 2 `mediaType` of `content`, picks the language of the code editor) and `edit` (art `command`, 0..1, writes the whole `content`; AS2 `Update` in the module; whether it is allowed is `RecordView.may`, not a channel). Test `single_record_1_1_0_adds_media_type_and_edit_and_1_0_0_stays`. Auf Deutsch: Form `single-record@1.1.0` (angehaengt, `planned`; 1.0.0 bleibt): Kanaele wie 1.0.0 plus `media-type` (`mediaType` von `content`, waehlt die Sprache des Code-Editors) und `edit` (Befehl, schreibt den ganzen `content`; AS2 `Update` im Modul; erlaubt oder nicht entscheidet `RecordView.may`);
