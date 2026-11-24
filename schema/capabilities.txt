@@ -44,7 +44,7 @@ board.open | Open boards | stable | Listing task boards and their columns with t
 board.create | Create boards | stable | Creating a task board
 column.create | Create columns | stable | Adding, renaming and removing the columns of a task board
 column.limit | Column limits | stable | Setting the limit of cards of a column (reported, never enforced)
-card.move | Move cards | stable | Placing the card of a task in a column of a board
+card.move | Move cards | stable | Placing the card of a task in a column of a board; the place is given by the neighbour records (after, before), never by an integer index
 task.create | Create tasks | stable | Creating a task (JSCalendar)
 task.edit | Edit tasks | stable | Changing a task, also only if its revision still matches
 task.assign | Assign tasks | stable | Assigning a task to a person

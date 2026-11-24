@@ -162,3 +162,20 @@ fields-in-groups@1.0.0 | Fields in groups | planned | Fields with their own type
 #   Standards: items = FHIR `Questionnaire.item` / JSON Schema `properties`; label = JSON Schema `title` (section 9.1), FHIR `item.text`; basic = JSON Schema `type` (section 6.1.1), FHIR `item.type`; value = the instance to the schema, FHIR QuestionnaireResponse answer; group = FHIR `item.type` = group; hint = JSON Schema `description` (section 9.1); default = JSON Schema `default` (section 9.2), FHIR `item.initial`; choices = JSON Schema `enum` (section 6.1.2), FHIR `answerOption`, ONE field (the count counts fields, not values); min, max = JSON Schema `minimum` (section 6.2.4) and `maximum` (section 6.2.2); locked = JSON Schema `readOnly` (section 9.4), FHIR `item.readOnly`. layer, lock-reason, order, change, reset are own and open.
 #   Commands (capabilities.txt `value.*`, general for every module with typed properties; the module writes the bare key in catalog/commands.json; the host binds `<module>.value.*`, first module `settings.value.set`, and checks the raw key against capabilities.txt: is_known, files read from disk): write: `change` -> `value.set` (writes `value`), `reset` -> `value.reset`; read only: `value.get`, `value.log`. `value.lock` and `value.unlock` have NO channel in this version (the channel `locked` shows the state; locking is a command of the module, called from a menu, not a field of the form). Names of the channels and the version are unchanged.
 #   Whether a person may change a field is NOT a channel: it is `RecordView.may` (formsource.capnp). A setting that only a human may change is not delivered to a bot at all, so the record is missing and the form needs no rule for it.
+
+# S1 E3 (24.11.; source: woche-11-23/decisions/SCHNITT-move-position.md). Appended only: cards-in-columns@1.1.0 above stays as it is; note on it: the `order` write of `move` is withdrawn before the freeze (S1 E3), modules serve 1.2.0.
+# Minor 1.2.0: the place is NEVER an integer. `order` stays a number and is READ ONLY (the sequence as shown). `move` writes the neighbours: `after` = record id of the card the moved one comes right after (empty = no card before it), `before` = record id of the card it comes right before (empty = no card after it). The fractional key is made only by the module, never by the frontend; there is no key channel on the wire.
+cards-in-columns@1.2.0 | Cards in columns | planned | Cards sorted into columns, e.g. a board of tasks; cards can be placed between two neighbours, created and removed (S1 E3)
+> cards | records | ! | 1
+> column | text | ! | 1
+> title | text | ! | 1
+> facts | text|number|time|flag | - | 0..4
+> lane | text | - | 0..1
+> order | number | - | 0..1
+> column-label | text | - | 0..1
+> progress | number | - | 0..1
+> after | reference | - | 0..1
+> before | reference | - | 0..1
+> move | command | - | 0..1 | column! after before lane
+> create | command | - | 0..1 | title! column! lane
+> remove | command | - | 0..1 |
