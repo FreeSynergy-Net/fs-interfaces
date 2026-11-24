@@ -523,6 +523,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs-module"
+version = "0.0.35"
+dependencies = [
+ "capnp",
+ "capnp-rpc",
+ "fs-interfaces",
+ "tokio",
+]
+
+[[package]]
 name = "fs-person-directory"
 version = "0.0.35"
 dependencies = [

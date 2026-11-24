@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/fs-interfaces", "crates/regenerate", "crates/fs-mcp", "crates/fs-person-directory", "crates/fs-events", "crates/fs-group-directory", "crates/fs-storage"]
+members = ["crates/fs-interfaces", "crates/regenerate", "crates/fs-mcp", "crates/fs-person-directory", "crates/fs-events", "crates/fs-group-directory", "crates/fs-storage", "crates/fs-module"]
 
 [workspace.package]
 version = "0.0.35"
