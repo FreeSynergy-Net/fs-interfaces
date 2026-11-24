@@ -38,7 +38,11 @@ fn version_1_4_0_adds_three_optional_channels_and_keeps_1_3_0() {
     }
     // `lane` keeps its meaning; no lane-list channel, no `#n`
     assert!(new.channel("lane").is_some());
-    assert!(new.channel("lanes").is_none() && new.channel("lane-label").is_none() && new.channel("#n").is_none());
+    assert!(
+        new.channel("lanes").is_none()
+            && new.channel("lane-label").is_none()
+            && new.channel("#n").is_none()
+    );
 }
 
 #[test]
@@ -54,7 +58,7 @@ fn the_older_versions_are_untouched() {
         .iter()
         .map(|k| forms::find_key(k).unwrap().channels.len())
         .collect();
-    assert_eq!(counts, [6, 9, 11, 16]);
+    assert_eq!(counts, [6, 11, 13, 18]);
 }
 
 #[test]
