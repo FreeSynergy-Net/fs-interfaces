@@ -1,0 +1,19 @@
+[package]
+name = "fs-module"
+description = "The contract `module_v1` of FreeSynergy (a module serves FormSource level 1: hello, page, blob, invoke): the fixture trait, a fake source and the conformance rules"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+capnp = "0.27"
+# Same crate as the rest of this workspace; NO fs-rpc here (it depends on fs-interfaces itself: two sources in the lock).
+fs-interfaces = { path = "../fs-interfaces" }
+capnp-rpc = "0.27"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros"] }
