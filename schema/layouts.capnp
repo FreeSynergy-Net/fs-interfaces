@@ -145,9 +145,11 @@ interface LayoutAdmin {
 # ---- the place tree (appended 0.2.0, A5 I1; ENTWURF-a5-schnitt; pattern Composite, a value object, behaviour only in walk/check/host) ----
 # `Attr` = one attribute `set = { name = value }` of a block or frame; `value` reuses `Value` (overlays section). Keys are checked
 # against the catalog (`sets`), not here. `elem` "" = not given, as everywhere in the description.
+# Readers of 0.2.0 accept only `text` as the kind of `value`; every other kind is an error, not a default (later kinds are added by a later version).
 struct Attr { elem @0 :Text; name @1 :Text; value @2 :Value; }
 # A frame inside a place (app-window, workbench, split, tabs ...): `place` = the place in the parent, `frame` = the frame name,
 # `set` = its parameters (axis, sizes, active ...), `children` = the nodes on its places (several on one place are the list; their order is the file's).
 struct Frame { elem @0 :Text; place @1 :Text; frame @2 :Text; set @3 :List(Attr); children @4 :List(PlaceNode); }
+# Pattern: Composite - a place tree node is a block (leaf) or a frame (composite holding PlaceNodes); a value object, no behaviour.
 # Exactly one of the two. A later node kind (S6-3 `frontend`) is appended to the union, never renumbered.
 struct PlaceNode { union { block @0 :Block; frame @1 :Frame; } }
