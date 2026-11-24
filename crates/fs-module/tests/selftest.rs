@@ -74,6 +74,9 @@ impl FormSourceFixture for Fixture {
             ("estimated", ValueKind::Estimated),
             ("column-limit", ValueKind::ColumnLimit),
             ("priority", ValueKind::Priority),
+            ("state", ValueKind::State),
+            ("time-zone", ValueKind::TimeZone),
+            ("assignee", ValueKind::Assignee),
         ]
         .into_iter()
         .map(|(p, kind)| ValueField {
@@ -263,7 +266,7 @@ async fn rule_1_refuses_below_min_and_takes_a_newer_level_using_only_what_it_kno
 }
 
 #[tokio::test(flavor = "current_thread")]
-async fn lax_values_must_turn_rule_22_red_for_each_of_the_five_channels() {
+async fn lax_values_must_turn_rule_22_red_for_each_of_the_eight_channels() {
     let r = LocalSet::new()
         .run_until(run(Mode::LaxValues, true, 1))
         .await;
@@ -273,6 +276,9 @@ async fn lax_values_must_turn_rule_22_red_for_each_of_the_five_channels() {
         "estimated",
         "column-limit",
         "priority",
+        "state",
+        "time-zone",
+        "assignee",
     ] {
         assert!(
             r.failures
@@ -282,4 +288,57 @@ async fn lax_values_must_turn_rule_22_red_for_each_of_the_five_channels() {
             r.failures
         );
     }
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn a_repeated_value_at_another_channel_than_assignee_must_turn_rule_22_red() {
+    let r = LocalSet::new()
+        .run_until(run(Mode::LaxRepeat, true, 1))
+        .await;
+    assert!(
+        r.failures
+            .iter()
+            .any(|f| f.starts_with("22 priority ") && f.contains("at most one value")),
+        "{:#?}",
+        r.failures
+    );
+    // Only the repeat is wrong: the assignee (two values) and every value itself stay accepted.
+    assert!(
+        r.failures.iter().all(|f| f.contains("22 priority ")),
+        "{:#?}",
+        r.failures
+    );
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn the_strict_fake_serves_two_assignees_and_rule_22_accepts_them() {
+    let r = LocalSet::new().run_until(run(Mode::Strict, true, 1)).await;
+    assert!(r.failures.is_empty(), "{:#?}", r.failures);
+    let rows = LocalSet::new()
+        .run_until(async {
+            let c = FakeSource::client(Mode::Strict);
+            let mut req = c.page_request();
+            {
+                let mut p = req.get();
+                p.set_form("cards-in-columns@1.0.0");
+                p.set_limit(100);
+                p.init_cursor().set_opaque(b"");
+            }
+            let res = req.send().promise.await.unwrap();
+            let page = res.get().unwrap().get_page().unwrap();
+            let mut got = Vec::new();
+            for rec in page.get_records().unwrap() {
+                for v in rec.get_values().unwrap() {
+                    got.push((
+                        v.get_path().unwrap().to_string().unwrap(),
+                        v.get_text().unwrap().to_string().unwrap(),
+                    ));
+                }
+            }
+            got
+        })
+        .await;
+    let n = |p: &str| rows.iter().filter(|(k, _)| k == p).count();
+    assert_eq!(n("assignee"), 2);
+    assert_eq!((n("state"), n("time-zone"), n("priority")), (1, 1, 1));
 }

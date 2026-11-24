@@ -21,8 +21,10 @@ pub enum Mode {
     LaxShape,
     /// Level 2: ignores the step key: the same `step` at `invokeIf` or `revert` runs again (a second effect, a second change).
     IgnoreStep,
-    /// Breaks the standard values: a colour like `#12`, a duration like `1h`, a priority of 10, a column limit of 0.
+    /// Breaks the standard values: a colour like `#12`, a duration like `1h`, a priority of 10, a column limit of 0, a state word `done`, a zone `Mars/Olympus`, an assignee that is no IRI.
     LaxValues,
+    /// Breaks the rule "only `assignee` repeats": a second value at `priority` of the same card (both values are right).
+    LaxRepeat,
 }
 
 /// The form the fake serves.
@@ -127,6 +129,9 @@ impl FakeSource {
                 "estimated".into(),
                 "column-limit".into(),
                 "priority".into(),
+                "state".into(),
+                "time-zone".into(),
+                "assignee".into(),
             ],
         }]
     }

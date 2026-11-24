@@ -80,10 +80,15 @@ impl form_source::Server for FakeSource {
                     "2026-11-30T12:00:00+01:00"
                 }
                 .to_owned();
+                let extra = if id == "c1" {
+                    standard_values(self.mode)
+                } else {
+                    Vec::new()
+                };
                 let mut cols = vec![("title", title), ("column", col)];
                 if id == "c1" {
                     cols.push(("due", &due));
-                    cols.extend(standard_values(self.mode == Mode::LaxValues));
+                    cols.extend(extra.iter().map(|(p, t)| (*p, t)));
                 }
                 let mut values = view.init_values(u32::try_from(cols.len()).unwrap_or(0));
                 for (j, (path, text)) in (0u32..).zip(cols) {

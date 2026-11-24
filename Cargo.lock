@@ -556,6 +556,7 @@ dependencies = [
  "capnp",
  "capnp-rpc",
  "fs-interfaces",
+ "fs-jscalendar",
  "fs-types",
  "tokio",
 ]
