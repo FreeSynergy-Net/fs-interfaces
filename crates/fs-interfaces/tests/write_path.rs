@@ -72,7 +72,11 @@ fn an_old_page_has_an_empty_may() {
 fn invoke_result_is_appended_after_failed_and_problem() {
     let text = schema("formsource.capnp");
     assert!(text.contains("invoke @3 (command :Text, record :Text, args :List(Value)) -> (failed :Bool, problem :Common.Problem, result :WriteResult);"));
-    assert!(text.contains("struct WriteResult { record @0 :Text; text @1 :Text; }"));
+    assert!(
+        text.contains(
+            "struct WriteResult { record @0 :Text; text @1 :Text; change @2 :ChangeRef; }"
+        )
+    );
     // WriteResult itself
     let mut msg = capnp::message::Builder::new_default();
     {
