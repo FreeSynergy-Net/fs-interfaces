@@ -71,7 +71,12 @@ impl form_source::Server for FakeSource {
                     may.set(0, "card.move");
                     may.set(1, "card.delete");
                 }
-                let due = "2026-11-30T12:00:00+01:00".to_owned();
+                let due = if self.mode == Mode::LaxShape {
+                    "2026-11-30T12:00:00-04[America/New_York]"
+                } else {
+                    "2026-11-30T12:00:00+01:00"
+                }
+                .to_owned();
                 let mut cols = vec![("title", title), ("column", col)];
                 if id == "c1" {
                     cols.push(("due", &due));
@@ -190,7 +195,7 @@ impl FakeSource {
         let mut cards = self.cards.borrow_mut();
         if kind == CommandKind::Set {
             if command == "card.create"
-                && !args.iter().any(|(n, _)| n == "column")
+                && !args.iter().any(|(n, _)| n == "lane")
                 && self.boards != 1
             {
                 return Err(refuse(
@@ -211,10 +216,8 @@ impl FakeSource {
             cards.remove(at);
             return Ok((String::new(), "deleted"));
         }
-        let mut card = cards.remove(at);
-        card.2 = arg("column", "todo");
-        // The place is named by the neighbours (record ids), never by an integer index.
-        let neighbour = |n: &str, cards: &[(String, String, String)]| {
+        // Resolve the neighbours BEFORE anything changes: a refusal leaves the set as it was.
+        let neighbour = |n: &str| {
             let id = arg(n, "");
             if id.is_empty() {
                 return Ok(None);
@@ -225,11 +228,14 @@ impl FakeSource {
                 .map(Some)
                 .ok_or_else(|| refuse("unknown-record", 404, "no such neighbour record"))
         };
-        let (after, before) = (neighbour("after", &cards), neighbour("before", &cards));
-        let to = match (after?, before?) {
-            (Some(a), _) => a + 1,
-            (None, Some(b)) => b,
-            (None, None) => at.min(cards.len()),
+        let (after, before) = (neighbour("after")?, neighbour("before")?);
+        let mut card = cards.remove(at);
+        card.2 = arg("column", "todo");
+        // The place is named by the neighbours (record ids), never by an integer index. Indexes are of the set before the removal.
+        let to = match (after, before) {
+            (Some(a), _) => a + 1 - usize::from(a > at),
+            (None, Some(b)) => b - usize::from(b > at),
+            (None, None) => at,
         };
         cards.insert(to, card);
         Ok((record.to_owned(), "moved"))

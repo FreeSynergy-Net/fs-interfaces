@@ -71,6 +71,9 @@ interface FormSource {
   #     service to its own maximum, and `next` then says whether more follows.
   #   - An empty page (`records` empty) always has an empty `next`; otherwise a caller pages forever.
   #   - A refused write (`failed = true`) leaves `result` empty: it names no record and carries no text.
+  #
+  #   Values: a value of art `time` (in `page` records, also a `facts` field of art time, and in `invoke` args; for example `due`) is an RFC 3339
+  #   `date-time` (section 5.6) WITH an offset or `Z`, never a local time without offset. Channel `progress` is a percentage 0..100.
 
   hello @0 () -> (level :UInt32, provider :Text);
   # The level of this contract the service speaks (a plain number, 1 today) and who it is (`fake` for example data).
@@ -94,9 +97,8 @@ interface FormSource {
   # `map` of the module, translated once by the caller (fs-forms-run `args_of`). The service checks them strictly against the `params` of the
   # command: unknown or doubled argument, or a missing required one = `form-source-bad-arguments`. `command` is the contract key (`card.move`),
   # not the host id (`planning.card.move`). Only commands of the module's own `commands.json` are allowed; the service checks the rights.
-  # `lane` at a create is optional: if it is missing, exactly ONE board means that board; no board or several = `form-source-bad-arguments` 400
-  # with a text for people, never a silent guess.
-  # Time values (art `time`, for example `due`) are RFC 3339 `date-time` (section 5.6) WITH an offset or `Z`, never a local time without offset.
+  # At a create of `cards-in-columns`, the field the module maps from channel `lane` is optional: if it is missing and the module has exactly ONE
+  # lane (for example one board), that one is meant; none or several = `form-source-bad-arguments` 400 with a text for people, never a silent guess.
   # `failed = false`: done, `problem` empty.
   # `result` (appended): the record the command made or changed (`record`, empty for a delete) and a short text. A caller that creates a card and
   # moves it at once, or a workflow step that hands on the new record, reads it from here; an old service leaves it empty.

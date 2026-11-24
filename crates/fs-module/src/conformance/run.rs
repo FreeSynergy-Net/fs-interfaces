@@ -27,7 +27,7 @@ pub async fn run_conformance(fx: &dyn FormSourceFixture) -> Report {
     rules_limits::limits(&mut cx).await;
     rules_limits::keys_strict(&mut cx).await;
     rules_shape::host_id(&mut cx).await;
-    rules_shape::may_is_not_forbidden(&mut cx).await;
+    rules_shape::hidden_fields(&mut cx).await;
     rules_rights::invoke_valid(&mut cx).await;
     rules_order::twice(&mut cx).await;
     rules_order::by_neighbours(&mut cx).await;

@@ -57,7 +57,10 @@ impl FormSourceFixture for Fixture {
     fn create_without_lane(&self) -> Option<LaneCase> {
         Some(LaneCase {
             command: "card.create".into(),
-            args: vec![("title".into(), "No lane".into())],
+            args: vec![
+                ("title".into(), "No lane".into()),
+                ("column".into(), "todo".into()),
+            ],
             accepted: self.2 == 1,
         })
     }
@@ -95,6 +98,14 @@ async fn lax_shape_must_turn_rule_14_red() {
     println!("RED: {:#?}", r.failures);
     assert!(
         r.failures.iter().any(|f| f.starts_with("14 ")),
+        "{:#?}",
+        r.failures
+    );
+    // A due value with a zone suffix is more than RFC 3339: rule 3 must refuse it.
+    assert!(
+        r.failures
+            .iter()
+            .any(|f| f.starts_with("3 ") && f.contains("time field due")),
         "{:#?}",
         r.failures
     );

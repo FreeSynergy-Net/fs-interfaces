@@ -5,6 +5,7 @@
 use std::collections::HashSet;
 
 use fs_interfaces::forms::{FORM_SOURCE_LEVEL, find_key, parse_key};
+use fs_types::{BasicValue, DateTime};
 
 use super::cx::Cx;
 
@@ -87,14 +88,17 @@ pub(crate) async fn reading(cx: &mut Cx<'_>) {
             Err(e) => cx.ensure(false, &rule(&format!("walk failed: {e}"))),
         }
         for (_, path) in cx.fx.time_fields().into_iter().filter(|(k, _)| k == &f.key) {
+            let times: Vec<&str> = all
+                .rows
+                .iter()
+                .flat_map(|r| &r.values)
+                .filter(|(p, _)| p == &path)
+                .map(|(_, t)| t.as_str())
+                .collect();
             cx.ensure(
-                all.rows
-                    .iter()
-                    .flat_map(|r| &r.values)
-                    .filter(|(p, _)| p == &path)
-                    .all(|(_, t)| t.parse::<jiff::Timestamp>().is_ok()),
+                !times.is_empty() && times.iter().all(|t| DateTime::parse(t).is_ok()),
                 &rule(&format!(
-                    "time field {path} is RFC 3339 date-time with an offset or Z"
+                    "time field {path} has a value, strict RFC 3339 date-time (offset or Z)"
                 )),
             );
         }

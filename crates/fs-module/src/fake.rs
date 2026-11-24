@@ -10,6 +10,7 @@ use crate::fixture::{CommandKind, DeclaredCommand, DeclaredForm, Param, Sample, 
 
 /// How the fake behaves; every mode but `Strict` breaks one rule on purpose.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Mode {
     /// All rules of level 1 hold.
     Strict,
@@ -130,7 +131,7 @@ impl FakeSource {
             DeclaredCommand {
                 key: "card.create".into(),
                 kind: CommandKind::Set,
-                params: vec![p("title", true), p("column", false)],
+                params: vec![p("title", true), p("column", true), p("lane", false)],
             },
         ]
     }
@@ -155,7 +156,7 @@ impl FakeSource {
             Sample {
                 command: "card.create".into(),
                 record: String::new(),
-                args: vec![a("title", "Made"), a("column", "todo")],
+                args: vec![a("title", "Made"), a("column", "todo"), a("lane", "main")],
                 makes_record: true,
                 verify: Verify::Value {
                     form: FORM.into(),

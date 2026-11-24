@@ -3,10 +3,9 @@
 //! Pattern: Template Method (a fixed list of rules, each one checked against the service of the fixture).
 
 use super::cx::{Cx, Seen, has_word};
-use crate::CommandKind;
 
 /// The problem kinds and their status (`formsource.capnp`); `unknown-scope` also has 409.
-const KINDS: [(&str, &[u16]); 12] = [
+const KINDS: [(&str, &[u16]); 10] = [
     ("unknown-form", &[404]),
     ("unknown-scope", &[404, 409]),
     ("bad-arguments", &[400]),
@@ -17,8 +16,6 @@ const KINDS: [(&str, &[u16]); 12] = [
     ("rejected", &[422]),
     ("conflict", &[409]),
     ("internal", &[500]),
-    ("hello", &[]),
-    ("blob", &[]),
 ];
 
 /// Rule 14: every refusal the suite saw has the right shape: an exception names exactly one kind of the table (never a foreign problem URI);
@@ -79,40 +76,18 @@ pub(crate) async fn host_id(cx: &mut Cx<'_>) {
     );
 }
 
-/// Rule 19: what `may` lists is not `forbidden` (asked with an unknown argument: refused for the arguments, not for the rights); a hidden field is
-/// a declared field and carries no value in the same record.
-pub(crate) async fn may_is_not_forbidden(cx: &mut Cx<'_>) {
-    let kinds = cx.fx.commands();
+/// Rule 19: a hidden field is a declared field and carries no value in the same record (that `may` is not `forbidden` is rule 9).
+pub(crate) async fn hidden_fields(cx: &mut Cx<'_>) {
     for f in cx.fx.forms() {
         let Ok(p) = cx.page(&f.key, &f.scope, &[], 100).await else {
             continue;
         };
-        let mut asks: Vec<(String, String)> = p
-            .set_may
-            .iter()
-            .map(|m| (m.clone(), String::new()))
-            .collect();
-        for r in p.rows.iter().take(5) {
-            asks.extend(r.may.iter().map(|m| (m.clone(), r.id.clone())));
+        for r in &p.rows {
             cx.ensure(
                 r.hidden
                     .iter()
                     .all(|h| f.fields.contains(h) && r.values.iter().all(|(v, _)| v != h)),
                 &format!("19 {}: a hidden field is declared and has no value", r.id),
-            );
-        }
-        for (cmd, record) in asks {
-            if !kinds
-                .iter()
-                .any(|c| c.key == cmd && (c.kind == CommandKind::Set) == record.is_empty())
-            {
-                continue;
-            }
-            let r = cx.invoke(&cmd, &record, &[("zz-unknown", "x")]).await;
-            cx.ensure(
-                r.as_ref()
-                    .is_ok_and(|a| a.failed && a.kind != "form-source-forbidden"),
-                &format!("19 {cmd} is in `may` and is not forbidden"),
             );
         }
     }

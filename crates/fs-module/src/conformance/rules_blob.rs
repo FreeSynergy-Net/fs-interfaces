@@ -4,6 +4,9 @@
 
 use super::cx::Cx;
 
+/// One read asks for this many bytes; a service may answer fewer.
+const CHUNK: u32 = 65_536;
+
 async fn read_all(cx: &Cx<'_>, record: &str, field: &str) -> capnp::Result<[bool; 6]> {
     let mut req = cx.src.blob_request();
     req.get().set_record(record);
@@ -22,9 +25,9 @@ async fn read_all(cx: &Cx<'_>, record: &str, field: &str) -> capnp::Result<[bool
         async move { Ok::<_, capnp::Error>(r.send().promise.await?.get()?.get_data()?.len()) }
     };
     let (mut total, mut within, mut ended) = (0u64, true, false);
-    for _ in 0..100_000 {
-        let n = read(total, 3).await?;
-        within &= n <= 3;
+    for _ in 0..=bytes {
+        let n = read(total, CHUNK).await?;
+        within &= n <= CHUNK as usize;
         if n == 0 {
             ended = true;
             break;
