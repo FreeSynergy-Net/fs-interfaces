@@ -134,6 +134,8 @@ pub(super) fn number(text: &str) -> Option<u32> {
     text.parse().ok()
 }
 
+/// Pattern: Bridge – die Form trennt Datenart (Modul, Kanal→Feld in forms.json) und Darstellung (Component, `name@<req>`); beide ändern sich unabhängig.
+/// Abweichung: Brücke als Daten (Tabelle), die Übersetzung macht fs-forms-run `args_of`, nicht der Dienst.
 /// A form of the catalog.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Form {
@@ -168,7 +170,7 @@ impl Channel {
 }
 
 impl Form {
-    /// The key `name@Major.Minor.Patch`.
+    /// The key `name@Major.Minor.Patch`. Same as [`key`].
     #[must_use]
     pub fn key(&self) -> String {
         format!("{}@{}", self.name, self.version)
