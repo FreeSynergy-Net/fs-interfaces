@@ -41,7 +41,7 @@ async fn read_all(cx: &Cx<'_>, record: &str, field: &str) -> capnp::Result<[bool
     ])
 }
 
-/// 20. blob with an image field: `size` > 0 and a media type `type/subtype`; the chunks (each <= `length`) add up to `size`; reads past the
+/// Rule 20: blob with an image field: `size` > 0 and a media type `type/subtype`; the chunks (each <= `length`) add up to `size`; reads past the
 /// end, at the largest offset and with length 0 are empty, no exception.
 pub(crate) async fn blob_bytes(cx: &mut Cx<'_>) {
     let Some(s) = cx.fx.blob_sample() else {

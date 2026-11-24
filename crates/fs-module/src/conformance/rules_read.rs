@@ -13,7 +13,7 @@ fn short(key: &str) -> Option<String> {
     Some(format!("{n}@{}.{}", v.major, v.minor))
 }
 
-/// 1. hello: level, provider.
+/// Rule 1: hello: level, provider.
 pub(crate) async fn hello(cx: &mut Cx<'_>) {
     let r = async { cx.src.hello_request().send().promise.await }.await;
     let Ok(r) = r else {
@@ -38,7 +38,7 @@ pub(crate) async fn hello(cx: &mut Cx<'_>) {
     }
 }
 
-/// 2. every declared form is in the catalog and `page` works with it.
+/// Rule 2: every declared form is in the catalog and `page` works with it.
 pub(crate) async fn forms_listed(cx: &mut Cx<'_>) {
     for f in cx.fx.forms() {
         cx.ensure(
@@ -50,7 +50,7 @@ pub(crate) async fn forms_listed(cx: &mut Cx<'_>) {
     }
 }
 
-/// 3. reading: ids, paths, limit, cursor, total.
+/// Rule 3: reading: ids, paths, limit, cursor, total.
 pub(crate) async fn reading(cx: &mut Cx<'_>) {
     for f in cx.fx.forms() {
         let rule = |t: &str| format!("3 reading {}: {t}", f.key);
@@ -107,7 +107,7 @@ pub(crate) async fn reading(cx: &mut Cx<'_>) {
     }
 }
 
-/// 4. `x.y.z` and `x.y` both work; another major is unknown.
+/// Rule 4: `x.y.z` and `x.y` both work; another major is unknown.
 pub(crate) async fn keys(cx: &mut Cx<'_>) {
     for f in cx.fx.forms() {
         let (Some(s), Some((n, v))) = (short(&f.key), parse_key(&f.key)) else {

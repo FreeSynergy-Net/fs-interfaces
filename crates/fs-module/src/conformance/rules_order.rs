@@ -9,7 +9,7 @@ fn borrowed(args: &[(String, String)]) -> Vec<(&str, &str)> {
     args.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect()
 }
 
-/// 18. twice: a delete again is unknown-record 404; a create again makes another record (level 1 has no step key; `StepRef` comes later).
+/// Rule 18: twice: a delete again is unknown-record 404; a create again makes another record (level 1 has no step key; `StepRef` comes later).
 pub(crate) async fn twice(cx: &mut Cx<'_>) {
     let kinds = cx.fx.commands();
     let kind_of = |k: &str| kinds.iter().find(|c| c.key == k).map(|c| c.kind);
@@ -64,7 +64,7 @@ pub(crate) async fn twice(cx: &mut Cx<'_>) {
     }
 }
 
-/// 21. a place is named by neighbours (`after`, `before`), never by an integer: the record ends up right behind / before the neighbour; `index`
+/// Rule 21: a place is named by neighbours (`after`, `before`), never by an integer: the record ends up right behind / before the neighbour; `index`
 /// and `order` are refused as unknown arguments.
 pub(crate) async fn by_neighbours(cx: &mut Cx<'_>) {
     let Some(o) = cx.fx.ordered() else {

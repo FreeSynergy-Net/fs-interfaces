@@ -31,6 +31,6 @@ pub async fn run_conformance(fx: &dyn FormSourceFixture) -> Report {
     rules_rights::invoke_valid(&mut cx).await;
     rules_order::twice(&mut cx).await;
     rules_order::by_neighbours(&mut cx).await;
-    rules_shape::refusal_shape(&mut cx).await;
+    rules_shape::refusal_shape(&mut cx);
     cx.report
 }

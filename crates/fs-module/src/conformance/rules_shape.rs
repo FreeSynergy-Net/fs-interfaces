@@ -21,10 +21,10 @@ const KINDS: [(&str, &[u16]); 12] = [
     ("blob", &[]),
 ];
 
-/// 14. every refusal the suite saw has the right shape: an exception names exactly one kind of the table (never a foreign problem URI);
+/// Rule 14: every refusal the suite saw has the right shape: an exception names exactly one kind of the table (never a foreign problem URI);
 /// an `invoke` answer has a type of the table (a whole word `form-source-<kind>`), the status of that kind, a title that is a text for
 /// people (not the kind), and an empty `result` (a refused write names no record). Texts are UTF-8 (reading them fails otherwise).
-pub(crate) async fn refusal_shape(cx: &mut Cx<'_>) {
+pub(crate) fn refusal_shape(cx: &mut Cx<'_>) {
     let seen = std::mem::take(&mut *cx.seen.borrow_mut());
     cx.ensure(!seen.is_empty(), "14 the suite saw at least one refusal");
     for s in &seen {
@@ -66,7 +66,7 @@ pub(crate) async fn refusal_shape(cx: &mut Cx<'_>) {
     }
 }
 
-/// 17. a host id (`planning.card.move`) is not a command of the contract: unknown-command 404 in the answer.
+/// Rule 17: a host id (`planning.card.move`) is not a command of the contract: unknown-command 404 in the answer.
 pub(crate) async fn host_id(cx: &mut Cx<'_>) {
     let Some(c) = cx.fx.commands().into_iter().next() else {
         return cx.skip("17 host id (the module declares no command)");
@@ -79,7 +79,7 @@ pub(crate) async fn host_id(cx: &mut Cx<'_>) {
     );
 }
 
-/// 19. what `may` lists is not `forbidden` (asked with an unknown argument: refused for the arguments, not for the rights); a hidden field is
+/// Rule 19: what `may` lists is not `forbidden` (asked with an unknown argument: refused for the arguments, not for the rights); a hidden field is
 /// a declared field and carries no value in the same record.
 pub(crate) async fn may_is_not_forbidden(cx: &mut Cx<'_>) {
     let kinds = cx.fx.commands();

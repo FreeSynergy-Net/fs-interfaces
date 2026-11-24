@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use super::cx::{Cx, NOWHERE, first_record, refused};
 use crate::{CommandKind, Verify};
 
-/// 11. `may` lists only declared commands of the right kind; what is not in `may` is forbidden.
+/// Rule 11: `may` lists only declared commands of the right kind; what is not in `may` is forbidden.
 pub(crate) async fn may_and_forbidden(cx: &mut Cx<'_>) {
     let cmds = cx.fx.commands();
     let of = |k: CommandKind| {
@@ -62,7 +62,7 @@ pub(crate) async fn may_and_forbidden(cx: &mut Cx<'_>) {
     );
 }
 
-/// 11b. a command on the whole set that the person may not run: not in `RecordPage.may`, and `forbidden` 403 in the answer.
+/// Rule 11b: a command on the whole set that the person may not run: not in `RecordPage.may`, and `forbidden` 403 in the answer.
 pub(crate) async fn forbidden_set(cx: &mut Cx<'_>) {
     let (Some(cmd), Some(f)) = (cx.fx.forbidden_set(), cx.fx.forms().into_iter().next()) else {
         return cx.skip("11 forbidden on the set (the fixture has no locked set command)");
@@ -79,7 +79,7 @@ pub(crate) async fn forbidden_set(cx: &mut Cx<'_>) {
     );
 }
 
-/// 12. blob without an image field.
+/// Rule 12: blob without an image field.
 pub(crate) async fn blob(cx: &mut Cx<'_>) {
     if cx.fx.has_blob() {
         return cx.skip("12 blob (the module has an image field; not covered)");
@@ -95,7 +95,7 @@ pub(crate) async fn blob(cx: &mut Cx<'_>) {
     );
 }
 
-/// 7. valid invoke: done, problem empty, result set, the effect is read back. Last: it changes data.
+/// Rule 7: valid invoke: done, problem empty, result set, the effect is read back. Last: it changes data.
 pub(crate) async fn invoke_valid(cx: &mut Cx<'_>) {
     let kinds = cx.fx.commands();
     for s in cx.fx.samples() {

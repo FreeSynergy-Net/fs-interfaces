@@ -6,7 +6,7 @@ use fs_interfaces::forms::parse_key;
 
 use super::cx::Cx;
 
-/// 15. paging at the edges: `limit` 0 (= the service's default), the largest `limit`, an empty page has an empty `next`, a garbage cursor.
+/// Rule 15: paging at the edges: `limit` 0 (= the service's default), the largest `limit`, an empty page has an empty `next`, a garbage cursor.
 pub(crate) async fn limits(cx: &mut Cx<'_>) {
     for f in cx.fx.forms() {
         let rule = |t: &str| format!("15 limits {}: {t}", f.key);
@@ -53,7 +53,7 @@ pub(crate) async fn limits(cx: &mut Cx<'_>) {
     }
 }
 
-/// 16. keys are strict: the patch does not count, a higher minor and every broken spelling is unknown-form (an exception, no panic).
+/// Rule 16: keys are strict: the patch does not count, a higher minor and every broken spelling is unknown-form (an exception, no panic).
 pub(crate) async fn keys_strict(cx: &mut Cx<'_>) {
     for f in cx.fx.forms() {
         let Some((n, v)) = parse_key(&f.key) else {

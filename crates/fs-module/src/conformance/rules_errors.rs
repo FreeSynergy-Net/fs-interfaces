@@ -5,7 +5,7 @@
 use super::cx::{Cx, NOWHERE, refused};
 use crate::CommandKind;
 
-/// 5. unknown form = RPC exception `form-source-unknown-form`.
+/// Rule 5: unknown form = RPC exception `form-source-unknown-form`.
 pub(crate) async fn unknown_form(cx: &mut Cx<'_>) {
     let r = cx.page(&format!("{NOWHERE}@1.0.0"), "", &[], 1).await;
     cx.ensure(
@@ -14,7 +14,7 @@ pub(crate) async fn unknown_form(cx: &mut Cx<'_>) {
     );
 }
 
-/// 6. unknown scope.
+/// Rule 6: unknown scope.
 pub(crate) async fn unknown_scope(cx: &mut Cx<'_>) {
     let (true, Some(f)) = (cx.fx.strict_scope(), cx.fx.forms().into_iter().next()) else {
         return cx.skip("6 unknown scope (the fixture names no strict scope)");
@@ -26,7 +26,7 @@ pub(crate) async fn unknown_scope(cx: &mut Cx<'_>) {
     );
 }
 
-/// 8. unknown command: in the answer, no exception.
+/// Rule 8: unknown command: in the answer, no exception.
 pub(crate) async fn unknown_command(cx: &mut Cx<'_>) {
     let r = cx.invoke(&format!("{NOWHERE}.command"), "", &[]).await;
     cx.ensure(
@@ -35,7 +35,7 @@ pub(crate) async fn unknown_command(cx: &mut Cx<'_>) {
     );
 }
 
-/// 9. unknown, doubled or missing arguments. Asked on a record (or the set) the person MAY use the command on: the rights come before
+/// Rule 9: unknown, doubled or missing arguments. Asked on a record (or the set) the person MAY use the command on: the rights come before
 /// the arguments (see rule 11), so a locked record would answer `forbidden` and say nothing about the arguments.
 pub(crate) async fn bad_arguments(cx: &mut Cx<'_>) {
     let Some(f) = cx.fx.forms().into_iter().next() else {
@@ -92,7 +92,7 @@ pub(crate) async fn bad_arguments(cx: &mut Cx<'_>) {
     }
 }
 
-/// 10. unknown record (with valid arguments).
+/// Rule 10: unknown record (with valid arguments).
 pub(crate) async fn unknown_record(cx: &mut Cx<'_>) {
     let kinds = cx.fx.commands();
     let Some(s) = cx.fx.samples().into_iter().find(|s| {

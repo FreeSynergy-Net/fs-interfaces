@@ -135,7 +135,7 @@ impl form_source::Server for FakeSource {
                 }
                 let mut prob: problem::Builder<'_> = out.init_problem();
                 if lax {
-                    prob.set_type(&format!("https://freesynergy.net/problems/{}", why.kind));
+                    prob.set_type(format!("https://freesynergy.net/problems/{}", why.kind));
                     prob.set_title(why.kind.as_str());
                 } else {
                     prob.set_type(why.kind.as_str());
