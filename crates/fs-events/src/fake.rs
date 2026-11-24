@@ -155,6 +155,9 @@ impl FakeAppointments {
     }
 
     /// This person or resource shares free/busy times with the asker.
+    ///
+    /// # Panics
+    /// On an attendee kind this fake does not know (`Attendee` is `#[non_exhaustive]`).
     #[must_use]
     pub fn with_sharing(self, who: &crate::draft::Attendee) -> Self {
         self.share(who);
@@ -162,12 +165,18 @@ impl FakeAppointments {
     }
 
     /// Same as [`FakeAppointments::with_sharing`], on a fake that is already in use.
+    ///
+    /// # Panics
+    /// On an attendee kind this fake does not know (`Attendee` is `#[non_exhaustive]`).
     pub fn share(&self, who: &crate::draft::Attendee) {
         let key = match who {
             crate::draft::Attendee::Actor(p) => p.id.canonical(),
             crate::draft::Attendee::Resource(r) | crate::draft::Attendee::Location(r) => {
                 r.canonical()
             }
+            // `Attendee` is `#[non_exhaustive]`: this fake cannot say what sharing means for a kind it does not
+            // know. A test setup that passes one is a mistake, so it stops loudly (never a silent no-op).
+            other => panic!("FakeAppointments::share: unknown kind of attendee: {other:?}"),
         };
         self.lock().shared.insert(key);
     }

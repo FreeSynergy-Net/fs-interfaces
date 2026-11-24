@@ -124,20 +124,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "776dfebd015e2d8732c684a2c71003674ccb49457b539b9e82151ba38e96dd7c"
 
 [[package]]
-name = "calcard"
-version = "0.3.14"
+name = "calcard-next"
+version = "3.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c601473ec15a875626bce73db1a1f0fc81e9c949ca25f1463b714947c0a70a1f"
+checksum = "102aeeccb571c36325fc6e6d2f0707a9433922f3d323b4707d081f77a37c23e9"
 dependencies = [
  "ahash",
- "chrono",
- "chrono-tz",
- "hashify",
+ "encodify",
+ "encoding_rs",
+ "hashify 0.3.2",
+ "jiff",
  "jmap-tools",
- "mail-builder",
- "mail-parser",
  "serde",
  "serde_json",
+ "thiserror 2.0.21",
  "uuid",
 ]
 
@@ -291,10 +291,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327"
 dependencies = [
  "iana-time-zone",
- "js-sys",
  "num-traits",
- "serde",
- "wasm-bindgen",
  "windows-link",
 ]
 
@@ -313,6 +310,12 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
+
+[[package]]
+name = "core_detect"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f8f80099a98041a3d1622845c271458a2d73e688351bf3cb999266764b81d48"
 
 [[package]]
 name = "cpufeatures"
@@ -374,6 +377,30 @@ name = "embedded-io"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9eb1aa714776b75c7e67e1da744b81a129b3ff919c8712b5e1b32252c1f07cc7"
+
+[[package]]
+name = "encodify"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab7f638cb35e10aa08efd439d11ddcbeef7d52dd987c4956a6ff2cc1061020f3"
+dependencies = [
+ "memchr",
+ "simdutf8",
+]
+
+[[package]]
+name = "encoding_rs"
+version = "0.8.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89253175e704ab869b04f9db224d38630e0211a53841a79181deae0889e169f5"
+dependencies = [
+ "cfg-if",
+ "core_detect",
+ "multiversion_no_op",
+ "rustversion",
+ "scopeguard",
+ "simdutf8",
+]
 
 [[package]]
 name = "equivalent"
@@ -494,9 +521,9 @@ dependencies = [
 [[package]]
 name = "fs-jscalendar"
 version = "0.0.7"
-source = "git+https://github.com/FreeSynergy-Net/fs-jscalendar?tag=v0.0.7#14c7026184720fb3c4d179b11a549739498a3efa"
+source = "git+https://github.com/FreeSynergy-Net/fs-jscalendar?rev=0a3add97339c92be0ab8b524a294ca44ee8dca25#0a3add97339c92be0ab8b524a294ca44ee8dca25"
 dependencies = [
- "calcard",
+ "calcard-next",
  "chrono",
  "fs-types",
  "jiff",
@@ -565,8 +592,8 @@ dependencies = [
 
 [[package]]
 name = "fs-types"
-version = "0.0.5"
-source = "git+https://github.com/FreeSynergy-Net/fs-types?tag=v0.0.6#2f45110417cf42311d5dee72287b7644312d4bc4"
+version = "0.0.7"
+source = "git+https://github.com/FreeSynergy-Net/fs-types?rev=722d3ce0156711d40cb278f2e835e865d9448290#722d3ce0156711d40cb278f2e835e865d9448290"
 dependencies = [
  "capnp",
  "chrono",
@@ -575,6 +602,7 @@ dependencies = [
  "iri-string",
  "oxilangtag",
  "semver",
+ "strum",
  "unicode-normalization",
  "zeroize",
 ]
@@ -752,6 +780,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
+]
+
+[[package]]
+name = "hashify"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04a037b1848eada162d6534c206770180e6bfc0eaa97292250c3e7179d8b1f73"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -995,7 +1034,7 @@ version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5bdcd368dcd58a5efaac10c142fb8cddb4d2949af1297b624df3ff0db4cbff54"
 dependencies = [
- "hashify",
+ "hashify 0.2.9",
  "serde",
  "serde_json",
 ]
@@ -1123,21 +1162,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c"
 
 [[package]]
-name = "mail-builder"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccbc27cb02a58a311a404769a22f5abf63fe3173b290d80be7c534f9c7023151"
-
-[[package]]
-name = "mail-parser"
-version = "0.11.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ec00bda90c6e645a54506c630c2820cd6b1890cfd2b0a169b50f74b2b8c7c86"
-dependencies = [
- "hashify",
-]
-
-[[package]]
 name = "maybe-owned"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1165,6 +1189,12 @@ dependencies = [
  "wasi",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "multiversion_no_op"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "743fb55ba31b18fb1ecef6bdc9aa2743314978ac084044301a7eee33fb99a20d"
 
 [[package]]
 name = "num"
@@ -1634,6 +1664,12 @@ dependencies = [
  "errno",
  "libc",
 ]
+
+[[package]]
+name = "simdutf8"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
 name = "siphasher"

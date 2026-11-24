@@ -63,12 +63,6 @@ impl State {
         let closed = self.alive(group)?.sensitive || self.is_admin_group(group);
         let denied = closed || right == Right::Manage;
         match holder.art {
-            PersonArt::Organization => {
-                return Err(Error::WrongArt {
-                    field: Field::Holder,
-                    got: holder.art,
-                });
-            }
             PersonArt::Group => {
                 let missing = || Error::NotFound(Missing::Person(holder.id.clone()));
                 let h = id_of_reference(&holder.id).ok_or_else(missing)?;
@@ -83,6 +77,13 @@ impl State {
                     None if right == Right::Manage => return Err(Error::AiStatusUnknown),
                     _ => {}
                 }
+            }
+            // `PersonArt` is non-exhaustive: an organisation and any kind added later hold no right.
+            _ => {
+                return Err(Error::WrongArt {
+                    field: Field::Holder,
+                    got: holder.art,
+                });
             }
         }
         if let Some(g) = self

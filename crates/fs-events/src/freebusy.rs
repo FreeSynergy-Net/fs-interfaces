@@ -20,10 +20,12 @@ use crate::zone::{from_utc_ms, resolve_at};
 /// The longest window `free_busy` answers (a year; longer is a scan of someone's whole life).
 pub const LONGEST_WINDOW_DAYS: i64 = 366;
 
-fn key(who: &Attendee) -> String {
+fn key(who: &Attendee) -> Result<String> {
     match who {
-        Attendee::Actor(p) => p.id.canonical(),
-        Attendee::Resource(r) | Attendee::Location(r) => r.canonical(),
+        Attendee::Actor(p) => Ok(p.id.canonical()),
+        Attendee::Resource(r) | Attendee::Location(r) => Ok(r.canonical()),
+        // `Attendee` is `#[non_exhaustive]`: a kind this provider does not know cannot be asked about.
+        _ => Err(invalid("who", "unknown kind of attendee")),
     }
 }
 
@@ -77,10 +79,10 @@ impl FakeAppointments {
         }
         resolve_at(view_zone, &s.customs, "view_zone")?;
         let me = s.viewer.id.canonical();
-        Ok(who
-            .iter()
+        who.iter()
             .map(|w| {
-                let answer = if key(w) == me || s.shared.contains(&key(w)) {
+                let k = key(w)?;
+                let answer = if k == me || s.shared.contains(&k) {
                     FreeBusyAnswer::Busy(busy_of(&s, w, from, to, view_zone))
                 } else {
                     match w {
@@ -90,11 +92,11 @@ impl FakeAppointments {
                         _ => FreeBusyAnswer::Unknown,
                     }
                 };
-                Availability {
+                Ok(Availability {
                     who: w.clone(),
                     answer,
-                }
+                })
             })
-            .collect())
+            .collect()
     }
 }

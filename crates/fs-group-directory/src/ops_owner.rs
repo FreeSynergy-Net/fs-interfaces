@@ -197,7 +197,8 @@ impl State {
                     .map(|m| m.person)
                     .collect())
             }
-            PersonArt::Organization => Err(Error::WrongArt {
+            // `PersonArt` is non-exhaustive: an organisation and any kind added later are no owner.
+            _ => Err(Error::WrongArt {
                 field: Field::Holder,
                 got: owner.art,
             }),

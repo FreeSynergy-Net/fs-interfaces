@@ -52,7 +52,9 @@ pub fn person(n: u64) -> PersonRef {
 pub fn actor(p: &Participant) -> Option<&PersonRef> {
     match &p.who {
         Attendee::Actor(person) => Some(person),
-        Attendee::Resource(_) | Attendee::Location(_) => None,
+        // A room or device (`Resource`, `Location`) and any kind this crate does not know (`Attendee` is
+        // `#[non_exhaustive]`) are not a person it can name.
+        _ => None,
     }
 }
 
