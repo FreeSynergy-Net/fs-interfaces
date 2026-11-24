@@ -86,7 +86,7 @@ pub(crate) async fn reading(cx: &mut Cx<'_>) {
         }
         if all.has_total {
             cx.ensure(
-                all.total as usize == ids.len(),
+                usize::try_from(all.total).is_ok_and(|t| t == ids.len()),
                 &rule("hasTotal => total = count"),
             );
         }

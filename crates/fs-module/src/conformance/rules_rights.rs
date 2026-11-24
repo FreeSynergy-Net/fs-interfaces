@@ -102,7 +102,7 @@ pub(crate) async fn invoke_valid(cx: &mut Cx<'_>) {
             &rule("failed = false and problem empty"),
         );
         cx.ensure(
-            s.makes_record == !a.record.is_empty(),
+            s.makes_record != a.record.is_empty(),
             &rule("result.record is set unless the command made none"),
         );
         match &s.verify {

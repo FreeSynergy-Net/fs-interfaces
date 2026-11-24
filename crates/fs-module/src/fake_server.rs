@@ -1,4 +1,5 @@
 //! The `FormSource` server of the fake (the rules of level 1: errors in the answer at `invoke`, in an exception at `page`/`blob`).
+#![allow(clippy::unused_async_trait_impl)] // the generated server trait is async
 
 use fs_interfaces::common_capnp::problem;
 use fs_interfaces::forms::{FORM_SOURCE_LEVEL, parse_key};

@@ -19,7 +19,7 @@ pub enum Mode {
 pub const FORM: &str = "cards-in-columns@1.0.0";
 pub(crate) const LOCKED: &str = "c3";
 
-/// Pattern: Fake Object (Test Double) – ein vollständiger, kleiner FormSource nach allen Regeln von Level 1; Modi brechen gezielt eine Regel.
+/// Pattern: Fake Object (Test Double) – ein vollständiger, kleiner `FormSource` nach allen Regeln von Level 1; Modi brechen gezielt eine Regel.
 pub struct FakeSource {
     pub(crate) mode: Mode,
     pub(crate) cards: RefCell<Vec<(String, String, String)>>,
