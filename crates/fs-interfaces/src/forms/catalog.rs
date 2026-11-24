@@ -9,8 +9,12 @@ pub const SOURCE: &str = include_str!("../../../../schema/forms.txt");
 
 /// The level of the `FormSource` handshake (`hello`): a plain number, never a name with a version suffix. A caller refuses a
 /// level it does not know. A change that breaks a reader raises it; a new method does not.
-/// Level 1 = `hello`/`page`/`blob`/`invoke` with the rules written in `formsource.capnp`; Level 2 = Stufe 3 (invokeIf/revert).
-pub const FORM_SOURCE_LEVEL: u32 = 1;
+/// Level 1 = `hello`/`page`/`blob`/`invoke` with the rules written in `formsource.capnp`; Level 2 = Stufe 3: heeds `expect`, `step`, `introduce`, `watch` (`invokeIf`, `revert`, `changes`, `introduce`, `watch`).
+pub const FORM_SOURCE_LEVEL: u32 = 2;
+
+/// The oldest level a host still accepts. A host takes `FORM_SOURCE_MIN_LEVEL..=FORM_SOURCE_LEVEL` and uses `invokeIf`, `revert`,
+/// `changes`, `introduce` and `watch` only from level 2. A service says its OWN level, never this constant.
+pub const FORM_SOURCE_MIN_LEVEL: u32 = 1;
 
 /// The forms of the built-in file, in file order. The file is checked by the tests of this crate; if it were bad the list is empty.
 #[must_use]

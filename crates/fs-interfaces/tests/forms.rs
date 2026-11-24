@@ -256,7 +256,8 @@ fn schema_dir() -> PathBuf {
 fn form_source_exists_and_the_handshake_is_a_plain_number() {
     use fs_interfaces::formsource_capnp::form_source;
     assert!(std::any::type_name::<form_source::Client>().contains("form_source"));
-    assert_eq!(forms::FORM_SOURCE_LEVEL, 1);
+    assert_eq!(forms::FORM_SOURCE_LEVEL, 2);
+    assert_eq!(forms::FORM_SOURCE_MIN_LEVEL, 1);
     let text = std::fs::read_to_string(schema_dir().join("formsource.capnp")).unwrap();
     assert!(text.contains("@0xfa9420fd361f284b;"));
     assert!(text.contains("hello @0 () -> (level :UInt32"));

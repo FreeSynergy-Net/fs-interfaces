@@ -4,7 +4,7 @@
 #![allow(clippy::unused_async_trait_impl)] // the generated server trait is async
 
 use fs_interfaces::common_capnp::{blob, problem};
-use fs_interfaces::forms::{FORM_SOURCE_LEVEL, parse_key};
+use fs_interfaces::forms::parse_key;
 use fs_interfaces::formsource_capnp::{form_source, value};
 use std::rc::Rc;
 
@@ -20,7 +20,7 @@ impl form_source::Server for FakeSource {
         mut r: form_source::HelloResults,
     ) -> Reply {
         let mut out = r.get();
-        out.set_level(FORM_SOURCE_LEVEL);
+        out.set_level(1); // its OWN level (it serves level 1 only); never the constant
         out.set_provider("fake");
         Ok(())
     }

@@ -4,7 +4,7 @@
 
 use std::collections::HashSet;
 
-use fs_interfaces::forms::{FORM_SOURCE_LEVEL, find_key, parse_key};
+use fs_interfaces::forms::{FORM_SOURCE_LEVEL, FORM_SOURCE_MIN_LEVEL, find_key, parse_key};
 use fs_types::{BasicValue, DateTime};
 
 use super::cx::Cx;
@@ -24,8 +24,8 @@ pub(crate) async fn hello(cx: &mut Cx<'_>) {
         return cx.ensure(false, "1 hello: the answer is unreadable");
     };
     cx.ensure(
-        a.get_level() == FORM_SOURCE_LEVEL,
-        "1 hello: level is FORM_SOURCE_LEVEL",
+        (FORM_SOURCE_MIN_LEVEL..=FORM_SOURCE_LEVEL).contains(&a.get_level()),
+        "1 hello: level is between FORM_SOURCE_MIN_LEVEL and FORM_SOURCE_LEVEL",
     );
     let provider = a
         .get_provider()
