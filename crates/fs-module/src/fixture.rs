@@ -192,7 +192,10 @@ pub struct LaneCase {
 }
 
 /// What a value field carries; each kind names its standard (JSCalendar = RFC 8984).
+///
+/// Pattern: Strategy (each kind is one check of one standard; rule 22 picks it by the kind). Appended only: `#[non_exhaustive]`, so a match outside this crate needs a fail-closed wildcard arm.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ValueKind {
     /// Free text (`description`, RFC 8984 section 4.2.2): not empty.
     Description,
@@ -204,6 +207,20 @@ pub enum ValueKind {
     ColumnLimit,
     /// `priority` (RFC 8984 section 4.4.1): an integer 0 to 9.
     Priority,
+    /// `progress` (RFC 8984 section 5.2.5): one of `needs-action`, `in-process`, `completed`, `failed`, `cancelled`, as written (lower case), or a vendor word `<domain>:<name>`.
+    State,
+    /// `timeZone` (RFC 8984 section 4.7.1): an IANA time zone name such as `Europe/Berlin`; no custom `/...` id.
+    TimeZone,
+    /// A person as reference (an IRI, RFC 3987: `scheme:rest`). The ONLY kind whose value may repeat at one card (one value per person).
+    Assignee,
+}
+
+impl ValueKind {
+    /// Whether one card may carry several values of this kind (only the assignee: one value per person).
+    #[must_use]
+    pub fn repeats(self) -> bool {
+        matches!(self, Self::Assignee)
+    }
 }
 
 /// One field with a value of a standard: the form, the path of the field and the kind.
