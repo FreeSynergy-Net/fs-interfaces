@@ -238,3 +238,21 @@ fn claim_and_release_are_slots_17_and_18_without_a_by() {
     assert!(text.contains("createRelationWithGap @16 ("));
     assert!(text.contains("dependents     @15 ("));
 }
+
+#[test]
+fn the_value_commands_are_on_the_list_for_any_module() {
+    for n in [
+        name::VALUE_GET,
+        name::VALUE_SET,
+        name::VALUE_RESET,
+        name::VALUE_LOCK,
+        name::VALUE_UNLOCK,
+        name::VALUE_LOG,
+    ] {
+        assert!(capabilities::is_known(n), "{n}");
+        assert!(capabilities::is_planned(n), "{n} has no interface yet");
+        assert!(n.starts_with("value."));
+    }
+    // The host prefixes the module name; the list holds the bare key only.
+    assert!(!capabilities::is_known("settings.value.set"));
+}

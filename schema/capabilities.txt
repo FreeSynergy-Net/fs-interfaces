@@ -57,3 +57,10 @@ task.subscribe | Follow tasks | stable | Being told when tasks change
 relation.create | Task relations | stable | Linking a task to another one (parent, dependency, sibling)
 label.assign | Task labels | stable | Putting a label (keyword) on a task
 task.claim | Claim tasks | stable | Claiming a task for at most 24 hours and releasing the claim; the caller is the person of the connection
+# value.*: commands for ANY module with typed properties (form fields-in-groups@1.0.0), not settings only. The key is written WITHOUT the module name; the host prefixes every command of a module with the module name (namespace `<module>.`, fs-starter-host registry), so the first module, settings, appears at the host as `settings.value.get` and so on. The host checks the full id against this list, so `value.*` must be here.
+value.get | Read a value | planned | Reading the value of a typed property (read only)
+value.set | Set a value | planned | Setting the value of a typed property (writes `value`)
+value.reset | Reset a value | planned | Setting a typed property back to its default
+value.lock | Lock a value | planned | Locking a typed property, with a reason
+value.unlock | Unlock a value | planned | Removing the lock of a typed property
+value.log | Value log | planned | Reading what was done to a typed property (read only)
