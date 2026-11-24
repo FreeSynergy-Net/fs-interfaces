@@ -24,6 +24,7 @@
 //! * [`bind_capnp`] - the host side of binding a frontend description to a program (owner `fs-forms`, draft; reached from `Layouts.bind`)
 //! * [`formsource_capnp`] - the read side every module service serves next to its contract, for drawing by a form (owner `fs-forms`, draft; forms in [`forms`])
 //! * [`instance_capnp`] - the one window of a program: a second start hands its words to the running one (owner `fs-starter`, draft, ADR 0097)
+//! * [`owner`] - where a process takes the local owner from (`LocalOwner`; test sources behind the feature `fake`)
 //!
 //! The basic types (e-mail, phone, person reference, instant, `TypeCatalog` ...) and their schema live in the crate
 //! `fs-types` (ADR 0093), not here, and are not re-exported: a program that needs them depends on `fs-types` itself.
@@ -106,6 +107,7 @@ pub mod texts_capnp;
 
 pub mod capabilities;
 pub mod forms;
+pub mod owner;
 pub mod provider;
 
 pub use provider::{Capabilities, Support, UNSUPPORTED_PROBLEM_TYPE, Unsupported};

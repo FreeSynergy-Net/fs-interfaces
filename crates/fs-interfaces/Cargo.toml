@@ -20,3 +20,11 @@ capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", rev = "f600
 capnpc = "0.27"
 # ... and the official compiler (as WASM) is the oracle in tests/generated_matches_official.rs.
 capnpc-embedded = "0.2"
+
+[features]
+# Test sources of the local owner (`owner::fake`: FixedOwner, NoOwner, `check`); not for production.
+fake = []
+
+[[test]]
+name = "owner"
+required-features = ["fake"]
