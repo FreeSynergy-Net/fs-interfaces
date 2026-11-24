@@ -82,6 +82,7 @@ impl form_source::Server for FakeSource {
                 let mut cols = vec![("title", title), ("column", col)];
                 if id == "c1" {
                     cols.push(("due", &due));
+                    cols.extend(standard_values(self.mode == Mode::LaxValues));
                 }
                 let mut values = view.init_values(u32::try_from(cols.len()).unwrap_or(0));
                 for (j, (path, text)) in (0u32..).zip(cols) {
@@ -279,4 +280,23 @@ impl form_source::Server for FakeSource {
         }));
         Ok(())
     }
+}
+
+/// The values of the five standard channels of card `c1`; `lax` breaks each of them on purpose.
+fn standard_values(lax: bool) -> Vec<(&'static str, &'static String)> {
+    static GOOD: std::sync::LazyLock<[String; 5]> =
+        std::sync::LazyLock::new(|| ["A text", "#1e90ff", "PT1H30M", "3", "2"].map(str::to_owned));
+    static BAD: std::sync::LazyLock<[String; 5]> =
+        std::sync::LazyLock::new(|| ["", "#12", "1h", "0", "10"].map(str::to_owned));
+    let v = if lax { &*BAD } else { &*GOOD };
+    [
+        "description",
+        "color",
+        "estimated",
+        "column-limit",
+        "priority",
+    ]
+    .into_iter()
+    .zip(v.iter())
+    .collect()
 }

@@ -21,6 +21,8 @@ pub enum Mode {
     LaxShape,
     /// Level 2: ignores the step key: the same `step` at `invokeIf` or `revert` runs again (a second effect, a second change).
     IgnoreStep,
+    /// Breaks the standard values: a colour like `#12`, a duration like `1h`, a priority of 10, a column limit of 0.
+    LaxValues,
 }
 
 /// The form the fake serves.
@@ -120,6 +122,11 @@ impl FakeSource {
                 "column".into(),
                 "image".into(),
                 "due".into(),
+                "description".into(),
+                "color".into(),
+                "estimated".into(),
+                "column-limit".into(),
+                "priority".into(),
             ],
         }]
     }
