@@ -1,0 +1,25 @@
+//! `run_conformance`: all rules in one order, writes last.
+//!
+//! Pattern: Template Method (the order of the rules is fixed here; each rule lives in `rules_*`).
+
+use super::cx::{Cx, Report};
+use super::{rules_errors, rules_read, rules_rights};
+use crate::FormSourceFixture;
+
+/// Run all rules in `LocalSet` context (capnp clients are not `Send`). Writes happen last (rule 7).
+pub async fn run_conformance(fx: &dyn FormSourceFixture) -> Report {
+    let mut cx = Cx::new(fx);
+    rules_read::hello(&mut cx).await;
+    rules_read::forms_listed(&mut cx).await;
+    rules_read::reading(&mut cx).await;
+    rules_read::keys(&mut cx).await;
+    rules_errors::unknown_form(&mut cx).await;
+    rules_errors::unknown_scope(&mut cx).await;
+    rules_errors::unknown_command(&mut cx).await;
+    rules_errors::bad_arguments(&mut cx).await;
+    rules_errors::unknown_record(&mut cx).await;
+    rules_rights::may_and_forbidden(&mut cx).await;
+    rules_rights::blob(&mut cx).await;
+    rules_rights::invoke_valid(&mut cx).await;
+    cx.report
+}
