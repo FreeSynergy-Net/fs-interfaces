@@ -31,10 +31,10 @@ struct Binding {
   hasSchemes @7 :Bool; schemes @8 :List(Scheme);   # hasSchemes=false = no list given (≠ empty list: `schemes-empty`)
 }
 struct Block { elem @0 :Text; place @1 :Text; block @2 :Text; source @3 :UInt32; titleKey @4 :Text; textKey @5 :Text; binds @6 :List(Binding);
-               set @7 :List(Attr); }   # appended 0.1.2 (A5 I1): attributes of the block; Attr, Frame, PlaceNode are at the end of the description part
+               set @7 :List(Attr); }   # appended 0.2.0 (A5 I1): attributes of the block; Attr, Frame, PlaceNode are at the end of the description part
 struct Page { elem @0 :Text; page @1 :Text; frame @2 :Text; navigation @3 :Text;
-              blocks @4 :List(Block);    # since 0.1.2 neither written nor read (the tree `places @5` replaces it; slot stays, never reused)
-              places @5 :List(PlaceNode); }   # appended 0.1.2 (A5 I1): root children of the page; the root frame is `frame @2`
+              blocks @4 :List(Block);    # since 0.2.0 neither written nor read (the tree `places @5` replaces it; slot stays, never reused)
+              places @5 :List(PlaceNode); }   # appended 0.2.0 (A5 I1): root children of the page; the root frame is `frame @2`
 struct Action { elem @0 :Text; n @1 :UInt32; trigger @2 :Text; target @3 :Text; source @4 :UInt32; command @5 :Text; workflow @6 :Text; confirm @7 :Text; }
 struct Order { elem @0 :Text; by @1 :Text; name @2 :Text; descending @3 :Bool; }
 struct FilterNode { elem @0 :Text; op @1 :Text; cond @2 :Text; path @3 :Text; value @4 :Text; low @5 :Text; high @6 :Text;
@@ -142,7 +142,7 @@ interface LayoutAdmin {
   createInstanceOverlay @2 (layout :Common.Uuid, lang :Text, titleKey :Text) -> (id :Common.Uuid);
 }
 
-# ---- the place tree (appended 0.1.2, A5 I1; ENTWURF-a5-schnitt; pattern Composite, a value object, behaviour only in walk/check/host) ----
+# ---- the place tree (appended 0.2.0, A5 I1; ENTWURF-a5-schnitt; pattern Composite, a value object, behaviour only in walk/check/host) ----
 # `Attr` = one attribute `set = { name = value }` of a block or frame; `value` reuses `Value` (overlays section). Keys are checked
 # against the catalog (`sets`), not here. `elem` "" = not given, as everywhere in the description.
 struct Attr { elem @0 :Text; name @1 :Text; value @2 :Value; }
