@@ -71,6 +71,7 @@ members@1.0.0 | Members | planned | A member list: person as PersonRef, role, op
 > role | reference | ! | 1
 > badge | text | - | 0..1
 #   Blocks: table + avatar-group (S:56, S:51). A member must not be a Profile (S:15).
+#   FROZEN (24.11.2026): superseded by `rows@1.0.0` (a form is named after its shape, not after a subject: record -> items, person -> label, role -> columns, badge -> state). Not removed, because the tags v0.0.34 and v0.0.35 of fs-components bind it (`table`); no new binding, stays `planned`. ENTSCHEID-formen-scaffold section 1c.
 
 # SW-1 (23.11., Schreibweg; source: woche-11-23/schreibweg/ENTSCHEID-schnitt.md section 3). Appended only: cards-in-columns@1.0.0 above stays as it is.
 # Column `writes` (5th field, only on a channel of art `command`): the channels of the SAME form the gesture writes; `!` = the gesture must deliver it; empty = writes nothing.
@@ -88,3 +89,75 @@ cards-in-columns@1.1.0 | Cards in columns | planned | Cards sorted into columns,
 > move | command | - | 0..1 | column! order lane
 > create | command | - | 0..1 | title! column! lane
 > remove | command | - | 0..1 |
+
+# Forms for the scaffold display (24.11.2026; source: woche-11-23/form/ENTSCHEID-formen-scaffold.md, cited as ENT). A form is named after the SHAPE of the data, never after a program. Appended only: nothing above changes except the freeze comment of members@1.0.0. All four are `planned`.
+# Standards, READ in the texts on 24.11.2026 (the numbers below are the ones seen in the text; where a standard names no section number for a thing, none is given):
+#   JSON Schema Validation, draft 2020-12 (https://json-schema.org/draft/2020-12/json-schema-validation): section 6.1.1 `type`, 6.1.2 `enum`, 6.2.2 `maximum`, 6.2.4 `minimum`, section 9.1 `title` and `description`, 9.2 `default`, 9.4 `readOnly` ("managed exclusively by the owning authority"; an attempt to change it is ignored or rejected).
+#   HL7 FHIR R5 Questionnaire (https://hl7.org/fhir/R5/questionnaire.html, resource page section 2.5): `Questionnaire.item` with `linkId`, `text`, `type` (group, display, question, boolean, decimal, integer, date, dateTime, time, string, text, url, coding, attachment, reference, quantity), `initial`, `readOnly`, `answerOption`; the ANSWER is not in the Questionnaire but in the resource QuestionnaireResponse; `initial` is not allowed on a group (rule que-8).
+#   W3C Model for Tabular Data and Metadata on the Web, CSVW (https://www.w3.org/TR/tabular-data-model/): section 4.3 Columns (annotations `titles`, `name`, `datatype`, `required`), 4.4 Rows (`titles`, `primary key`, `number`), 6.5.2 Column and row labelling (a row is named by its `titles`, else by its primary key cells, else by its number).
+#   ActivityStreams 2.0 Vocabulary (https://www.w3.org/TR/activitystreams-vocabulary/): section 4 Properties `name`, `summary`, `content`, `mediaType`, `icon`, `image`, `updated`; types `Object`, `Article`, `Note`, `Image`.
+#   AppStream upstream metadata (https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html, generic component): the tags `<name/>`, `<summary/>`, `<description/>`, `<icon/>`, `<screenshots/>`.
+
+# tiles@1.1.0 (ENT 1a): Minor of tiles@1.0.0 (kept as it is: the tags v0.0.34 and v0.0.35 of fs-components bind it). Four optional channels come, nothing goes.
+tiles@1.1.0 | Tiles | planned | A grid of tiles with a preview picture, name, a short text, a state, progress and actions, e.g. programs of the store, screenshots, files (ENT 1a)
+> items | records | ! | 1
+> label | text | ! | 1
+> preview | reference | - | 0..1
+> kind | text | - | 0..1
+> time | time | - | 0..1
+> size | number | - | 0..1
+> facts | text|number|time|flag | - | 0..4
+> order | number | - | 0..1
+> open | command | - | 0..1 |
+> summary | text | - | 0..1
+> state | text | - | 0..1
+> progress | number | - | 0..1
+> actions | command | - | 0..n |
+#   New channels. summary: ActivityStreams 2 `summary`, AppStream `<summary/>`. state: own and open; the words belong to the module (installed, update, offered ...), the block shows them as a mark. progress: own; same name as in bars-in-time@1.0.0 and cards-in-columns@1.1.0. actions: own and open; the commands a tile MAY show as buttons; per record only those in `RecordView.may` (formsource.capnp) are shown; writes no channel (empty 5th field).
+
+# rows@1.0.0 (ENT 1b): a list or table, one record per row, n typed columns. Named after the shape (CSVW rows x columns), so it also carries a member list (supersedes members@1.0.0).
+rows@1.0.0 | Rows | planned | Records as rows with typed columns that can be chosen and sorted, e.g. a list or table of programs, files, members, search hits (ENT 1b)
+> items | records | ! | 1
+> label | text | ! | 1
+> columns | text|number|time|flag|reference | - | 0..n
+> preview | reference | - | 0..1
+> state | text | - | 0..1
+> order | number | - | 0..1
+> open | command | - | 0..1 |
+> actions | command | - | 0..n |
+#   Standards: items = CSVW row (section 4.4); label = what names the row: CSVW section 6.5.2 (the row's `titles`, else its primary key cells), ActivityStreams 2 `name`; its art `text` may hold a reference (a person as a reference names the row without copying the name); columns = CSVW column (section 4.3) with `datatype`, the order of the mapping is the order of the columns; preview = ActivityStreams 2 `icon`. state, order, open, actions are own and open (as in tiles@1.1.0). Showing, hiding, sorting and filtering are NOT channels: the frontend chooses columns, the sorting and filtering come as the parameter `scope` of `FormSource.page`, its meaning belongs to the module.
+
+# single-record@1.0.0 (ENT 1d): ONE record as a whole (detail page). Sections and labels of the fields come from the type catalog of the module, not from the form.
+single-record@1.0.0 | Single record | planned | One record as a whole: name, picture and short text on top, its fields below, with state, progress and actions, e.g. a program page, a job, a task, a person (ENT 1d)
+> item | records | ! | 1
+> label | text | ! | 1
+> preview | reference | - | 0..1
+> summary | text | - | 0..1
+> content | text | - | 0..1
+> state | text | - | 0..1
+> progress | number | - | 0..1
+> fields | text|number|time|flag|reference | - | 0..n
+> actions | command | - | 0..n |
+#   Standards: item = ActivityStreams 2 `Object`, chosen by the parameter `scope` of `FormSource.page` (its id); label = `name`, AppStream `<name/>`; preview = `image` or `icon`, AppStream `<screenshots/>` or `<icon/>`; summary = `summary`, AppStream `<summary/>`; content = `content` (with `mediaType`), AppStream `<description/>`. state, progress, fields, actions are own and open. A running job (install, update) is one record: label = package, state = phase, progress.
+
+# fields-in-groups@1.0.0 (ENT 2): a set of FIELDS, grouped; every record is one field with its own basic type, group, default and lock. Used for settings and for any module with properties.
+fields-in-groups@1.0.0 | Fields in groups | planned | Fields with their own type, grouped, each with value, default and lock, e.g. the settings of a program (ENT 2)
+> items | records | ! | 1
+> label | text | ! | 1
+> basic | text | ! | 1
+> value | text|number|time|flag|reference | ! | 1
+> group | text | - | 0..1
+> hint | text | - | 0..1
+> default | text|number|time|flag|reference | - | 0..1
+> choices | text | - | 0..1
+> min | number | - | 0..1
+> max | number | - | 0..1
+> layer | text | - | 0..1
+> locked | flag | - | 0..1
+> lock-reason | text | - | 0..1
+> order | number | - | 0..1
+> change | command | - | 0..1 | value!
+> reset | command | - | 0..1 |
+#   Why `basic` is a channel: the type changes PER RECORD (one field is a switch, the next a choice), not per mapping. Its value is one of the basic types of fs-types (the module names it).
+#   Standards: items = FHIR `Questionnaire.item` / JSON Schema `properties`; label = JSON Schema `title` (section 9.1), FHIR `item.text`; basic = JSON Schema `type` (section 6.1.1), FHIR `item.type`; value = the instance to the schema, FHIR QuestionnaireResponse answer; group = FHIR `item.type` = group; hint = JSON Schema `description` (section 9.1); default = JSON Schema `default` (section 9.2), FHIR `item.initial`; choices = JSON Schema `enum` (section 6.1.2), FHIR `answerOption`, ONE field (the count counts fields, not values); min, max = JSON Schema `minimum` (section 6.2.4) and `maximum` (section 6.2.2); locked = JSON Schema `readOnly` (section 9.4), FHIR `item.readOnly`. layer, lock-reason, order, change, reset are own and open.
+#   Whether a person may change a field is NOT a channel: it is `RecordView.may` (formsource.capnp). A setting that only a human may change is not delivered to a bot at all, so the record is missing and the form needs no rule for it.
