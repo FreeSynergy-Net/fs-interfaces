@@ -62,6 +62,11 @@ pub trait FormSourceFixture {
     fn ordered(&self) -> Option<Ordered> {
         None
     }
+
+    /// Fields that carry a value in the form of a standard (colour, duration, priority ...): form key, path and kind (empty = rule 22 skipped).
+    fn value_fields(&self) -> Vec<ValueField> {
+        Vec::new()
+    }
 }
 
 /// A field with bytes: the record and the field name for `blob`.
@@ -169,4 +174,30 @@ pub struct LaneCase {
     pub args: Vec<(String, String)>,
     /// `true`: the service has exactly one board, the create is done. `false`: none or several, it is refused.
     pub accepted: bool,
+}
+
+/// What a value field carries; each kind names its standard (JSCalendar = RFC 8984).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ValueKind {
+    /// Free text (`description`, RFC 8984 section 4.2.2): not empty.
+    Description,
+    /// `color` (RFC 8984 section 4.2.11): a CSS3 colour name or `#rgb` / `#rrggbb`.
+    Color,
+    /// `estimatedDuration` (RFC 8984 sections 5.2.3 and 1.4.6): an ISO 8601 duration such as `PT1H`.
+    Estimated,
+    /// The WIP limit of a column (no standard): a whole number of at least 1; no limit = no value.
+    ColumnLimit,
+    /// `priority` (RFC 8984 section 4.4.1): an integer 0 to 9.
+    Priority,
+}
+
+/// One field with a value of a standard: the form, the path of the field and the kind.
+#[derive(Clone, Debug)]
+pub struct ValueField {
+    /// `name@x.y.z`.
+    pub form: String,
+    /// The field name of the module.
+    pub path: String,
+    /// What it carries.
+    pub kind: ValueKind,
 }

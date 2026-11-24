@@ -4,7 +4,7 @@ use fs_interfaces::formsource_capnp::form_source;
 use fs_module::conformance::run_conformance;
 use fs_module::{
     BlobSample, DeclaredCommand, DeclaredForm, FakeSource, FormSourceFixture, LaneCase, Mode,
-    Ordered, Sample,
+    Ordered, Sample, ValueField, ValueKind,
 };
 use tokio::task::LocalSet;
 
@@ -53,6 +53,22 @@ impl FormSourceFixture for Fixture {
             neighbour: "c3".into(),
             args: vec![("column".into(), "done".into())],
         })
+    }
+    fn value_fields(&self) -> Vec<ValueField> {
+        [
+            ("description", ValueKind::Description),
+            ("color", ValueKind::Color),
+            ("estimated", ValueKind::Estimated),
+            ("column-limit", ValueKind::ColumnLimit),
+            ("priority", ValueKind::Priority),
+        ]
+        .into_iter()
+        .map(|(p, kind)| ValueField {
+            form: "cards-in-columns@1.0.0".into(),
+            path: p.into(),
+            kind,
+        })
+        .collect()
     }
     fn create_without_lane(&self) -> Option<LaneCase> {
         Some(LaneCase {
@@ -126,4 +142,26 @@ async fn lax_errors_must_turn_the_suite_red() {
         "{:#?}",
         r.failures
     );
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn lax_values_must_turn_rule_22_red_for_each_of_the_five_channels() {
+    let r = LocalSet::new()
+        .run_until(run(Mode::LaxValues, true, 1))
+        .await;
+    for path in [
+        "description",
+        "color",
+        "estimated",
+        "column-limit",
+        "priority",
+    ] {
+        assert!(
+            r.failures
+                .iter()
+                .any(|f| f.starts_with("22 ") && f.contains(&format!("22 {path} "))),
+            "{path}: {:#?}",
+            r.failures
+        );
+    }
 }

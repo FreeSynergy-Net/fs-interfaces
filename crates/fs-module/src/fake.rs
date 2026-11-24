@@ -18,6 +18,8 @@ pub enum Mode {
     LaxErrors,
     /// Breaks the shape of a refusal: a foreign problem type, `title` = the kind (no human text), and a `result` left on a refused write.
     LaxShape,
+    /// Breaks the standard values: a colour like `#12`, a duration like `1h`, a priority of 10, a column limit of 0.
+    LaxValues,
 }
 
 /// The form the fake serves.
@@ -101,6 +103,11 @@ impl FakeSource {
                 "column".into(),
                 "image".into(),
                 "due".into(),
+                "description".into(),
+                "color".into(),
+                "estimated".into(),
+                "column-limit".into(),
+                "priority".into(),
             ],
         }]
     }

@@ -2,7 +2,7 @@
 //! host. It is `FormSource` level 1 (`hello`, `page`, `blob`, `invoke`) with the rules written in `schema/formsource.capnp`.
 //!
 //! This crate has three parts: [`FormSourceFixture`] (what a service under test tells the suite), [`FakeSource`] (a small, complete
-//! source with example data) and [`conformance`] (the 21 rules, run against any fixture). It does not depend on `fs-rpc`: an RPC
+//! source with example data) and [`conformance`] (the 22 rules, run against any fixture). It does not depend on `fs-rpc`: an RPC
 //! exception is checked by its text (`form-source-<kind>`); the full decoding of the problem is tested by the host.
 
 pub mod conformance;
@@ -13,5 +13,5 @@ mod fixture;
 pub use fake::{FakeSource, IMAGE, Mode, Refusal};
 pub use fixture::{
     BlobSample, CommandKind, DeclaredCommand, DeclaredForm, FormSourceFixture, LaneCase, Ordered,
-    Param, Sample, Verify,
+    Param, Sample, ValueField, ValueKind, Verify,
 };
