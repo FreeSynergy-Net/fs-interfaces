@@ -2,7 +2,7 @@
 # own contract, the way it serves `Control`: the host (fs-starter) finds the service, checks it and connects; fs-forms draws by the
 # form (`schema/forms.txt`). The form names are NOT part of this file (they are data in `forms.txt`, read by `fs_interfaces::forms`).
 # Handshake: `hello` answers a plain level number (`FORM_SOURCE_LEVEL` in `fs_interfaces::forms`), never a name like `_v2`. A change that
-# breaks a reader, or a new method a host must ask for first, raises the number; the wire only appends. Evolution (Cap'n Proto): only append, never renumber or remove.
+# breaks is not a new level (it raises the minimum or is a new contract); levels are cumulative and a higher one only appends methods and fields. Evolution (Cap'n Proto): only append, never renumber or remove.
 # Answers are foreign data for the caller: it keeps its own limits (page size, bytes, time) and masks control characters before drawing.
 # A service that serves example data says `provider = "fake"`; the window then shows "example data" and never passes it off as real.
 

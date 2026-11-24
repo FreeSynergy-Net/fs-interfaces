@@ -7,14 +7,14 @@ use super::{Form, Version, parse, parse_version};
 /// The file as written in `schema/forms.txt`.
 pub const SOURCE: &str = include_str!("../../../../schema/forms.txt");
 
-/// The level of the `FormSource` handshake (`hello`): a plain number, never a name with a version suffix. A caller refuses a
-/// level it does not know and takes `FORM_SOURCE_MIN_LEVEL..=FORM_SOURCE_LEVEL`. A level is raised when a service must be asked
-/// differently (a change that breaks a reader) or when it gains methods a host must ask for first (`hello`, then use them only
-/// from that level); the wire only appends either way.
+/// The level of the `FormSource` handshake (`hello`): a plain number, never a name with a version suffix. Levels are CUMULATIVE: level n can do everything of level n-1.
+/// A higher level only APPENDS (methods, fields). Something that breaks is not a new level: it raises `FORM_SOURCE_MIN_LEVEL` or is a new
+/// contract. A host takes every level `>= FORM_SOURCE_MIN_LEVEL` and uses `min(level, FORM_SOURCE_LEVEL)`, so a newer service
+/// still works with it (only what the host knows is used); a service below the minimum is refused with the reason.
 /// Level 1 = `hello`/`page`/`blob`/`invoke` with the rules written in `formsource.capnp`; Level 2 = Stufe 3: heeds `expect`, `step`, `introduce`, `watch` (`invokeIf`, `revert`, `changes`, `introduce`, `watch`).
 pub const FORM_SOURCE_LEVEL: u32 = 2;
 
-/// The oldest level a host still accepts. A host takes `FORM_SOURCE_MIN_LEVEL..=FORM_SOURCE_LEVEL` and uses `invokeIf`, `revert`,
+/// The oldest level a host still accepts. A host takes every level `>= FORM_SOURCE_MIN_LEVEL`, works with `min(level, FORM_SOURCE_LEVEL)` and uses `invokeIf`, `revert`,
 /// `changes`, `introduce` and `watch` only from level 2. A service says its OWN level, never this constant.
 pub const FORM_SOURCE_MIN_LEVEL: u32 = 1;
 
