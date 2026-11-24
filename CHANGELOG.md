@@ -2,6 +2,10 @@
 
 Version = tag; all crates of the workspace (`fs-interfaces`, `fs-mcp`, `regenerate`) carry the same version. The Cap'n Proto schema and the capability list only grow (append only). Details: `DESIGN.md`.
 
+## Unreleased
+
+- Form `single-record@1.1.0` (appended in `forms.txt`, `planned`; `single-record@1.0.0` stays unchanged): the channels of 1.0.0 plus `media-type` (art `text`, 0..1; ActivityStreams 2 `mediaType` of `content`, picks the language of the code editor) and `edit` (art `command`, 0..1, writes the whole `content`; AS2 `Update` in the module; whether it is allowed is `RecordView.may`, not a channel). Test `single_record_1_1_0_adds_media_type_and_edit_and_1_0_0_stays`. No version bump, no tag. Auf Deutsch: Form `single-record@1.1.0` (angehaengt, `planned`; 1.0.0 bleibt): Kanaele wie 1.0.0 plus `media-type` (`mediaType` von `content`, waehlt die Sprache des Code-Editors) und `edit` (Befehl, schreibt den ganzen `content`; AS2 `Update` im Modul; erlaubt oder nicht entscheidet `RecordView.may`); keine Version, kein Tag.
+
 ## 0.1.0 (24.11.2026)
 
 - WP1a (contract `FormSource`, comments only): `schema/formsource.capnp` changes only comments, no id, field number, type or method ordinal; the generated `formsource_capnp.rs` changes only `::capnp::word` offsets. The comments state the pattern lines (Command at `invoke`, Remote Proxy at the interface), the form key `name@x.y.z` with the tolerant short form `x.y`, the error channels and the 12 problem kinds `form-source-<kind>`, and that `args` carry field names of the module. New in `fs_interfaces::forms`: `parse_key` and `key` (appended; `Form::key` uses `key`); no public item removed or renamed. Auf Deutsch: WP1a (Vertrag `FormSource`, nur Kommentare): `formsource.capnp` aendert nur Kommentare (Pattern-Zeilen, Formschluessel `name@x.y.z` mit Kurzform `x.y`, Fehlerkanaele und 12 Problem-Arten, `args` = Feldnamen); keine Id, Feldnummer, Methode geaendert; die erzeugte Datei aendert nur `::capnp::word`-Offsets; neu `forms::parse_key` und `forms::key` (angehaengt).

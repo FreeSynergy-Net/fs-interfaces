@@ -91,6 +91,31 @@ fn single_record_is_one_item_with_fields_and_actions() {
     );
 }
 
+/// `single-record@1.1.0` (editor): the channels of 1.0.0 plus `media-type` and `edit`; `edit` writes the whole `content`; 1.0.0 stays.
+#[test]
+fn single_record_1_1_0_adds_media_type_and_edit_and_1_0_0_stays() {
+    let old = forms::find_key("single-record@1.0.0").unwrap();
+    let new = forms::find_key("single-record@1.1.0").unwrap();
+    assert_eq!(old.channels.len(), 9);
+    assert_eq!(new.channels.len(), 11);
+    for c in &old.channels {
+        assert_eq!(
+            new.channel(&c.name).map(|n| &n.arts),
+            Some(&c.arts),
+            "{}",
+            c.name
+        );
+    }
+    assert_eq!(new.channel("media-type").unwrap().arts, [Art::Text]);
+    let edit = new.channel("edit").unwrap();
+    assert_eq!(edit.arts, [Art::Command]);
+    let writes = edit.writes.as_ref().unwrap();
+    assert_eq!(writes.len(), 1);
+    assert_eq!(
+        (writes[0].channel.as_str(), writes[0].required),
+        ("content", true)
+    );
+}
 #[test]
 fn fields_in_groups_has_sixteen_channels_and_basic_is_a_channel() {
     pin(

@@ -179,3 +179,18 @@ cards-in-columns@1.2.0 | Cards in columns | planned | Cards sorted into columns,
 > move | command | - | 0..1 | column! after before lane
 > create | command | - | 0..1 | title! column! lane
 > remove | command | - | 0..1 |
+
+# single-record@1.1.0 (editor, Nutzerwort 24.11.; source: woche-11-23/form/ENTWURF-editor.md section 2g). Appended only: single-record@1.0.0 above stays as it is.
+# Minor 1.1.0: the channels of 1.0.0 plus two. `media-type` = ActivityStreams 2 `mediaType` of `content` (text/markdown, application/toml, text/rust, application/json): it picks the Language of the code editor. `edit` writes the whole `content` (the module compares); in the module it is an ActivityStreams 2 `Update`. Whether it is allowed is NOT a channel: it is `RecordView.may` (formsource.capnp); without `edit` or with `can("edit") == false` the frontend shows the record read only. The unsaved draft lives in the frontend, never in the form: nothing is written before `edit`.
+single-record@1.1.0 | Single record | planned | One record as a whole, as 1.0.0; the content can be edited (code editor)
+> item | records | ! | 1
+> label | text | ! | 1
+> preview | reference | - | 0..1
+> summary | text | - | 0..1
+> content | text | - | 0..1
+> media-type | text | - | 0..1
+> state | text | - | 0..1
+> progress | number | - | 0..1
+> fields | text|number|time|flag|reference | - | 0..n
+> actions | command | - | 0..n |
+> edit | command | - | 0..1 | content!
