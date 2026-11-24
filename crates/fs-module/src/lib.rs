@@ -7,6 +7,7 @@
 
 pub mod conformance;
 mod fake;
+mod fake_server;
 mod fixture;
 
 pub use fake::{FakeSource, Mode};

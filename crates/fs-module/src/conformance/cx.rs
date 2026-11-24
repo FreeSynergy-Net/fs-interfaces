@@ -166,3 +166,20 @@ pub(crate) fn names(e: &capnp::Result<impl Sized>, kind: &str) -> bool {
         .err()
         .is_some_and(|e| e.to_string().contains(&format!("form-source-{kind}")))
 }
+
+pub(crate) const NOWHERE: &str = "zz-no-such";
+
+pub(crate) fn refused(a: &Answer, kind: &str, status: u16) -> bool {
+    a.failed && a.kind == format!("form-source-{kind}") && a.status == status
+}
+
+pub(crate) async fn first_record(cx: &Cx<'_>) -> Option<String> {
+    let f = cx.fx.forms().into_iter().next()?;
+    cx.page(&f.key, &f.scope, &[], 1)
+        .await
+        .ok()?
+        .rows
+        .into_iter()
+        .next()
+        .map(|r| r.id)
+}

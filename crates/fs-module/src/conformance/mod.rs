@@ -7,7 +7,9 @@
 //! Deviation (honest): no `fs-rpc` here, so an RPC exception is checked by "exception text contains `form-source-<kind>`".
 
 mod cx;
-mod rules;
+mod rules_errors;
+mod rules_read;
+mod rules_rights;
 
 pub use cx::Report;
 
@@ -16,17 +18,17 @@ use crate::FormSourceFixture;
 /// Run all rules in `LocalSet` context (capnp clients are not `Send`). Writes happen last (rule 7).
 pub async fn run_conformance(fx: &dyn FormSourceFixture) -> Report {
     let mut cx = cx::Cx::new(fx);
-    rules::hello(&mut cx).await;
-    rules::forms_listed(&mut cx).await;
-    rules::reading(&mut cx).await;
-    rules::keys(&mut cx).await;
-    rules::unknown_form(&mut cx).await;
-    rules::unknown_scope(&mut cx).await;
-    rules::unknown_command(&mut cx).await;
-    rules::bad_arguments(&mut cx).await;
-    rules::unknown_record(&mut cx).await;
-    rules::may_and_forbidden(&mut cx).await;
-    rules::blob(&mut cx).await;
-    rules::invoke_valid(&mut cx).await;
+    rules_read::hello(&mut cx).await;
+    rules_read::forms_listed(&mut cx).await;
+    rules_read::reading(&mut cx).await;
+    rules_read::keys(&mut cx).await;
+    rules_errors::unknown_form(&mut cx).await;
+    rules_errors::unknown_scope(&mut cx).await;
+    rules_errors::unknown_command(&mut cx).await;
+    rules_errors::bad_arguments(&mut cx).await;
+    rules_errors::unknown_record(&mut cx).await;
+    rules_rights::may_and_forbidden(&mut cx).await;
+    rules_rights::blob(&mut cx).await;
+    rules_rights::invoke_valid(&mut cx).await;
     cx.report
 }
