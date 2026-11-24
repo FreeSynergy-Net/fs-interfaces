@@ -1,4 +1,6 @@
 //! Report, context and the small client helpers the rules share.
+//!
+//! Pattern: Test helper (plain functions; a setup that fails is a failure of the rule, never a panic).
 
 use fs_interfaces::formsource_capnp::form_source;
 

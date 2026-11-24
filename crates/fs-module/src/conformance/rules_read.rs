@@ -1,4 +1,6 @@
 //! Rules of `module_v1`, part 1: reading (rules 1-4).
+//!
+//! Pattern: Template Method (a fixed list of rules, each one checked against the service of the fixture).
 
 use std::collections::HashSet;
 

@@ -1,4 +1,6 @@
 //! Rules of `module_v1`, part 2: errors (rules 5, 6, 8, 9, 10).
+//!
+//! Pattern: Template Method (a fixed list of rules, each one checked against the service of the fixture).
 
 use super::cx::{Cx, NOWHERE, first_record, names, refused};
 use crate::CommandKind;

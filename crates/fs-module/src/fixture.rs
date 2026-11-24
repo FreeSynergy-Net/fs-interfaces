@@ -1,4 +1,6 @@
 //! `FormSourceFixture`: what a service under test tells the suite (its client, its declared forms and commands, valid calls).
+//!
+//! Pattern: Template Method (the rules are fixed, the fixture supplies client, declared forms and valid calls).
 
 use fs_interfaces::formsource_capnp::form_source;
 

@@ -1,4 +1,6 @@
 //! `FakeSource`: a small, complete `FormSource` of level 1 with example data (a board with cards).
+//!
+//! Pattern: Fake Object (a small, complete source with example data; see the type).
 
 use std::cell::RefCell;
 
