@@ -113,6 +113,7 @@ impl form_source::Server for FakeSource {
         Ok(())
     }
 
+    // Level 1 write: it does NOT go through the level 2 log (only `invokeIf` does), so `changes` never shows it.
     async fn invoke(
         self: Rc<Self>,
         p: form_source::InvokeParams,

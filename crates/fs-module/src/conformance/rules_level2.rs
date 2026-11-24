@@ -8,6 +8,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
 
+use fs_interfaces::forms::FORM_SOURCE_LEVEL;
 use fs_interfaces::formsource_capnp::change_sink;
 
 use super::cx::Cx;
@@ -66,7 +67,8 @@ pub(crate) async fn level2(cx: &mut Cx<'_>) {
             .iter()
             .for_each(|r| cx.skip(&format!("{r}: no form or sample that changes one record")));
     };
-    if cx.fx.level() < 2 {
+    // Levels are cumulative: a newer service is checked only as far as this suite knows (`min(level, LEVEL)`).
+    if cx.fx.level().min(FORM_SOURCE_LEVEL) < 2 {
         return RULES
             .iter()
             .for_each(|r| cx.skip(&format!("{r}: the service is level 1")));
@@ -120,12 +122,13 @@ pub(crate) async fn level2(cx: &mut Cx<'_>) {
     let back = state(cx, &f.key, &f.scope).await;
     if before == after.clone().unwrap_or_default() {
         cx.skip("L2-5 revert: the sample changes nothing visible here");
-    }
-    cx.ensure(
-        back.as_ref() == Some(&before)
+    } else {
+        cx.ensure(
+            back.as_ref() == Some(&before)
             && undo.as_ref().is_some_and(|u| u.kind == "Undo" && u.undoes == change.activity),
         "L2-5 revert of an unchanged record: the state is as before, the answer is kind Undo with undoes",
-    );
+        );
+    }
 
     // L2-6
     let redo = match &undo {
@@ -165,12 +168,14 @@ pub(crate) async fn level2(cx: &mut Cx<'_>) {
         (Some(two), Some(mine)) => {
             let _ = cx::introduce(two, OTHER, "inst-2", "dev-2").await;
             let theirs = cx::invoke_if(two, call, "", ("conf-run-b", "s-b")).await;
+            let mid = state(cx, &f.key, &f.scope).await;
             let late = cx::revert(&src, mine.activity, (RUN_UNDO, "s-late")).await;
             cx.ensure(
                 is_ok(&theirs).is_some()
                     && late.as_ref().is_ok_and(|a| {
                         conflict(a) && a.by.as_ref().is_some_and(|b| b.program == OTHER)
-                    }),
+                    })
+                    && state(cx, &f.key, &f.scope).await == mid,
                 "L2-8 revert after another program changed the record: conflict 409, conflict.by is the other program, nothing is overwritten",
             );
         }

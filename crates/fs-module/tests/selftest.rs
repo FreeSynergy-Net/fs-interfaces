@@ -190,25 +190,58 @@ async fn ignore_step_must_turn_l2_3_red() {
     );
 }
 
-/// Counter-proof of rule 1: a level below the minimum or above the newest one is red.
+/// Counter-proof of rule 1 (levels are cumulative): a service below `FORM_SOURCE_MIN_LEVEL` is refused with the reason; one above
+/// `FORM_SOURCE_LEVEL` runs and is checked only as far as the suite knows (`min(level, LEVEL)`).
 #[tokio::test(flavor = "current_thread")]
-async fn a_level_outside_min_to_level_turns_rule_1_red() {
-    for says in [FORM_SOURCE_MIN_LEVEL - 1, FORM_SOURCE_LEVEL + 1] {
-        let r = LocalSet::new()
-            .run_until(run_with(Mode::Strict, says, 1))
-            .await;
-        assert!(
-            r.failures.iter().any(|f| f.starts_with("1 hello: level")),
-            "{says}: {:#?}",
-            r.failures
-        );
-    }
-    let ok = LocalSet::new()
-        .run_until(run_with(Mode::Strict, FORM_SOURCE_MIN_LEVEL, 1))
+async fn rule_1_refuses_below_min_and_takes_a_newer_level_using_only_what_it_knows() {
+    let low = LocalSet::new()
+        .run_until(run_with(
+            Mode::Strict,
+            FORM_SOURCE_MIN_LEVEL - 1,
+            FORM_SOURCE_MIN_LEVEL - 1,
+        ))
         .await;
     assert!(
-        ok.failures.iter().all(|f| !f.starts_with("1 hello")),
+        low.failures
+            .iter()
+            .any(|f| f.starts_with("1 hello: level is at least FORM_SOURCE_MIN_LEVEL")),
         "{:#?}",
-        ok.failures
+        low.failures
     );
+    // Level N+1 against a suite of level N: green, and the level 2 rules ran (none skipped for level).
+    let newer = LocalSet::new()
+        .run_until(run_with(
+            Mode::Strict,
+            FORM_SOURCE_LEVEL + 1,
+            FORM_SOURCE_LEVEL + 1,
+        ))
+        .await;
+    assert!(newer.failures.is_empty(), "{:#?}", newer.failures);
+    assert!(
+        newer
+            .skipped
+            .iter()
+            .all(|s| !s.contains("the service is level 1")),
+        "{:#?}",
+        newer.skipped
+    );
+    // The fixture and `hello` must agree: a fake that says 2 while the fixture declares 1 is red.
+    let liar = LocalSet::new()
+        .run_until(run_with(Mode::IgnoreStep, 2, 1))
+        .await;
+    assert!(
+        liar.failures
+            .iter()
+            .any(|f| f.starts_with("1 hello: level is the level the fixture")),
+        "{:#?}",
+        liar.failures
+    );
+    let ok = LocalSet::new()
+        .run_until(run_with(
+            Mode::Strict,
+            FORM_SOURCE_MIN_LEVEL,
+            FORM_SOURCE_MIN_LEVEL,
+        ))
+        .await;
+    assert!(ok.failures.is_empty(), "{:#?}", ok.failures);
 }
