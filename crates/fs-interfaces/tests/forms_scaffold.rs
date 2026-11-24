@@ -31,7 +31,10 @@ fn tiles_1_1_0_adds_four_channels_and_1_0_0_stays() {
         let n = new
             .channel(&c.name)
             .unwrap_or_else(|| panic!("lost {}", c.name));
-        assert_eq!((&n.arts, n.required, n.count), (&c.arts, c.required, c.count));
+        assert_eq!(
+            (&n.arts, n.required, n.count),
+            (&c.arts, c.required, c.count)
+        );
     }
     assert_eq!(new.channels.len(), old.channels.len() + 4);
     for name in ["summary", "state", "progress", "actions"] {
