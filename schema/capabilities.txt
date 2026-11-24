@@ -57,7 +57,7 @@ task.subscribe | Follow tasks | stable | Being told when tasks change
 relation.create | Task relations | stable | Linking a task to another one (parent, dependency, sibling)
 label.assign | Task labels | stable | Putting a label (keyword) on a task
 task.claim | Claim tasks | stable | Claiming a task for at most 24 hours and releasing the claim; the caller is the person of the connection
-# value.*: commands for ANY module with typed properties (form fields-in-groups@1.0.0), not settings only. The key is written WITHOUT the module name; the host prefixes every command of a module with the module name (namespace `<module>.`, fs-starter-host registry), so the first module, settings, appears at the host as `settings.value.get` and so on. The host checks the full id against this list, so `value.*` must be here.
+# value.*: a command group without a schema of its own (like label.* and relation.*; otherwise a topic key would be a schema name, line 4). value.* is the general command key for every module with typed properties (form fields-in-groups@1.0.0). The module writes the bare key (value.set) as capability in its catalog/commands.json. The host binds <module>.<key> (first module: settings.value.set) and checks the raw key (without module prefix) against this list (is_known, files read from disk); the full id is not in the list, so the key must be in this list.
 value.get | Read a value | planned | Reading the value of a typed property (read only)
 value.set | Set a value | planned | Setting the value of a typed property (writes `value`)
 value.reset | Reset a value | planned | Setting a typed property back to its default

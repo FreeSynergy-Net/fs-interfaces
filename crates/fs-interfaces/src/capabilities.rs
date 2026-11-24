@@ -58,17 +58,17 @@ pub mod name {
     pub const TASK_DELETE: &str = "task.delete";
     /// Claiming a task for at most 24 hours (and releasing the claim).
     pub const TASK_CLAIM: &str = "task.claim";
-    /// Reading a typed value (a module with typed properties; the host prefixes the module name).
+    /// Reading a typed value (read). The module writes the bare key; the host binds `<module>.value.get` and checks the raw key against the list (`is_known`, files read from disk).
     pub const VALUE_GET: &str = "value.get";
-    /// Setting a typed value.
+    /// Setting a typed value (write).
     pub const VALUE_SET: &str = "value.set";
-    /// Resetting a typed value to its default.
+    /// Resetting a typed value to its default (write).
     pub const VALUE_RESET: &str = "value.reset";
-    /// Locking a typed value.
+    /// Locking a typed value (write).
     pub const VALUE_LOCK: &str = "value.lock";
-    /// Unlocking a typed value.
+    /// Unlocking a typed value (write).
     pub const VALUE_UNLOCK: &str = "value.unlock";
-    /// Reading the log of a typed value.
+    /// Reading the log of a typed value (read).
     pub const VALUE_LOG: &str = "value.log";
     /// A storage provider.
     pub const STORAGE_PROVIDER: &str = "storage.provider";
