@@ -23,7 +23,7 @@ struct RecordView {
   id     @0 :Text;
   may    @1 :List(Text);                         # commands (own `commands.json` of the module) this person may run on it
   hidden @2 :List(HiddenField);
-  values @3 :List(Value);
+  values @3 :List(Value);  # one `Value` per field; a channel marked `repeats` in forms.txt may repeat its `path`, once per item (rule in `FormSource`)
 }
 
 # What a write made or changed (appended with `invoke` in SW-1): the record it points at and a short text for people (a code, never a foreign sentence).
@@ -115,6 +115,7 @@ interface FormSource {
   #
   #   Values: a value of art `time` (in `page` records, also a `facts` field of art time, and in `invoke` args; for example `due`) is an RFC 3339
   #   `date-time` (section 5.6) WITH an offset or `Z`, never a local time without offset. Channel `progress` is a percentage 0..100.
+  #   Repeated values (cards-in-columns@1.4.0, text only): a channel that the catalog comment marks `repeats` (there `assignee`) has one `Value` per item, all with the same `path`, in the order of the module; every other channel has at most one.
 
   hello @0 () -> (level :UInt32, provider :Text);
   # The level of this contract the service speaks (a plain number, 1 today) and who it is (`fake` for example data).
