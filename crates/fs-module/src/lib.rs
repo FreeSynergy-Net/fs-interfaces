@@ -12,6 +12,7 @@ mod fake_l2_wire;
 mod fake_l2_write;
 mod fake_run;
 mod fake_server;
+mod fake_values;
 mod fixture;
 
 pub use fake::{FakeSource, IMAGE, Mode, Refusal};
