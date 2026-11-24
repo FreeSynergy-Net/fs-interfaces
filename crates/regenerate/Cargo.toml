@@ -13,4 +13,4 @@ capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", rev = "f600
 capnpc = "0.27"
 fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", rev = "722d3ce0156711d40cb278f2e835e865d9448290" }
 # The marks of the program (an adapter of `MarkSource`) for the command code and the tool tables.
-fs-mcp = { path = "../fs-mcp", default-features = false }
+fs-mcp = { path = "../fs-mcp", version = "0.2.0", default-features = false }
