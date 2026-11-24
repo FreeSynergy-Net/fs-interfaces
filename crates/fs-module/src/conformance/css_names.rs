@@ -1,4 +1,6 @@
 //! The colour names of CSS Color Module Level 3, section 4.3 (the names JSCalendar `color` allows, RFC 8984 section 4.2.11).
+//!
+//! Pattern: Lookup Table (a fixed list of the names the standard defines; nothing else is a colour name).
 
 /// All 147 names (lower case).
 pub(crate) const NAMES: &[&str] = &[
