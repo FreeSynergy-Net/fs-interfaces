@@ -23,3 +23,5 @@ fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", version = "0.0
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros"] }
+# `owner::fake::person` builds the person of a test context.
+fs-interfaces = { path = "../fs-interfaces", version = "0.2.0", features = ["fake"] }

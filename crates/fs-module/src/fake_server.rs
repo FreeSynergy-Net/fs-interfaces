@@ -4,15 +4,14 @@
 #![allow(clippy::unused_async_trait_impl)] // the generated server trait is async
 
 use fs_interfaces::common_capnp::problem;
-use fs_interfaces::forms::parse_key;
 use fs_interfaces::formsource_capnp::{form_source, value};
 use std::rc::Rc;
 
-use crate::fake::{FakeSource, LOCKED, Mode, refuse};
+use crate::fake::{FakeSource, Mode, refuse};
 use crate::fake_l2::{self, Outcome};
 use crate::fake_l2_wire::{self, Sub};
+use crate::fake_rows::{knows_form, window};
 use crate::fake_run::Image;
-use crate::fake_values::standard_values;
 
 type Reply = Result<(), capnp::Error>;
 
@@ -34,72 +33,42 @@ impl form_source::Server for FakeSource {
         mut r: form_source::PageResults,
     ) -> Reply {
         let p = p.get()?;
-        let known = parse_key(p.get_form()?.to_str()?)
-            .is_some_and(|(n, v)| n == "cards-in-columns" && (v.major, v.minor) == (1, 0));
-        if !known {
-            return Err(refuse("unknown-form", 404, "no such form").error());
-        }
-        if !p.get_scope()?.to_str()?.is_empty() {
-            return Err(refuse("unknown-scope", 404, "the fake has no scopes").error());
-        }
-        let skip = match p.get_cursor()?.get_opaque()? {
-            [] => 0,
-            b => std::str::from_utf8(b)
-                .ok()
-                .and_then(|t| t.parse::<usize>().ok())
-                .ok_or_else(|| refuse("bad-arguments", 400, "bad cursor").error())?,
-        };
-        // limit 0 = the service's default page size; a larger limit is capped to the service's own maximum.
-        let limit = match p.get_limit() {
-            0 => 100,
-            n => (n as usize).min(1000),
-        };
-        let cards = self.sh.cards.borrow();
-        let end = skip.saturating_add(limit).min(cards.len());
+        let page = self
+            .rows(
+                p.get_form()?.to_str()?,
+                p.get_scope()?.to_str()?,
+                p.get_cursor()?.get_opaque()?,
+                p.get_limit(),
+            )
+            .map_err(|why| why.error())?;
         let mut out = r.get();
         {
-            let mut page = out.reborrow().init_page();
-            page.set_total(cards.len() as u64);
-            page.set_has_total(true);
-            page.reborrow().init_may(1).set(0, "card.create");
-            let rows = cards.get(skip..end).unwrap_or_default();
-            let mut list = page.init_records(
-                u32::try_from(rows.len()).map_err(|_| capnp::Error::failed("too many".into()))?,
+            let mut view = out.reborrow().init_page();
+            view.set_total(page.total as u64);
+            view.set_has_total(true);
+            view.reborrow().init_may(1).set(0, "card.create");
+            let mut list = view.init_records(
+                u32::try_from(page.rows.len())
+                    .map_err(|_| capnp::Error::failed("too many".into()))?,
             );
-            for (i, (id, title, col)) in (0u32..).zip(rows) {
-                let mut view = list.reborrow().get(i);
-                view.set_id(id.as_str());
-                if id != LOCKED {
-                    let mut may = view.reborrow().init_may(2);
+            for (i, row) in (0u32..).zip(&page.rows) {
+                let mut rec = list.reborrow().get(i);
+                rec.set_id(row.id.as_str());
+                if FakeSource::changeable(&row.id) {
+                    let mut may = rec.reborrow().init_may(2);
                     may.set(0, "card.move");
                     may.set(1, "card.delete");
                 }
-                let due = if self.mode == Mode::LaxShape {
-                    "2026-11-30T12:00:00-04[America/New_York]"
-                } else {
-                    "2026-11-30T12:00:00+01:00"
-                }
-                .to_owned();
-                let extra = if id == "c1" {
-                    standard_values(self.mode)
-                } else {
-                    Vec::new()
-                };
-                let mut cols = vec![("title", title), ("column", col)];
-                if id == "c1" {
-                    cols.push(("due", &due));
-                    cols.extend(extra.iter().map(|(p, t)| (*p, t)));
-                }
-                let mut values = view.init_values(u32::try_from(cols.len()).unwrap_or(0));
-                for (j, (path, text)) in (0u32..).zip(cols) {
+                let mut values = rec.init_values(u32::try_from(row.values.len()).unwrap_or(0));
+                for (j, (path, text)) in (0u32..).zip(&row.values) {
                     let mut v: value::Builder<'_> = values.reborrow().get(j);
-                    v.set_path(path);
+                    v.set_path(path.as_str());
                     v.set_text(text.as_str());
                 }
             }
         }
-        if end < cards.len() {
-            out.init_next().set_opaque(end.to_string().as_bytes());
+        if let Some(next) = &page.next {
+            out.init_next().set_opaque(next.as_bytes());
         }
         Ok(())
     }
@@ -109,13 +78,9 @@ impl form_source::Server for FakeSource {
         p: form_source::BlobParams,
         mut r: form_source::BlobResults,
     ) -> Reply {
-        if !self.blob {
-            return Err(refuse("unsupported", 501, "the fake has no image or file field").error());
-        }
         let p = p.get()?;
-        if p.get_record()?.to_str()? != "c1" || p.get_field()?.to_str()? != "image" {
-            return Err(refuse("unknown-record", 404, "no such image").error());
-        }
+        self.check_blob(p.get_record()?.to_str()?, p.get_field()?.to_str()?)
+            .map_err(|why| why.error())?;
         r.get().set_blob(capnp_rpc::new_client(Image));
         Ok(())
     }
@@ -223,17 +188,8 @@ impl form_source::Server for FakeSource {
         if !p.get_scope()?.to_str()?.is_empty() {
             return Err(refuse("bad-arguments", 400, "the fake has no scopes").error());
         }
-        let skip = match p.get_cursor()?.get_opaque()? {
-            [] => 0,
-            b => std::str::from_utf8(b)
-                .ok()
-                .and_then(|t| t.parse::<usize>().ok())
-                .ok_or_else(|| refuse("bad-arguments", 400, "bad cursor").error())?,
-        };
-        let limit = match p.get_limit() {
-            0 => 100,
-            n => (n as usize).min(1000),
-        };
+        let (skip, limit) =
+            window(p.get_cursor()?.get_opaque()?, p.get_limit()).map_err(|why| why.error())?;
         let program = self.who.borrow().program.clone();
         let all = self.sh.changes(p.get_run()?.to_str()?, &program);
         let end = skip.saturating_add(limit).min(all.len());
@@ -274,9 +230,7 @@ impl form_source::Server for FakeSource {
         self.need_level2()?;
         let p = p.get()?;
         let form = p.get_form()?.to_str()?;
-        let known = parse_key(form)
-            .is_some_and(|(n, v)| n == "cards-in-columns" && (v.major, v.minor) == (1, 0));
-        if !known {
+        if !knows_form(form) {
             return Err(refuse("unknown-form", 404, "no such form").error());
         }
         let id = self.sh.watch(crate::fake::FORM, p.get_sink()?);

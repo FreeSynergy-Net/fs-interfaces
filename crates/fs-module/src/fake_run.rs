@@ -13,8 +13,36 @@ use crate::fixture::CommandKind;
 type Reply = Result<(), capnp::Error>;
 
 impl FakeSource {
-    /// One command: known, then allowed, then its arguments, then the record. Returns the record made or changed.
+    /// Whether the rights of the fake refuse this command on this record (the ONE place of the rule; `FakeRules` asks it too):
+    /// a record command on the locked card, and the set command `card.clear`.
+    pub(crate) fn locked(command: &str, record: &str) -> bool {
+        (Self::kind_of(command) == Some(CommandKind::Record) && record == LOCKED)
+            || command == SET_LOCKED
+    }
+
+    /// The RIGHT of one command (apart from its effect): `Ok` or the `forbidden` refusal. An unknown command is no question of rights.
+    pub(crate) fn rights(command: &str, record: &str) -> Result<(), Refusal> {
+        if Self::locked(command, record) {
+            return Err(refuse("forbidden", 403, "this card is locked"));
+        }
+        Ok(())
+    }
+
+    /// One command with its rights: `rights`, then `effect`. This is the level 1 server's way (the fake checks its own rights).
     pub(crate) fn run(
+        &self,
+        command: &str,
+        record: &str,
+        args: &[(String, String)],
+    ) -> Result<(String, &'static str), Refusal> {
+        Self::kind_of(command).ok_or_else(|| refuse("unknown-command", 404, "no such command"))?;
+        Self::rights(command, record)?;
+        self.effect(command, record, args)
+    }
+
+    /// The EFFECT of one command, no rights asked: known, then its arguments, then the record. Returns the record made or changed.
+    /// `FakeCore` calls this one (under a wrapper the module never checks rights).
+    pub(crate) fn effect(
         &self,
         command: &str,
         record: &str,
@@ -22,9 +50,6 @@ impl FakeSource {
     ) -> Result<(String, &'static str), Refusal> {
         let kind = Self::kind_of(command)
             .ok_or_else(|| refuse("unknown-command", 404, "no such command"))?;
-        if (kind == CommandKind::Record && record == LOCKED) || command == SET_LOCKED {
-            return Err(refuse("forbidden", 403, "this card is locked"));
-        }
         let params = Self::commands()
             .into_iter()
             .find(|c| c.key == command)

@@ -13,7 +13,7 @@ use crate::fake_l2::{self, Entry, Field, Outcome};
 type Reply = Result<(), capnp::Error>;
 
 /// The person the fake says for every connection (a UUIDv7 as IRI): the connection tells the person, never the caller.
-const PERSON: &str = "urn:uuid:018f3a52-7c1e-7b3a-9d4e-5a6b7c8d9e0f";
+pub(crate) const PERSON: &str = "urn:uuid:018f3a52-7c1e-7b3a-9d4e-5a6b7c8d9e0f";
 
 pub(crate) fn fill_change(mut out: change_ref::Builder<'_>, e: &Entry) {
     set_uuid(out.reborrow().init_activity(), e.id);

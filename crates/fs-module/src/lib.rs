@@ -7,15 +7,20 @@
 
 pub mod conformance;
 mod fake;
+mod fake_core;
+mod fake_fixture;
 mod fake_l2;
 mod fake_l2_wire;
 mod fake_l2_write;
+mod fake_rows;
 mod fake_run;
 mod fake_server;
 mod fake_values;
 mod fixture;
 
 pub use fake::{FakeSource, IMAGE, Mode, Refusal};
+pub use fake_core::{FakeCore, FakeRules};
+pub use fake_fixture::FakeFixture;
 pub use fixture::{
     BlobSample, CommandKind, DeclaredCommand, DeclaredForm, FormSourceFixture, LaneCase, Ordered,
     Param, Sample, ValueField, ValueKind, Verify,

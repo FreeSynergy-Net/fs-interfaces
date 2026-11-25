@@ -7,6 +7,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use fs_interfaces::formsource_capnp::change_sink;
+use fs_interfaces::module::ChangeFeed;
 
 use crate::fake::{FORM, Mode, Refusal};
 
@@ -66,6 +67,8 @@ pub(crate) struct Shared {
     pub cards: RefCell<Vec<(String, String, String)>>,
     pub next: RefCell<u32>,
     log: RefCell<Log>,
+    /// The plain callbacks of `ModuleCore::feed` (next to the capnp sinks in the log): `commit` tells them every new change.
+    feeds: RefCell<Vec<ChangeFeed>>,
 }
 
 /// A clash field: path, what the record has now, what the caller wanted.
@@ -97,6 +100,7 @@ impl Shared {
             ]),
             next: RefCell::new(4),
             log: RefCell::new(log),
+            feeds: RefCell::default(),
         }
     }
 
@@ -198,7 +202,17 @@ impl Shared {
                 .insert((key.0, key.1.to_owned(), key.2.to_owned()), n);
         }
         log.entries.push(entry.clone());
+        drop(log); // no borrow of the log while a callback runs
+        let change = crate::fake_core::change_ref(&entry);
+        for feed in self.feeds.borrow().iter() {
+            feed(&change);
+        }
         entry
+    }
+
+    /// Registers a plain callback for every change from now on (`ModuleCore::feed`).
+    pub(crate) fn add_feed(&self, sink: ChangeFeed) {
+        self.feeds.borrow_mut().push(sink);
     }
 
     /// The changes, newest first: those of a run, or those of a program.
