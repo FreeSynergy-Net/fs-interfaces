@@ -60,11 +60,27 @@ fn the_old_schema_reads_module_and_data_as_unknown_and_the_rest_intact() {
 #[test]
 fn the_old_values_keep_their_numbers_and_read_unchanged() {
     for (old_kind, expected, number) in [
-        (store_capnp::PackageKind::Program, new::PackageKind::Program, 0),
-        (store_capnp::PackageKind::Frontend, new::PackageKind::Frontend, 1),
-        (store_capnp::PackageKind::Component, new::PackageKind::Component, 2),
+        (
+            store_capnp::PackageKind::Program,
+            new::PackageKind::Program,
+            0,
+        ),
+        (
+            store_capnp::PackageKind::Frontend,
+            new::PackageKind::Frontend,
+            1,
+        ),
+        (
+            store_capnp::PackageKind::Component,
+            new::PackageKind::Component,
+            2,
+        ),
         (store_capnp::PackageKind::Theme, new::PackageKind::Theme, 3),
-        (store_capnp::PackageKind::Server, new::PackageKind::Server, 4),
+        (
+            store_capnp::PackageKind::Server,
+            new::PackageKind::Server,
+            4,
+        ),
     ] {
         assert_eq!(u16::from(old_kind), number);
         assert_eq!(u16::from(expected), number);
