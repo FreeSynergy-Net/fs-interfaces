@@ -1,24 +1,17 @@
-# cargo-nextest profiles for fs-interfaces (workflow testlauf, CLAUDE.md §4: little but often). Vorlage fs-components 216594c0.
-# Geprüft mit `cargo nextest list` (C4 Batch 1), nicht ausgeführt.
-# Namenskonvention wie im Muster; Zuordnung nur nach Dateiname (Binary = <paket>::<datei>, Paket = Verzeichnis angenommen).
-# Nur Stufen, zu denen das Repo Treffer hat; binary(...) nur mit nachgewiesenem Treffer (nextest verweigert leere Mengen).
-# Stufen: quick (Unit/Modell) | time (--stress-count 10) | socket | security | platform | picture | release (nur CI).
+# cargo-nextest-Profile für fs-interfaces (Workflow testlauf, CLAUDE.md §4: wenig, aber oft).
+# Geprüft mit `cargo nextest list` (C3, 25.11.): quick 98, release 98 Tests; nicht ausgeführt.
+# Es gibt nur Stufen, zu denen das Repo Treffer hat. Stufe security fehlt bewusst: fs-interfaces hat kein Paket fs-mcp
+# und keine Tests mit hardening, canary, secrets, sensitive, restricted oder security im Namen (nextest list: 0 Treffer;
+# nextest verweigert leere Mengen). Kommt ein solcher Test dazu, wird die Stufe security nach Vorlage fs-components ergänzt.
+# Stufen: quick (alles, was das Repo hat) | release (nur CI, alles).
 
 [profile.default]
 fail-fast = false
 
 [profile.quick]
-default-filter = "not (binary(/hardening|canary_|secrets|sensitive/) | test(/restricted|security/))"
 fail-fast = true
 retries = 0
 slow-timeout = { period = "30s", terminate-after = 4 }
-
-# Security (fs-mcp, MCP "nur Mensch"; CLAUDE.md §4 harte Grenze 2): Dateinamen hardening*, canary_*, *secrets*, *sensitive*. Voller Lauf vor dem Release.
-[profile.security]
-default-filter = "binary(/hardening|canary_|secrets|sensitive/)"
-fail-fast = false
-retries = 0
-slow-timeout = { period = "60s", terminate-after = 5 }
 
 [profile.release]
 fail-fast = false
