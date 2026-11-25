@@ -16,7 +16,7 @@ pub(crate) struct Row {
 
 /// One page of rows with the total and the cursor of the next page (`None` = last page).
 #[derive(Clone, Debug)]
-pub(crate) struct Rows {
+pub(crate) struct RowsPage {
     pub rows: Vec<Row>,
     pub total: usize,
     pub next: Option<String>,
@@ -51,7 +51,7 @@ impl FakeSource {
         scope: &str,
         cursor: &[u8],
         limit: u32,
-    ) -> Result<Rows, Refusal> {
+    ) -> Result<RowsPage, Refusal> {
         if !knows_form(form) {
             return Err(refuse("unknown-form", 404, "no such form"));
         }
@@ -89,7 +89,7 @@ impl FakeSource {
                 }
             })
             .collect();
-        Ok(Rows {
+        Ok(RowsPage {
             rows,
             total: cards.len(),
             next: (end < cards.len()).then(|| end.to_string()),

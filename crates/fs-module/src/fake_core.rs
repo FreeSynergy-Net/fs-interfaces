@@ -3,6 +3,9 @@
 //! Pattern: Fake Object (Test Double) as `ModuleCore`; deviation: it checks no rights, they are in `FakeRules` (a wrapper asks them).
 //! It uses the same facts as `FakeSource` (`Shared`, `effect`, `rows`), so there is ONE body of the fake.
 
+#![allow(clippy::unused_async_trait_impl, clippy::unnecessary_literal_bound)] // the fake has nothing to await; the trait is async
+#![allow(clippy::result_large_err)] // `module::Refusal` is the error type of the contract `ModuleCore`
+
 use fs_interfaces::module::{
     Applied, Ask, Blob, ChangeFeed, ChangeKind, ChangePage, ChangeRef, ChangesQuery, Conflict,
     Context, FieldClash, HiddenReason, Invocation, ModuleCore, Origin, Page, PageQuery, RecordView,
@@ -114,13 +117,12 @@ pub(crate) fn change_ref(e: &Entry) -> ChangeRef {
 /// The refusal of the fake as the value of the module contract (`form-source-` is the problem type, the module says the bare kind).
 fn refusal(why: &Refusal) -> fs_interfaces::module::Refusal {
     let mut r = fs_interfaces::module::Refusal::default();
-    r.kind = why
-        .kind
+    why.kind
         .strip_prefix("form-source-")
         .unwrap_or(&why.kind)
-        .to_owned();
+        .clone_into(&mut r.kind);
     r.status = why.status;
-    r.detail = why.detail.clone();
+    r.detail.clone_from(&why.detail);
     r
 }
 
@@ -137,7 +139,7 @@ fn applied(e: &Entry) -> Applied {
     if e.after.is_some() {
         a.record.clone_from(&e.object);
     }
-    a.text = e.text.to_owned();
+    e.text.clone_into(&mut a.text);
     a.change = Some(change_ref(e));
     a
 }
