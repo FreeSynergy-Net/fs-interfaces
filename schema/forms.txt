@@ -1,6 +1,7 @@
-# Form catalog (ADR 0068 style, read by `fs_interfaces::forms`; draft: PLAN-quelle-und-abgleich section 3). Two kinds of lines, `#` starts a comment:
+# Form catalog (ADR 0068 style, read by `fs_interfaces::forms`; draft: PLAN-quelle-und-abgleich section 3). Three kinds of lines (form, channel, relation), `#` starts a comment:
 #   form line:    name@Major.Minor.Patch | display name | status | description        (status: stable | planned)
 #   channel line: > channel | art | required | count                            (belongs to the form line above it)
+#   relation line: = interval start end [all-day]  |  = parent channel      (after the channels of the form; see "Paket F" below)
 # required: `!` = required, `-` = optional. count = how many fields a module maps onto the channel: `1`, `0..1`, `0..4`, `0..n`, `1..n` (never `?`: the reader refuses it; a required channel starts at 1).
 # art: one of records text number flag time reference command (the seven basic kinds), or a set `text|number|time|flag` (no spaces, no duplicate, not empty): the field may have any art of the set. The reader refuses any other word. The reader holds the fixed table art -> allowed fs-types basic types.
 # Rule "repeated value" (CIC-B): a channel the comment of its form marks `repeats` carries one `Value` per item with the same `path`; every other channel at most one (see cards-in-columns@1.4.0).
@@ -274,7 +275,7 @@ bars-in-time@1.1.0 | Bars in time | planned | As 1.0.0, plus colour, create, rem
 > remove | command | - | 0..1 |
 > open | command | - | 0..1 |
 = interval start end all-day
-#   Standards: color = JSCalendar `color` (RFC 8984 section 4.2.10, a CSS colour value). start/end when written = RFC 3339 `date-time` with offset, or `full-date` when `all-day` is set. The relation `interval` = ISO 8601-1 interval `start/end`, half-open [start, end), end >= start (zero length allowed; RFC 8984 `duration` is never negative, section 1.4.6); `all-day` = RFC 8984 `showWithoutTime`. open = own and open (as tiles@1.0.0, writes nothing). remove and move are in the form so level 2 needs no new minor; the module offers a command only when it can (`may` per record), there are no dead buttons.
+#   Standards: color = JSCalendar `color` (RFC 8984 section 4.2.11, a CSS colour value). start/end when written = RFC 3339 `date-time` with offset, or `full-date` when `all-day` is set. The relation `interval` = ISO 8601-1 interval `start/end`, half-open [start, end), end >= start (zero length allowed; RFC 8984 `duration` is never negative, section 1.4.6); `all-day` = RFC 8984 `showWithoutTime`. open = own and open (as tiles@1.0.0, writes nothing). remove and move are in the form so level 2 needs no new minor; the module offers a command only when it can (`may` per record), there are no dead buttons.
 
 checklist@1.1.0 | Checklist | planned | As 1.0.0, plus a sub line, facts, a group, and the commands toggle, create and open (task row; ENTWURF-fuenf-bloecke TR0)
 > items | records | ! | 1
@@ -287,4 +288,4 @@ checklist@1.1.0 | Checklist | planned | As 1.0.0, plus a sub line, facts, a grou
 > toggle | command | - | 0..1 | done!
 > create | command | - | 0..1 | label! group
 > open | command | - | 0..1 |
-#   Standards: done = iCalendar VTODO `STATUS:COMPLETED` / `COMPLETED` (RFC 5545 section 3.8.1.11). group: the words (today, ready, blocked ...) belong to the module, the frontend only sorts into sections. sub, facts, group, toggle, create, open are own and open.
+#   Standards: done = iCalendar VTODO `STATUS:COMPLETED` (RFC 5545 section 3.8.1.11) and `COMPLETED` (section 3.8.2.1). group: the words (today, ready, blocked ...) belong to the module, the frontend only sorts into sections. sub, facts, group, toggle, create, open are own and open.
