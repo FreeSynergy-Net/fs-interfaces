@@ -8,6 +8,7 @@
 pub mod conformance;
 mod fake;
 mod fake_core;
+mod fake_core_ids;
 mod fake_fixture;
 mod fake_l2;
 mod fake_l2_wire;

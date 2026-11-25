@@ -203,7 +203,7 @@ impl Shared {
         }
         log.entries.push(entry.clone());
         drop(log); // no borrow of the log while a callback runs
-        let change = crate::fake_core::change_ref(&entry);
+        let change = crate::fake_core_ids::change_ref(&entry);
         for feed in self.feeds.borrow().iter() {
             feed(&change);
         }

@@ -7,17 +7,26 @@
 #![allow(clippy::result_large_err)] // `module::Refusal` is the error type of the contract `ModuleCore`
 
 use fs_interfaces::module::{
-    Applied, Ask, Blob, ChangeFeed, ChangeKind, ChangePage, ChangeRef, ChangesQuery, Conflict,
-    Context, FieldClash, HiddenReason, Invocation, ModuleCore, Origin, Page, PageQuery, RecordView,
-    RightsRules, StepRef, Value, Verdict,
+    Applied, Ask, Blob, ChangeFeed, ChangePage, ChangesQuery, Conflict, Context, FieldClash,
+    HiddenReason, Invocation, ModuleCore, Page, PageQuery, RecordView, RightsRules, StepRef, Value,
+    Verdict,
 };
-use fs_types::Utc;
 
 use crate::fake::{FakeSource, Mode, Refusal};
+use crate::fake_core_ids::{change_ref, uuid_number};
 use crate::fake_l2::{Entry, Outcome, Who};
-use crate::fake_l2_wire::PERSON;
 use crate::fake_rows::window;
 use crate::fixture::CommandKind;
+
+/// The commands the module OFFERS of one kind (declared, in order): the module lists them in `may`; it checks no rights, the wrapper strikes
+/// what the rules deny (see `FakeRules`). Pattern: Fake Object (the same declaration `FakeSource::commands` gives the suite).
+fn offered(kind: CommandKind) -> Vec<String> {
+    FakeSource::commands()
+        .into_iter()
+        .filter(|c| c.kind == kind)
+        .map(|c| c.key)
+        .collect()
+}
 
 /// Pattern: Strategy (test variant of `RightsRules`) - the rights of the fake: the locked card `c3` and the set command `card.clear` are
 /// denied (`locked`), everything else is allowed, nothing is hidden. The rule itself is `FakeSource::locked`, the same the level 1 server asks.
@@ -67,61 +76,6 @@ impl FakeCore {
     pub fn with_boards(mut self, n: usize) -> Self {
         self.src = self.src.with_boards(n);
         self
-    }
-}
-
-/// The text of a UUID (8-4-4-4-12, lower case): the form a change id has as text.
-fn uuid_text(id: u128) -> String {
-    let h = format!("{id:032x}");
-    format!(
-        "{}-{}-{}-{}-{}",
-        &h[..8],
-        &h[8..12],
-        &h[12..16],
-        &h[16..20],
-        &h[20..]
-    )
-}
-
-/// The number behind a UUID text; `None` if it is none.
-fn uuid_number(text: &str) -> Option<u128> {
-    let h: String = text.chars().filter(|c| *c != '-').collect();
-    (h.len() == 32)
-        .then(|| u128::from_str_radix(&h, 16).ok())
-        .flatten()
-}
-
-/// The commands the module OFFERS of one kind (declared, in order): the module lists them in `may`; it checks no rights, the wrapper strikes
-/// what the rules deny (see `FakeRules`). Pattern: Fake Object (the same declaration `FakeSource::commands` gives the suite).
-fn offered(kind: CommandKind) -> Vec<String> {
-    FakeSource::commands()
-        .into_iter()
-        .filter(|c| c.kind == kind)
-        .map(|c| c.key)
-        .collect()
-}
-
-/// A log entry as a `ChangeRef` (the person is the one the fake says for every connection).
-pub(crate) fn change_ref(e: &Entry) -> ChangeRef {
-    let kind = match e.kind {
-        "Create" => ChangeKind::Create,
-        "Delete" => ChangeKind::Delete,
-        "Undo" => ChangeKind::Undo,
-        _ => ChangeKind::Update,
-    };
-    let c = ChangeRef::new(
-        &uuid_text(e.id),
-        &e.object,
-        &e.rev.to_string(),
-        &e.before_rev.map(|r| r.to_string()).unwrap_or_default(),
-        Origin::new(PERSON, &e.who.program, &e.who.instance, &e.who.device),
-        kind,
-        Utc::from_millis(e.at),
-    );
-    if e.undoes == 0 {
-        c
-    } else {
-        c.undoing(&uuid_text(e.undoes))
     }
 }
 
