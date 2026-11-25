@@ -11,7 +11,7 @@
 //! (`RightsRules::hidden` has no default method, as rule 6 asks.)
 //!
 //! The contracts only grow (append only): the types that may get new variants are `#[non_exhaustive]`; the value types
-//! of [`values`] are plain data that the wrapper builds. The Cap'n Proto conversion (`wire`) is not part of this step
+//! of [`values`] are plain data that the wrapper and the modules build. The Cap'n Proto conversion (`wire`) is not part of this step
 //! (it needs the level-2 schema words that the stage 3 landing fixes); the values mirror `schema/formsource.capnp`.
 
 mod context;
@@ -26,6 +26,6 @@ pub use self::context::{Actor, Caller, Claimed, Context};
 pub use self::core::{ChangeFeed, ModuleCore};
 pub use self::rules::{Ask, HiddenReason, RightsRules, Verdict};
 pub use self::values::{
-    Applied, Blob, ChangePage, ChangeRef, ChangesQuery, Conflict, FieldClash, HiddenField,
-    Invocation, Origin, Page, PageQuery, RecordView, Refusal, StepRef, Value,
+    Applied, Blob, ChangeKind, ChangePage, ChangeRef, ChangesQuery, Conflict, FieldClash,
+    HiddenField, Invocation, Origin, Page, PageQuery, RecordView, Refusal, StepRef, Value,
 };

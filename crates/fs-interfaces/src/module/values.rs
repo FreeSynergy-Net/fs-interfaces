@@ -42,6 +42,45 @@ pub struct StepRef {
     pub step: String,
 }
 
+impl StepRef {
+    /// The step `step` of the run `run`.
+    #[must_use]
+    pub fn new(run: &str, step: &str) -> Self {
+        Self {
+            run: run.into(),
+            step: step.into(),
+        }
+    }
+}
+
+/// Pattern: Value Object (enum) - the AS2 kind of a change; new kinds may come, so match with a wildcard arm.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum ChangeKind {
+    /// A record was made.
+    #[default]
+    Create,
+    /// A record was changed.
+    Update,
+    /// A record was deleted.
+    Delete,
+    /// A change was taken back.
+    Undo,
+}
+
+impl ChangeKind {
+    /// The AS2 type name (`Create`, `Update`, `Delete`, `Undo`).
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Create => "Create",
+            Self::Update => "Update",
+            Self::Delete => "Delete",
+            Self::Undo => "Undo",
+        }
+    }
+}
+
 /// Pattern: Memento (reference) - the module holds the data, the caller only the reference.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
@@ -57,11 +96,43 @@ pub struct ChangeRef {
     /// Where it came from.
     pub origin: Origin,
     /// AS2: `Create`, `Update`, `Delete` or `Undo`.
-    pub kind: String,
+    pub kind: ChangeKind,
     /// When.
     pub at: Utc,
     /// At `Undo`: the change taken back.
     pub undoes: Option<String>,
+}
+
+impl ChangeRef {
+    /// A change; `undoes` is `None`, `before` is empty at create.
+    #[must_use]
+    pub fn new(
+        activity: &str,
+        object: &str,
+        revision: &str,
+        before: &str,
+        origin: Origin,
+        kind: ChangeKind,
+        at: Utc,
+    ) -> Self {
+        Self {
+            activity: activity.into(),
+            object: object.into(),
+            revision: revision.into(),
+            before: before.into(),
+            origin,
+            kind,
+            at,
+            undoes: None,
+        }
+    }
+
+    /// At `Undo`: the change (its activity) that is taken back.
+    #[must_use]
+    pub fn undoing(mut self, change: &str) -> Self {
+        self.undoes = Some(change.into());
+        self
+    }
 }
 
 /// One field: dotted field name of the module and the value as text.
@@ -74,6 +145,17 @@ pub struct Value {
     pub text: String,
 }
 
+impl Value {
+    /// The field `path` with the value `text`.
+    #[must_use]
+    pub fn new(path: &str, text: &str) -> Self {
+        Self {
+            path: path.into(),
+            text: text.into(),
+        }
+    }
+}
+
 /// A hidden field and why.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
@@ -82,6 +164,17 @@ pub struct HiddenField {
     pub path: String,
     /// Why.
     pub reason: super::HiddenReason,
+}
+
+impl HiddenField {
+    /// The field `path`, hidden for `reason`.
+    #[must_use]
+    pub fn new(path: &str, reason: super::HiddenReason) -> Self {
+        Self {
+            path: path.into(),
+            reason,
+        }
+    }
 }
 
 /// One record as shown to the asking person.
@@ -178,6 +271,18 @@ pub struct FieldClash {
     pub mine: String,
 }
 
+impl FieldClash {
+    /// The field `path`: `current` is in the record, `mine` was wanted.
+    #[must_use]
+    pub fn new(path: &str, current: &str, mine: &str) -> Self {
+        Self {
+            path: path.into(),
+            current: current.into(),
+            mine: mine.into(),
+        }
+    }
+}
+
 /// The conflict, typed.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
@@ -186,6 +291,14 @@ pub struct Conflict {
     pub by: ChangeRef,
     /// The fields in conflict.
     pub fields: Vec<FieldClash>,
+}
+
+impl Conflict {
+    /// The change `by` that came in between and the fields in conflict.
+    #[must_use]
+    pub fn new(by: ChangeRef, fields: Vec<FieldClash>) -> Self {
+        Self { by, fields }
+    }
 }
 
 /// Pattern: Result Object - a refusal as a value: `form-source-<kind>` with a status, never a foreign sentence.
@@ -203,6 +316,17 @@ pub struct Refusal {
 }
 
 impl Refusal {
+    /// `form-source-conflict` 409 with the typed conflict.
+    #[must_use]
+    pub fn conflict(detail: &str, conflict: Conflict) -> Self {
+        Self {
+            kind: "conflict".into(),
+            status: 409,
+            detail: detail.into(),
+            conflict: Some(conflict),
+        }
+    }
+
     /// `form-source-forbidden` 403 for a rules `Deny`.
     #[must_use]
     pub fn forbidden(reason: &str) -> Self {

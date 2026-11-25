@@ -8,11 +8,12 @@ use super::{
     Refusal, RightsRules, StepRef,
 };
 
+/// Pattern: Observer - a callback and no stream type, so this crate gets no new dependency (decision S4-1).
 /// Where the module pushes every change (for `watch`); the wrapper filters per subscriber.
+/// Not `Send`/`Sync`: it runs in the `LocalSet` of the wrapper (capnp-rpc), never on another thread.
 /// The sink is called SYNCHRONOUSLY from inside the change, so it must be quick and must not block. The module calls it
 /// without holding any of its own locks (otherwise a sink that calls back into the module could deadlock); the sink itself
 /// must not call back into the module.
-/// Pattern: Observer - a callback and no stream type, so this crate gets no new dependency (decision S4-1).
 pub type ChangeFeed = Box<dyn Fn(&ChangeRef)>;
 
 /// Pattern: Template Method (steps) - the module delivers only reading, changing, taking back and its rules; the order
@@ -21,6 +22,8 @@ pub type ChangeFeed = Box<dyn Fn(&ChangeRef)>;
 /// (async methods, the wrapper is generic).
 ///
 /// A module never checks rights in these methods: [`rules`](ModuleCore::rules) are asked by the wrapper BEFORE `apply`/`revert`.
+/// Condition: a module runs in the `LocalSet` of the wrapper (capnp-rpc, `spawn_local`); its futures are not `Send` and
+/// it must not `tokio::spawn` its own work that needs `&self`.
 /// `cx` is always the context of the connection (see [`Context`]); a module keeps no "current user".
 #[allow(async_fn_in_trait)]
 pub trait ModuleCore: 'static {

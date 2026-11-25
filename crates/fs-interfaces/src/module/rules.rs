@@ -50,6 +50,9 @@ pub trait RightsRules: Send + Sync {
 }
 
 /// Pattern: Result Object - the answer of the rules. `Deny` becomes `form-source-forbidden` 403.
+///
+/// Fail-closed: a variant this code does not know counts as a refusal. Decide only with [`is_allowed`](Verdict::is_allowed)
+/// (never `match ... { _ => allow }`); `fs_rpc::Guarded` does so.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Verdict {
