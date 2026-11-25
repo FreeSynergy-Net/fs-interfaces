@@ -115,7 +115,7 @@ interface FormSource {
   #
   #   Values: a value of art `time` (in `page` records, also a `facts` field of art time, and in `invoke` args; for example `due`) is an RFC 3339
   #   `date-time` (section 5.6) WITH an offset or `Z`, never a local time without offset. Channel `progress` is a percentage 0..100.
-  #   Repeated values (cards-in-columns@1.4.0 `assignee`, single-record@1.2.0 `fields`; text only): a channel that the catalog comment marks `repeats` has one `Value` per item, all with the same `path`, in the order of the module; every other channel has at most one.
+  #   Repeated values (cards-in-columns@1.4.0 `assignee`, single-record@1.2.0 `fields`; text only): a channel that the catalog comment marks `repeats` has one `Value` per item, all with the same `path`, in the order of the module; every other channel has at most one, as the version of that form says; a reader of an older Minor takes repeated `path`s as several items in order (tolerant reader).
 
   hello @0 () -> (level :UInt32, provider :Text);
   # The level of this contract the service speaks (a plain number, 1 today) and who it is (`fake` for example data).

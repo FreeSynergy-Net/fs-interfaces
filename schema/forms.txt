@@ -4,8 +4,8 @@
 #   relation line: = interval start end [all-day]  |  = parent channel      (after the channels of the form; see "Paket F" below)
 # required: `!` = required, `-` = optional. count = how many fields a module maps onto the channel: `1`, `0..1`, `0..4`, `0..n`, `1..n` (never `?`: the reader refuses it; a required channel starts at 1).
 # art: one of records text number flag time reference command (the seven basic kinds), or a set `text|number|time|flag` (no spaces, no duplicate, not empty): the field may have any art of the set. The reader refuses any other word. The reader holds the fixed table art -> allowed fs-types basic types.
-# Rule "repeated value" (CIC-B): a channel the comment of its form marks `repeats` carries one `Value` per item with the same `path`; every other channel at most one (see cards-in-columns@1.4.0 and single-record@1.2.0).
-# Versions (SemVer 2.0.0, three parts, read with the crate `semver`, no pre-release or build): Minor = an optional channel comes; Major = a channel goes or changes meaning; Patch = no change of the interface (text, docs, display name), never raised. A need on a form is written `name@<req>` (e.g. `tiles@^1.0.0`), a form itself `name@x.y.z`. Only append, never rename or remove.
+# Rule "repeated value" (CIC-B): a channel the comment of its form marks `repeats` carries one `Value` per item with the same `path`; every other channel at most one, as the version of THAT form says (see cards-in-columns@1.4.0 and single-record@1.2.0); a reader of an older Minor of a form takes repeated `path`s as several items in order (tolerant reader, see Versions).
+# Versions (SemVer 2.0.0, three parts, read with the crate `semver`, no pre-release or build): Minor = an optional channel comes, or the mark `repeats` on an existing channel (a reader of an older Minor MUST take repeated `path`s as several items in order, tolerant reader, never keep only one); Major = a channel goes or changes meaning; Patch = no change of the interface (text, docs, display name), never raised. A need on a form is written `name@<req>` (e.g. `tiles@^1.0.0`), a form itself `name@x.y.z`. Only append, never rename or remove.
 # Sources of the entries: see the comment lines below (E = ENTSCHEID-form.md, K = kalender, C = fs-capture, F = fs-files, W = fs-components, S = groups). Open points: README of the draft.
 checklist@1.0.0 | Checklist | planned | A list of items that can be ticked off (Entscheid §3)
 > items | records | ! | 1
@@ -295,6 +295,7 @@ checklist@1.1.0 | Checklist | planned | As 1.0.0, plus a sub line, facts, a grou
 # Minor 1.2.0: the channels of 1.1.0, unchanged in art, requirement, count and writes; the one change is the marker `repeats` on `fields`, so a value with many items (several e-mails, phones, addresses, links) is no longer joined into one text.
 #   repeats: fields
 #   Rule "repeated value" (text only, no new wire field, no new column in this file; same as cards-in-columns@1.4.0): the channel `fields` carries one `Value` per item, all items of one field with the same `path`, in the order of the module; every other channel at most one. The count stays `0..n` here, because the count says how many FIELDS of the module map onto the channel.
+#   Not carried per item (reading only): `contexts` (work, private), `pref`, `label` and an item id are missing; editing needs a new version of the form.
 #   Reading only in this version: the first view of a person (single record, scope = id of the profile) writes nothing; `actions` and `edit` stay optional and are not used by it.
 single-record@1.2.0 | Single record | planned | One record as a whole, as 1.1.0; the channel fields repeats, one value per item (V1)
 > item | records | ! | 1

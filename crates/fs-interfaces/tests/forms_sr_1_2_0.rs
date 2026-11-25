@@ -57,5 +57,8 @@ fn the_catalog_marks_fields_as_repeating_and_the_rule_names_both_forms() {
     // 1.0.0 and 1.1.0 carry no marker
     assert!(!text[..start].contains("repeats: fields"));
     let capnp = include_str!("../../../schema/formsource.capnp");
-    assert!(capnp.contains("single-record@1.2.0"));
+    assert!(capnp.contains("single-record@1.2.0") && capnp.contains("tolerant reader"));
+    // the Versions line (before the first form) names the Minor rule
+    let head = &text[..text.find("checklist@1.0.0").unwrap()];
+    assert!(head.contains("tolerant reader") && head.contains("`repeats` on an existing channel"));
 }
