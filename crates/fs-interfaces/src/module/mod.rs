@@ -17,6 +17,7 @@
 mod change;
 mod context;
 mod core;
+mod follow;
 mod rules;
 mod values;
 
@@ -26,6 +27,7 @@ pub mod fake;
 pub use self::change::{ChangeKind, ChangePage, ChangeRef, ChangesQuery, Conflict, FieldClash};
 pub use self::context::{Actor, Caller, Claimed, Context};
 pub use self::core::{ChangeFeed, ModuleCore};
+pub use self::follow::Follow;
 pub use self::rules::{Ask, HiddenReason, RightsRules, Verdict};
 pub use self::values::{
     Applied, Blob, HiddenField, Invocation, Origin, Page, PageQuery, RecordView, Refusal, StepRef,

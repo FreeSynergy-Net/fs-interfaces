@@ -140,6 +140,11 @@ pub struct ChangesQuery {
     pub cursor: String,
     /// At most this many; 0 = the default.
     pub limit: u32,
+    /// Only the changes of this scope (a board, a folder; a free token the module understands, passed verbatim); empty = all.
+    /// Appended (S4-B1); the wrapper asks [`ModuleCore::follows`](super::ModuleCore::follows) with it.
+    pub scope: String,
+    /// Only the changes of this form (`id@version`); empty = all. Appended (S4-B1).
+    pub form: String,
 }
 
 /// One page of changes.
