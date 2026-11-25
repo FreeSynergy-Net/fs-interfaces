@@ -59,9 +59,9 @@ fn bars_in_time_1_1_0_keeps_1_0_0_and_adds_the_commands() {
             w("lane", false)
         ]
     );
-    assert!(writes(new, "remove").is_empty());
-    assert!(writes(new, "open").is_empty());
-    assert!(old.relations.is_empty(), "1.0.0 stays as it was");
+    assert_eq!(writes(new, "remove").len(), 0);
+    assert_eq!(writes(new, "open").len(), 0);
+    assert_eq!(old.relations.len(), 0);
     assert_eq!(
         new.relations,
         [Relation::Interval {
@@ -94,8 +94,8 @@ fn checklist_1_1_0_keeps_1_0_0_and_adds_the_row_channels() {
     assert_eq!(new.channel("facts").unwrap().count.max, Some(4));
     assert_eq!(writes(new, "toggle"), [w("done", true)]);
     assert_eq!(writes(new, "create"), [w("label", true), w("group", false)]);
-    assert!(writes(new, "open").is_empty());
-    assert!(new.relations.is_empty());
+    assert_eq!(writes(new, "open").len(), 0);
+    assert_eq!(new.relations.len(), 0);
 }
 
 const BASE: &str = "f@1.0.0 | F | planned | d\n> items | records | ! | 1\n> a | time | ! | 1\n> b | time | ! | 1\n> day | flag | - | 0..1\n> up | reference | - | 0..1\n> many | time | - | 0..n\n";
