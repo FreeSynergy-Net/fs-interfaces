@@ -25,6 +25,8 @@ pub enum Mode {
     LaxValues,
     /// Breaks the rule "only `assignee` repeats": a second value at `priority` of the same card (both values are right).
     LaxRepeat,
+    /// Breaks rule 6 for `watch` and `changes`: an unknown scope is not refused, it is passed through (like the default of `ModuleCore::resolve_scope`).
+    LaxScope,
 }
 
 /// The form the fake serves.

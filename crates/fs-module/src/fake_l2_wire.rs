@@ -82,6 +82,15 @@ impl FakeSource {
         Ok(())
     }
 
+    /// The scope of `changes` and `watch`: the fake has no scopes, so any scope but "all" (empty) is `unknown-scope` 404 (rule 6), like at
+    /// `page`. `Mode::LaxScope` passes it through on purpose.
+    pub(crate) fn check_scope(&self, scope: &str) -> Result<(), capnp::Error> {
+        if scope.is_empty() || self.mode == crate::fake::Mode::LaxScope {
+            return Ok(());
+        }
+        Err(crate::fake::refuse("unknown-scope", 404, "the fake has no scopes").error())
+    }
+
     /// The answer of `invokeIf`/`revert` (the same four fields) and then the push to the watchers.
     pub(crate) async fn answer<R: L2Answer>(&self, out: &mut R, outcome: Outcome) -> Reply {
         match outcome {

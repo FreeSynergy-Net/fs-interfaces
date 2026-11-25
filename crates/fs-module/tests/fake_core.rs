@@ -153,9 +153,9 @@ async fn core_speaks_level_2_as_provider_fake() {
     assert_eq!((core.level(), core.provider()), (2, "fake"));
 }
 
-// S4-B1: `follows` is not overridden by `FakeCore`; it gets the default of the trait (every change, any form and scope).
+// Stufe 4 V1: `FakeCore` overrides `follows` with `Follow::in_scope` (S4-B1 had the default of the trait).
 #[test]
-fn core_inherits_the_default_follows_of_the_trait() {
+fn core_follows_by_scope() {
     use fs_interfaces::module::{ChangeKind, ChangeRef, Origin};
     let (core, c) = (FakeCore::new(Mode::Strict), cx("p"));
     let change = ChangeRef::new(
@@ -167,13 +167,11 @@ fn core_inherits_the_default_follows_of_the_trait() {
         ChangeKind::Update,
         Utc::from_millis(0),
     );
-    for (form, scope) in [(FORM, ""), (FORM, "board-1"), ("other@1.0.0", "x")] {
-        let follow = core
-            .follows(&c, form, scope)
-            .expect("the default accepts any pair");
-        assert!(
-            follow.admits(&change),
-            "default follows admits all: {form} {scope}"
-        );
+    for form in [FORM, "other@1.0.0"] {
+        let all = core.follows(&c, form, "").expect("empty scope = all");
+        assert!(all.admits(&change), "empty scope admits all: {form}");
     }
+    let board = core.follows(&c, FORM, "b1").expect("a scope");
+    assert!(!board.admits(&change), "a change in no scope is not in b1");
+    assert!(board.admits(&change.clone().in_scopes(["b1"])));
 }

@@ -26,11 +26,27 @@ impl Follow {
     }
 
     /// Admits the changes for which `test` is true.
+    ///
+    /// The wrapper calls `test` synchronously when it reports a change (`hub`) and while it filters a page of `changes`; it is a callback
+    /// into the module. It must be quick, must not block and must not hold or take a `borrow_mut` of module state.
     #[must_use]
     pub fn by(test: impl Fn(&ChangeRef) -> bool + 'static) -> Self {
         Self {
             test: Some(Rc::new(test)),
         }
+    }
+
+    /// Admits the changes that lie in the scope `id` (the fixed id from
+    /// [`ModuleCore::resolve_scope`](super::ModuleCore::resolve_scope), see [`ChangeRef::scopes`]). The one specification all modules
+    /// use for scopes, so no module writes its own closure. An empty `id` means "all scopes" (like an empty `scope` at `follows`) and
+    /// admits every change.
+    #[must_use]
+    pub fn in_scope(id: &str) -> Self {
+        if id.is_empty() {
+            return Self::all();
+        }
+        let id = id.to_owned();
+        Self::by(move |c| c.scopes.contains(&id))
     }
 
     /// Whether `change` belongs to what is followed.

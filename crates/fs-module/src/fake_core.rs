@@ -8,8 +8,8 @@
 
 use fs_interfaces::module::{
     Applied, Ask, Blob, ChangeFeed, ChangePage, ChangesQuery, Conflict, Context, FieldClash,
-    HiddenReason, Invocation, ModuleCore, Page, PageQuery, RecordView, RightsRules, StepRef, Value,
-    Verdict,
+    Follow, HiddenReason, Invocation, ModuleCore, Page, PageQuery, RecordView, RightsRules,
+    StepRef, Value, Verdict,
 };
 
 use crate::fake::{FakeSource, Mode, Refusal};
@@ -119,7 +119,7 @@ fn outcome(out: Outcome) -> Result<Applied, fs_interfaces::module::Refusal> {
             if let Some(by) = by {
                 let fields = fields
                     .iter()
-                    .map(|(p, c, m)| FieldClash::new(p, c, m))
+                    .map(|(p, c, m)| FieldClash::new(p, c, m).on(&by.object))
                     .collect();
                 r = fs_interfaces::module::Refusal::conflict(
                     &r.detail,
@@ -263,5 +263,32 @@ impl ModuleCore for FakeCore {
 
     fn feed(&self, sink: ChangeFeed) {
         self.src.sh.add_feed(sink);
+    }
+
+    /// Strict: the fake has no scopes, so only "all" (empty) is known (like `page`); everything else is `unknown-scope` 404.
+    /// `Mode::LaxScope` passes the scope through (the default of the trait), so rule 6 turns red for `watch` and `changes`.
+    async fn resolve_scope(
+        &self,
+        _cx: &Context,
+        _form: &str,
+        scope: &str,
+    ) -> Result<String, fs_interfaces::module::Refusal> {
+        if scope.is_empty() || self.src.mode == Mode::LaxScope {
+            return Ok(scope.to_owned());
+        }
+        Err(fs_interfaces::module::Refusal::unknown_scope(
+            "the fake has no scopes",
+        ))
+    }
+
+    /// The Specification all modules use for scopes. The fake has no scopes, so its `ChangeRef`s carry none and a non-empty scope never
+    /// gets here (`resolve_scope` refuses it); the empty scope follows everything.
+    fn follows(
+        &self,
+        _cx: &Context,
+        _form: &str,
+        scope: &str,
+    ) -> Result<Follow, fs_interfaces::module::Refusal> {
+        Ok(Follow::in_scope(scope))
     }
 }

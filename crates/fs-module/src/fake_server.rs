@@ -185,9 +185,7 @@ impl form_source::Server for FakeSource {
     ) -> Reply {
         self.need_level2()?;
         let p = p.get()?;
-        if !p.get_scope()?.to_str()?.is_empty() {
-            return Err(refuse("bad-arguments", 400, "the fake has no scopes").error());
-        }
+        self.check_scope(p.get_scope()?.to_str()?)?;
         let (skip, limit) =
             window(p.get_cursor()?.get_opaque()?, p.get_limit()).map_err(|why| why.error())?;
         let program = self.who.borrow().program.clone();
@@ -233,6 +231,7 @@ impl form_source::Server for FakeSource {
         if !knows_form(form) {
             return Err(refuse("unknown-form", 404, "no such form").error());
         }
+        self.check_scope(p.get_scope()?.to_str()?)?;
         let id = self.sh.watch(crate::fake::FORM, p.get_sink()?);
         r.get().set_subscription(capnp_rpc::new_client(Sub {
             sh: Rc::clone(&self.sh),

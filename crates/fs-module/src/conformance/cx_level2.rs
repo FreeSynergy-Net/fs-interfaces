@@ -145,6 +145,35 @@ pub(crate) async fn changes(src: &form_source::Client, run: &str) -> capnp::Resu
     answer.get()?.get_items()?.iter().map(read_change).collect()
 }
 
+/// `changes` of one scope (rule 6: an unknown scope is an exception); the answer is not read.
+pub(crate) async fn changes_in(src: &form_source::Client, scope: &str) -> capnp::Result<()> {
+    let mut req = src.changes_request();
+    {
+        let mut p = req.get();
+        p.set_scope(scope);
+        p.set_limit(1);
+    }
+    req.send().promise.await.map(|_| ())
+}
+
+/// `watch` of one form and scope with a receiver that keeps nothing (rule 6: an unknown scope is an exception).
+pub(crate) async fn watch_in(
+    src: &form_source::Client,
+    form: &str,
+    scope: &str,
+) -> capnp::Result<()> {
+    let sink: fs_interfaces::formsource_capnp::change_sink::Client =
+        capnp_rpc::new_client(Heard(std::rc::Rc::default()));
+    let mut req = src.watch_request();
+    {
+        let mut p = req.get();
+        p.set_form(form);
+        p.set_scope(scope);
+        p.set_sink(sink);
+    }
+    req.send().promise.await.map(|_| ())
+}
+
 /// `introduce` on any connection.
 pub(crate) async fn introduce(
     src: &form_source::Client,

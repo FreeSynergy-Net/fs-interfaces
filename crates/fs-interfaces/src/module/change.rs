@@ -54,6 +54,9 @@ pub struct ChangeRef {
     pub at: Utc,
     /// At `Undo`: the change taken back.
     pub undoes: Option<String>,
+    /// The fixed ids of the scopes (boards, folders) the change lies in; empty = in no scope. Corresponds to AS2 `context`.
+    /// Appended (Stufe 4 V1); not on the wire yet (a card). Compared by `==` like every other field.
+    pub scopes: Vec<String>,
 }
 
 impl ChangeRef {
@@ -77,6 +80,7 @@ impl ChangeRef {
             kind,
             at,
             undoes: None,
+            scopes: Vec::new(),
         }
     }
 
@@ -84,6 +88,17 @@ impl ChangeRef {
     #[must_use]
     pub fn undoing(mut self, change: &str) -> Self {
         self.undoes = Some(change.into());
+        self
+    }
+
+    /// The fixed ids of the scopes the change lies in (see [`ChangeRef::scopes`]); [`Follow::in_scope`](super::Follow::in_scope) asks them.
+    #[must_use]
+    pub fn in_scopes<I, S>(mut self, ids: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.scopes = ids.into_iter().map(Into::into).collect();
         self
     }
 }
@@ -98,6 +113,9 @@ pub struct FieldClash {
     pub current: String,
     /// What the caller wanted.
     pub mine: String,
+    /// The record the field belongs to; empty = unknown, then the wrapper blanks `current` (it cannot tell whether the field is hidden there).
+    /// Appended (Stufe 4 V1).
+    pub record: String,
 }
 
 impl FieldClash {
@@ -108,7 +126,15 @@ impl FieldClash {
             path: path.into(),
             current: current.into(),
             mine: mine.into(),
+            record: String::new(),
         }
+    }
+
+    /// The record the field belongs to (see [`FieldClash::record`]).
+    #[must_use]
+    pub fn on(mut self, record: &str) -> Self {
+        self.record = record.into();
+        self
     }
 }
 

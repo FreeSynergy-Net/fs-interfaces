@@ -203,6 +203,18 @@ impl Refusal {
         }
     }
 
+    /// `form-source-unknown-scope` 404: the module does not know the scope (see
+    /// [`ModuleCore::resolve_scope`](super::ModuleCore::resolve_scope)).
+    #[must_use]
+    pub fn unknown_scope(detail: &str) -> Self {
+        Self {
+            kind: "unknown-scope".into(),
+            status: 404,
+            detail: detail.into(),
+            conflict: None,
+        }
+    }
+
     /// `form-source-forbidden` 403 for a rules `Deny`.
     #[must_use]
     pub fn forbidden(reason: &str) -> Self {

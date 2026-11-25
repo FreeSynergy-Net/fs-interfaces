@@ -16,6 +16,25 @@ use super::{
 /// must not call back into the module.
 pub type ChangeFeed = Box<dyn Fn(&ChangeRef)>;
 
+/// Pattern: Observer, second event (like `onError` in Reactive Streams) - the module tells the wrapper that its feed lost changes
+/// or ended, so the wrapper can end the subscriptions instead of letting them miss changes silently.
+/// New kinds may come (append only), so match with a wildcard arm.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum FeedLoss {
+    /// The source of the module was too slow: `missed` changes were dropped before they reached the feed.
+    Lagged {
+        /// How many changes were lost.
+        missed: u64,
+    },
+    /// The source of the module is gone: no change will come any more.
+    Closed,
+}
+
+/// Pattern: Observer (the `onError` callback) - where the module reports a [`FeedLoss`]; same rules as [`ChangeFeed`] (not `Send`, called
+/// synchronously and without holding a lock of the module, the callback does not call back into the module).
+pub type FeedBreak = Box<dyn Fn(FeedLoss)>;
+
 /// Pattern: Template Method (steps) - the module delivers only reading, changing, taking back and its rules; the order
 /// check -> change -> record -> report stands once in the wrapper `fs_rpc::Guarded<M>`.
 /// Deviation: no default flow in the trait (overridable, so the check could be skipped), a generic wrapper instead; not `dyn`-capable
@@ -67,12 +86,40 @@ pub trait ModuleCore: 'static {
     async fn changes(&self, cx: &Context, query: ChangesQuery) -> Result<ChangePage, Refusal>;
 
     /// Register `sink` for every change of this module; the wrapper filters per subscriber.
+    ///
+    /// # Panics
+    /// An implementation that starts its pump with `tokio::task::spawn_local` panics when called outside a `LocalSet`; the wrapper
+    /// `fs_rpc::Guarded` calls `feed` in `new`/`with_clock`, so build it inside the `LocalSet` of the module.
     fn feed(&self, sink: ChangeFeed);
+
+    /// Pattern: Observer, second event - register where the module reports that its feed lost changes or ended ([`FeedLoss`]).
+    /// Appended (Stufe 4 V1) with a default body that does nothing (Null Object): a module without a broadcast source loses nothing.
+    /// The wrapper registers this BEFORE [`feed`](ModuleCore::feed). After `FeedLoss::Closed` the module calls nothing any more.
+    fn on_feed_break(&self, _sink: FeedBreak) {}
+
+    /// Pattern: Repository (lookup by key); deviation: it returns only the canonical id, not a record. Resolves the `scope` of a `watch`
+    /// or `changes` call (a name or an id, as the caller wrote it) to the fixed id of the scope (a board UUID, not its name), so a
+    /// subscription survives a rename. Appended (Stufe 4 V1) with a default body that passes `scope` through (like a module without scopes).
+    /// A module with scopes overrides it. Empty `scope` means "all" and stays empty. An unknown scope is `Err(Refusal::unknown_scope(..))`
+    /// (404), never passed through and never [`Follow::all`]. The wrapper asks this BEFORE [`follows`](ModuleCore::follows) and
+    /// passes the returned id to it and to [`ChangesQuery::scope`]; `page` is not affected (the module checks its scope itself there).
+    ///
+    /// # Errors
+    /// [`Refusal`]: unknown scope (`unknown-scope`, 404).
+    async fn resolve_scope(
+        &self,
+        _cx: &Context,
+        _form: &str,
+        scope: &str,
+    ) -> Result<String, Refusal> {
+        Ok(scope.to_owned())
+    }
 
     /// Pattern: Specification - which changes of `form` and `scope` a subscriber (`watch`) or a query (`changes`) sees; the wrapper
     /// stores it per subscriber and filters the feed and the page of `changes` with [`Follow::admits`].
     /// Appended (S4-B1) with a default body, so a module written before keeps its behaviour: the default follows everything.
-    /// A module with scopes overrides it. Empty `form` and `scope` mean "all".
+    /// A module with scopes overrides it, usually with [`Follow::in_scope`]. Empty `form` and `scope` mean "all". `scope` is the id that
+    /// [`resolve_scope`](ModuleCore::resolve_scope) returned. Stays synchronous and pure: existence and ids are `resolve_scope`'s job.
     ///
     /// # Errors
     /// [`Refusal`]: unknown form or scope (like `page`).

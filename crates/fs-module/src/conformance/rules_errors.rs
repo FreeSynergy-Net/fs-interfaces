@@ -2,7 +2,10 @@
 //!
 //! Pattern: Template Method (a fixed list of rules, each one checked against the service of the fixture).
 
+use fs_interfaces::forms::FORM_SOURCE_LEVEL;
+
 use super::cx::{Cx, NOWHERE, refused};
+use super::cx_level2 as level2;
 use crate::CommandKind;
 
 /// Rule 5: unknown form = RPC exception `form-source-unknown-form`.
@@ -23,6 +26,20 @@ pub(crate) async fn unknown_scope(cx: &mut Cx<'_>) {
     cx.ensure(
         cx.names(&r, "unknown-scope"),
         "6 unknown scope is an exception form-source-unknown-scope",
+    );
+    // `watch` and `changes` exist from level 2 on; there the same refusal is due, before anything is subscribed or read.
+    if cx.fx.level().min(FORM_SOURCE_LEVEL) < 2 {
+        return cx.skip("6 unknown scope at watch and changes (level 1 has neither)");
+    }
+    let r = level2::watch_in(&cx.src, &f.key, NOWHERE).await;
+    cx.ensure(
+        cx.names(&r, "unknown-scope"),
+        "6 unknown scope at watch is an exception form-source-unknown-scope",
+    );
+    let r = level2::changes_in(&cx.src, NOWHERE).await;
+    cx.ensure(
+        cx.names(&r, "unknown-scope"),
+        "6 unknown scope at changes is an exception form-source-unknown-scope",
     );
 }
 

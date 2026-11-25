@@ -68,6 +68,10 @@ async fn stale_expect_is_a_conflict_with_the_change_in_between() {
     let conflict = e.conflict.expect("typed conflict");
     assert_eq!(conflict.fields[0].path, "column");
     assert_eq!(conflict.by.object, "c1");
+    assert_eq!(
+        conflict.fields[0].record, "c1",
+        "the clash names its record (V1: the wrapper's scrub needs it)"
+    );
 }
 
 #[tokio::test(flavor = "current_thread")]
@@ -183,4 +187,30 @@ async fn a_refused_call_is_not_a_change() {
     assert_eq!(*heard.borrow(), 0);
     let none = core.changes(&c, ChangesQuery::default()).await.unwrap();
     assert_eq!(none.changes.len(), 0);
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn resolve_scope_is_strict_and_lax_scope_passes_through() {
+    let c = cx("p");
+    let strict = FakeCore::new(Mode::Strict);
+    assert_eq!(strict.resolve_scope(&c, FORM, "").await.as_deref(), Ok(""));
+    let e = strict.resolve_scope(&c, FORM, "x").await.unwrap_err();
+    assert_eq!((e.kind.as_str(), e.status), ("unknown-scope", 404));
+    let lax = FakeCore::new(Mode::LaxScope);
+    assert_eq!(lax.resolve_scope(&c, FORM, "x").await.as_deref(), Ok("x"));
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn follows_is_in_scope_and_the_empty_scope_hears_the_feed() {
+    let (core, c) = (FakeCore::new(Mode::Strict), cx("p"));
+    let heard = Rc::new(RefCell::new(Vec::new()));
+    let sink = Rc::clone(&heard);
+    core.feed(Box::new(move |ch| sink.borrow_mut().push(ch.clone())));
+    core.apply(&c, call("card.move", "c1", &[("column", "done")]))
+        .await
+        .unwrap();
+    let change = heard.borrow()[0].clone();
+    assert!(change.scopes.is_empty(), "the fake has no scopes");
+    assert!(core.follows(&c, "", "").unwrap().admits(&change));
+    assert!(!core.follows(&c, "", "b1").unwrap().admits(&change));
 }

@@ -45,6 +45,39 @@ async fn lax_shape_must_turn_rule_14_red() {
 }
 
 #[tokio::test(flavor = "current_thread")]
+async fn lax_scope_must_turn_rule_6_red_for_watch_and_changes() {
+    let r = LocalSet::new()
+        .run_until(run(Mode::LaxScope, true, 1))
+        .await;
+    println!("RED: {:#?}", r.failures);
+    let six: Vec<_> = r.failures.iter().filter(|f| f.starts_with("6 ")).collect();
+    assert_eq!(six.len(), 2, "{:#?}", r.failures);
+    assert!(six.iter().any(|f| f.contains("at watch")), "{six:#?}");
+    assert!(six.iter().any(|f| f.contains("at changes")), "{six:#?}");
+    // `page` still refuses the unknown scope in this mode: only the two new checks go red.
+    assert!(
+        !r.failures
+            .iter()
+            .any(|f| f == "6 unknown scope is an exception form-source-unknown-scope")
+    );
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn a_level_1_service_skips_rule_6_at_watch_and_changes() {
+    let r = LocalSet::new()
+        .run_until(run_level(Mode::Strict, true, 1, 1))
+        .await;
+    assert!(r.failures.is_empty(), "{:#?}", r.failures);
+    assert!(
+        r.skipped
+            .iter()
+            .any(|s| s.starts_with("6 unknown scope at watch")),
+        "{:#?}",
+        r.skipped
+    );
+}
+
+#[tokio::test(flavor = "current_thread")]
 async fn lax_errors_must_turn_the_suite_red() {
     let r = LocalSet::new()
         .run_until(run(Mode::LaxErrors, true, 1))

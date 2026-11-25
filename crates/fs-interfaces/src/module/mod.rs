@@ -27,7 +27,7 @@ pub mod fake;
 
 pub use self::change::{ChangeKind, ChangePage, ChangeRef, ChangesQuery, Conflict, FieldClash};
 pub use self::context::{Actor, Caller, Claimed, Context};
-pub use self::core::{ChangeFeed, ModuleCore};
+pub use self::core::{ChangeFeed, FeedBreak, FeedLoss, ModuleCore};
 pub use self::follow::Follow;
 pub use self::provider_kind::{ProviderKind, SAMPLE_PROVIDER};
 pub use self::rules::{Ask, HiddenReason, RightsRules, Verdict};
