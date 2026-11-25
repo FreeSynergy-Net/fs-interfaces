@@ -14,6 +14,7 @@
 //! of [`values`] are plain data that the wrapper and the modules build. The Cap'n Proto conversion (`wire`) is not part of this step
 //! (it needs the level-2 schema words that the stage 3 landing fixes); the values mirror `schema/formsource.capnp`.
 
+mod change;
 mod context;
 mod core;
 mod rules;
@@ -22,10 +23,11 @@ mod values;
 #[cfg(feature = "fake")]
 pub mod fake;
 
+pub use self::change::{ChangeKind, ChangePage, ChangeRef, ChangesQuery, Conflict, FieldClash};
 pub use self::context::{Actor, Caller, Claimed, Context};
 pub use self::core::{ChangeFeed, ModuleCore};
 pub use self::rules::{Ask, HiddenReason, RightsRules, Verdict};
 pub use self::values::{
-    Applied, Blob, ChangeKind, ChangePage, ChangeRef, ChangesQuery, Conflict, FieldClash,
-    HiddenField, Invocation, Origin, Page, PageQuery, RecordView, Refusal, StepRef, Value,
+    Applied, Blob, HiddenField, Invocation, Origin, Page, PageQuery, RecordView, Refusal, StepRef,
+    Value,
 };
