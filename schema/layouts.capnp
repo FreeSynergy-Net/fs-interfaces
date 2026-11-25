@@ -18,7 +18,7 @@ struct Range { capability @0 :Text; minMajor @1 :UInt32; minMinor @2 :UInt32; be
 # `minPatch` / `belowPatch` (appended, V-2) are the third number of the two bounds, so `>=0.0.1, <0.1.0` passes without a silent cut.
 # Appended only: an old writer leaves them 0 (= `a.b.0`), an old reader ignores them.
 struct Requires { elem @0 :Text; range @1 :Range; }
-struct Source { elem @0 :Text; n @1 :UInt32; range @2 :Range; dataType @3 :Text; scope @4 :Text; }      # scope "" | all | selected-list
+struct Source { elem @0 :Text; n @1 :UInt32; range @2 :Range; dataType @3 :Text; scope @4 :Text; }      # scope "" | all | selected-list (host words) | any other FREE scope token, RFC 6749 section 3.3 (one token: `1*( %x21 / %x23-5B / %x5D-7E )`), passed verbatim to the module, which owns its meaning (e.g. `lanes:assignee`); the wire carries text, the grammar is checked by fs-forms-layout (format 4)
 struct MenuNode {
   elem @0 :Text; kind @1 :Text; labelKey @2 :Text; standard @3 :Text; source @4 :UInt32; command @5 :Text;
   onWhat @6 :Text; shortcut @7 :Text; view @8 :Text; children @9 :List(MenuNode);
@@ -29,7 +29,8 @@ struct Binding {
   from @3 :Text;                      # records | field | grouping | order | command | lock | condition
   path @4 :Text; role @5 :Text; name @6 :Text;
   hasSchemes @7 :Bool; schemes @8 :List(Scheme);   # hasSchemes=false = no list given (≠ empty list: `schemes-empty`)
-}
+  source @9 :UInt32; hasSource @10 :Bool;          # appended (L2a, format 4; Pattern: Value object, a source reference like `Block.source`), kind `grouping` only: the group heads come from source n (numbering of `Block.source`)
+}   # `hasSource` = false: no source given, the heads come from the block source (index 0 is a valid source, so a flag, like `hasSchemes`). Appended only: an old writer leaves both 0/false, an old reader ignores them.
 struct Block { elem @0 :Text; place @1 :Text; block @2 :Text; source @3 :UInt32; titleKey @4 :Text; textKey @5 :Text; binds @6 :List(Binding);
                set @7 :List(Attr); }   # appended 0.2.0 (A5 I1): attributes of the block; Attr, Frame, PlaceNode are at the end of the description part
 struct Page { elem @0 :Text; page @1 :Text; frame @2 :Text; navigation @3 :Text;
