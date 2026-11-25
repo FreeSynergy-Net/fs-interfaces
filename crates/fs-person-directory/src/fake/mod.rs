@@ -11,7 +11,7 @@ mod state;
 mod store;
 
 pub use fixture::FakeFixture;
-pub use sample::{sample, sample_ref};
+pub use sample::{SAMPLE_NAMES, sample, sample_card, sample_name, sample_ref};
 pub use state::FakeDirectory;
 pub(crate) use state::Inner;
 pub use store::{Entry, Status, find_order, same_address, suggest_rank};

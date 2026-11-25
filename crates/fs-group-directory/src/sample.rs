@@ -12,7 +12,7 @@ use crate::groups::{
     DirectoryAccount, DirectoryGroup, GroupDraft, NestingMode, Result, RoleRef, Visibility,
 };
 use crate::people::FakePeople;
-use crate::sample_data::{AGENTS, EDGES, HUMANS, MEMBERS, UNKNOWN, groups};
+use crate::sample_data::{AGENTS, DIRECTORY_PEOPLE, EDGES, HUMANS, MEMBERS, UNKNOWN, groups};
 use crate::state::State;
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -89,11 +89,21 @@ pub(crate) fn check<T>(r: Result<T>, what: &str, problems: &mut Vec<String>) -> 
 }
 
 fn build_people(people: &FakePeople, out: &mut Book) {
+    let known = |name: &str| {
+        DIRECTORY_PEOPLE
+            .iter()
+            .find(|(k, _)| *k == name)
+            .map(|(_, n)| *n)
+    };
     for name in HUMANS {
-        out.persons.insert(name, people.human(name));
+        let made = known(name).and_then(|n| people.from_directory(n, Some(false)));
+        out.persons
+            .insert(name, made.unwrap_or_else(|| people.human(name)));
     }
     for name in AGENTS {
-        out.persons.insert(name, people.agent(name));
+        let made = known(name).and_then(|n| people.from_directory(n, Some(true)));
+        out.persons
+            .insert(name, made.unwrap_or_else(|| people.agent(name)));
     }
     out.persons.insert(UNKNOWN, people.unknown(UNKNOWN));
     for (label, admin) in [

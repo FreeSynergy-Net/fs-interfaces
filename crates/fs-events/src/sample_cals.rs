@@ -8,7 +8,7 @@ use crate::draft::{
     Refresh, Restorable, Revision, Subscription, Utc,
 };
 use crate::ids::{calendar_iri, object_id, person};
-use crate::sample::{all_day, at, timed};
+use crate::sample::{COLOR_ACCOUNT, COLOR_HOLIDAYS, COLOR_TRASH, all_day, at, timed};
 use crate::sample_items::Maker;
 use crate::zone::reference;
 
@@ -25,21 +25,23 @@ pub const IN_TRASH: u64 = 5;
 /// The address of the subscription (a secret in real life; the sample's is invented).
 pub const FEED: &str = "https://kalender.example.org/feiertage-nord.ics";
 /// The collection of the account.
-pub const COLLECTION: &str = "https://dav.example.org/lena.ostrowski/privat/";
+pub const COLLECTION: &str = "https://dav.example.org/amara.zolenko/privat/";
 
 /// The three added calendars, owned by person 1.
 #[must_use]
 pub fn calendars() -> Vec<CalendarInfo> {
     let make =
-        |n: u64, name: &str, source: CalendarSource, trash: Option<Restorable>| CalendarInfo {
-            id: object_id(n),
-            name: name.to_owned(),
-            color: None,
-            default_zone: None,
-            owner: person(1),
-            source,
-            trash,
-            revision: Revision(1),
+        |n: u64, name: &str, color: &str, source: CalendarSource, trash: Option<Restorable>| {
+            CalendarInfo {
+                id: object_id(n),
+                name: name.to_owned(),
+                color: Some(color.to_owned()),
+                default_zone: None,
+                owner: person(1),
+                source,
+                trash,
+                revision: Revision(1),
+            }
         };
     let fresh = FetchState::Fresh {
         at: Utc::from_millis(NOW - 3_600_000),
@@ -48,6 +50,7 @@ pub fn calendars() -> Vec<CalendarInfo> {
         make(
             SUBSCRIBED,
             "Feiertage Nord (Abo)",
+            COLOR_HOLIDAYS,
             CalendarSource::Subscribed(Subscription {
                 url: Some(reference(FEED)),
                 refresh: Refresh::Every { seconds: 86_400 },
@@ -58,6 +61,7 @@ pub fn calendars() -> Vec<CalendarInfo> {
         make(
             ACCOUNT,
             "Privat (CalDAV)",
+            COLOR_ACCOUNT,
             CalendarSource::Account {
                 collection: Some(reference(COLLECTION)),
                 state: fresh,
@@ -67,6 +71,7 @@ pub fn calendars() -> Vec<CalendarInfo> {
         make(
             IN_TRASH,
             "Altes Projekt",
+            COLOR_TRASH,
             CalendarSource::Own,
             Some(Restorable::Until(Utc::from_millis(NOW + 29 * 86_400_000))),
         ),

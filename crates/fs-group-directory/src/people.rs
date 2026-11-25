@@ -62,6 +62,16 @@ impl FakePeople {
             art: PersonArt::Person,
             abzug: None,
         };
+        Self::put(&mut book, person, display, address, agent)
+    }
+
+    fn put(
+        book: &mut Book,
+        person: PersonRef,
+        display: &str,
+        address: Option<&str>,
+        agent: Option<bool>,
+    ) -> PersonRef {
         let entry = Entry {
             person: person.clone(),
             display: display.to_owned(),
@@ -71,6 +81,27 @@ impl FakePeople {
         };
         book.persons.insert(key(&person), entry);
         person
+    }
+
+    /// A person that IS entry `n` of the directory sample (`fs_person_directory::sample()`): its reference and its
+    /// display name come from there, so the same IRI means the same person in every sample. `None` for a number
+    /// that is not a person of that sample. `agent` is the mark (`Some(true)` for an AI account such as entry 4).
+    pub fn from_directory(&self, n: u8, agent: Option<bool>) -> Option<PersonRef> {
+        let person = fs_person_directory::sample_ref(n).filter(|p| p.art == PersonArt::Person)?;
+        let display = fs_person_directory::sample_name(n)?;
+        let address = (agent == Some(false)).then(|| {
+            format!(
+                "mailto:{}@example.org",
+                display.to_lowercase().replace(' ', ".")
+            )
+        });
+        Some(Self::put(
+            &mut self.lock(),
+            person,
+            display,
+            address.as_deref(),
+            agent,
+        ))
     }
 
     /// A new human (marked as no AI).

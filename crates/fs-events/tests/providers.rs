@@ -128,13 +128,13 @@ fn address(text: &str) -> ContactAddress {
 async fn the_people_directory_finds_and_proposes_in_one_batch() {
     let dir = sample().directory();
     let hits = dir
-        .find_by_address(&address("mailto:MAREK.LINDE@example.org"))
+        .find_by_address(&address("mailto:SOOJIN.MARCHETTI@example.org"))
         .await
         .unwrap();
     assert_eq!(hits, vec![person(2)]);
     assert_eq!(
         dir.display(&hits[0]).await.unwrap().unwrap().0,
-        "Marek Linde"
+        "Soo-jin Marchetti"
     );
     assert!(
         dir.find_by_address(&address("mailto:new@example.org"))
@@ -174,7 +174,7 @@ async fn the_people_directory_finds_and_proposes_in_one_batch() {
 async fn an_asking_ai_gets_no_address_oracle_from_the_directory() {
     let dir = sample().directory().with_ai();
     assert!(matches!(
-        dir.find_by_address(&address("mailto:marek.linde@example.org")).await,
+        dir.find_by_address(&address("mailto:soojin.marchetti@example.org")).await,
         Err(Error::Forbidden { capability }) if capability == "person.find"
     ));
     let entry = ProposeEntry {

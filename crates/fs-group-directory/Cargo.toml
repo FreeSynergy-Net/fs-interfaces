@@ -11,6 +11,8 @@ publish = false
 
 [dependencies]
 async-trait = "0.1"
+# The first people of the sample are entries of the directory sample (one source of names): reference by IRI.
+fs-person-directory = { path = "../fs-person-directory" }
 # Same fs-types tag as fs-interfaces and fs-person-directory.
 fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", version = "0.0.7", rev = "722d3ce0156711d40cb278f2e835e865d9448290" }
 

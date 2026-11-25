@@ -24,6 +24,14 @@ pub(crate) const HUMANS: [&str; 17] = [
 ];
 /// The two AI accounts of the sample.
 pub(crate) const AGENTS: [&str; 2] = ["Assistant Bot", "Scribe Bot"];
+/// The sample people that ARE entries of the directory sample (`fs-person-directory`): the key the sample is asked by,
+/// the number of the entry. Their reference and display name come from there; the other people are invented here.
+pub(crate) const DIRECTORY_PEOPLE: [(&str, u8); 4] = [
+    ("Alice Chair", 1),
+    ("Bob Deputy", 10),
+    ("Carol Lead", 12),
+    ("Assistant Bot", 4),
+];
 /// The person nobody knows to be human or AI.
 pub(crate) const UNKNOWN: &str = "Visitor Unknown";
 

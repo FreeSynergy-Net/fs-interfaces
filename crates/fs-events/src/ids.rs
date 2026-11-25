@@ -22,10 +22,34 @@ pub fn object_number(id: ObjectId) -> u64 {
     u64::from_be_bytes(tail)
 }
 
-/// A local person IRI (`urn:uuid:...`) with the number `n`.
+/// The numbers of the directory sample (`fs_person_directory::sample()`) the sample people 1 to 4 are: entries 1, 10,
+/// 12 and 4, all of the art Person (entries 2 and 3 are profiles). The map swaps 2 with 10 and 3 with 12, so it is its
+/// own inverse and no two numbers give one IRI.
+const fn directory_number(n: u64) -> u64 {
+    match n {
+        2 => 10,
+        10 => 2,
+        3 => 12,
+        12 => 3,
+        other => other,
+    }
+}
+
+/// A local person IRI (`urn:uuid:...`) with the number `n`. The numbers 1 to 4 are the IRIs of the people 1, 10, 12
+/// and 4 of the directory sample of `fs-person-directory` (same IRI = same person); the others are free.
 #[must_use]
 pub fn person_iri(n: u64) -> Reference {
+    let n = directory_number(n);
     crate::zone::reference(&format!("urn:uuid:00000000-0000-7000-8000-{n:012x}"))
+}
+
+/// The number of the sample person `n` (1 to 4) in the directory sample, `None` for any other `n`.
+#[must_use]
+pub fn directory_entry(n: u64) -> Option<u8> {
+    (1..=4)
+        .contains(&n)
+        .then(|| u8::try_from(directory_number(n)).ok())
+        .flatten()
 }
 
 /// The IRI of the calendar with this id (what `Origin.source` of subscribed appointments holds, never the feed address).
