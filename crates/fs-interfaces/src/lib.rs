@@ -107,6 +107,7 @@ pub mod texts_capnp;
 
 pub mod capabilities;
 pub mod forms;
+pub mod module;
 pub mod owner;
 pub mod provider;
 
