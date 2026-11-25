@@ -4,7 +4,7 @@
 #   relation line: = interval start end [all-day]  |  = parent channel      (after the channels of the form; see "Paket F" below)
 # required: `!` = required, `-` = optional. count = how many fields a module maps onto the channel: `1`, `0..1`, `0..4`, `0..n`, `1..n` (never `?`: the reader refuses it; a required channel starts at 1).
 # art: one of records text number flag time reference command (the seven basic kinds), or a set `text|number|time|flag` (no spaces, no duplicate, not empty): the field may have any art of the set. The reader refuses any other word. The reader holds the fixed table art -> allowed fs-types basic types.
-# Rule "repeated value" (CIC-B): a channel the comment of its form marks `repeats` carries one `Value` per item with the same `path`; every other channel at most one (see cards-in-columns@1.4.0).
+# Rule "repeated value" (CIC-B): a channel the comment of its form marks `repeats` carries one `Value` per item with the same `path`; every other channel at most one (see cards-in-columns@1.4.0 and single-record@1.2.0).
 # Versions (SemVer 2.0.0, three parts, read with the crate `semver`, no pre-release or build): Minor = an optional channel comes; Major = a channel goes or changes meaning; Patch = no change of the interface (text, docs, display name), never raised. A need on a form is written `name@<req>` (e.g. `tiles@^1.0.0`), a form itself `name@x.y.z`. Only append, never rename or remove.
 # Sources of the entries: see the comment lines below (E = ENTSCHEID-form.md, K = kalender, C = fs-capture, F = fs-files, W = fs-components, S = groups). Open points: README of the draft.
 checklist@1.0.0 | Checklist | planned | A list of items that can be ticked off (Entscheid §3)
@@ -289,3 +289,22 @@ checklist@1.1.0 | Checklist | planned | As 1.0.0, plus a sub line, facts, a grou
 > create | command | - | 0..1 | label! group
 > open | command | - | 0..1 |
 #   Standards: done = iCalendar VTODO `STATUS:COMPLETED` (RFC 5545 section 3.8.1.11) and `COMPLETED` (section 3.8.2.1). group: the words (today, ready, blocked ...) belong to the module, the frontend only sorts into sections. sub, facts, group, toggle, create, open are own and open.
+
+# single-record@1.2.0 (V1, 25.11.; source: woche-11-23/decisions/ENTSCHEID-person-frontend.md section 1 and 5). Appended only: single-record@1.0.0 and 1.1.0 above stay as they are.
+# Pattern: Projection – the module delivers the superset in standard values (one person = one record; a profile is a view of it); grouping, sections and labels belong to the type catalog of the module and the description of the frontend, never to the form.
+# Minor 1.2.0: the channels of 1.1.0, unchanged in art, requirement, count and writes; the one change is the marker `repeats` on `fields`, so a value with many items (several e-mails, phones, addresses, links) is no longer joined into one text.
+#   repeats: fields
+#   Rule "repeated value" (text only, no new wire field, no new column in this file; same as cards-in-columns@1.4.0): the channel `fields` carries one `Value` per item, all items of one field with the same `path`, in the order of the module; every other channel at most one. The count stays `0..n` here, because the count says how many FIELDS of the module map onto the channel.
+#   Reading only in this version: the first view of a person (single record, scope = id of the profile) writes nothing; `actions` and `edit` stay optional and are not used by it.
+single-record@1.2.0 | Single record | planned | One record as a whole, as 1.1.0; the channel fields repeats, one value per item (V1)
+> item | records | ! | 1
+> label | text | ! | 1
+> preview | reference | - | 0..1
+> summary | text | - | 0..1
+> content | text | - | 0..1
+> media-type | text | - | 0..1
+> state | text | - | 0..1
+> progress | number | - | 0..1
+> fields | text|number|time|flag|reference | - | 0..n
+> actions | command | - | 0..n |
+> edit | command | - | 0..1 | content!
