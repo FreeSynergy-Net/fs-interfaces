@@ -8,8 +8,10 @@ use fs_types::PersonRef;
 
 /// Pattern: Context Object - who asks, for ONE connection until it ends.
 ///
-/// There is no public struct literal (`#[non_exhaustive]`) and no function that takes a context from a call: the only
-/// way to get one is [`Context::from_connection`], which `fs_rpc::Guarded` calls once per connection in `bootstrap`.
+/// Honest limits: `#[non_exhaustive]` only stops a struct literal outside this crate. The fields are `pub` (readable), the
+/// type is `Clone`, and `from_connection` is `pub`, so the type itself does NOT stop a caller from building a context. The
+/// protection is architecture: modules get a `&Context` only from `fs_rpc::Guarded`, which builds it once per connection in
+/// `bootstrap` from the system's answer; no contract method takes a context from a call argument.
 /// A module never keeps a "current user" of its own (Stufe 4 rule, S3 C2).
 #[derive(Clone, Debug)]
 #[non_exhaustive]

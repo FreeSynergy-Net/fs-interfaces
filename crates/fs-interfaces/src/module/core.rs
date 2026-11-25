@@ -9,6 +9,9 @@ use super::{
 };
 
 /// Where the module pushes every change (for `watch`); the wrapper filters per subscriber.
+/// The sink is called SYNCHRONOUSLY from inside the change, so it must be quick and must not block. The module calls it
+/// without holding any of its own locks (otherwise a sink that calls back into the module could deadlock); the sink itself
+/// must not call back into the module.
 /// Pattern: Observer - a callback and no stream type, so this crate gets no new dependency (decision S4-1).
 pub type ChangeFeed = Box<dyn Fn(&ChangeRef)>;
 

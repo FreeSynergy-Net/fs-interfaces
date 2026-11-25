@@ -5,6 +5,11 @@
 //! wrapper `fs_rpc::Guarded<M>` (not here: this crate stays free of tokio and fs-rpc). Deviation: no default flow in the
 //! trait (in Rust it could be overridden and the check skipped), a generic wrapper instead.
 //!
+//! Deviation from trait-delta rule 6 ("`#[non_exhaustive]` only on enums"): the structs `Context`, `Claimed`, `Ask` and the
+//! value structs of `values` are `#[non_exhaustive]` too. Reason: the contract only grows (append only), and a struct literal
+//! outside this crate (above all of `Context`) must not be possible; rule 6 would allow new fields only as a breaking change.
+//! (`RightsRules::hidden` has no default method, as rule 6 asks.)
+//!
 //! The contracts only grow (append only): the types that may get new variants are `#[non_exhaustive]`; the value types
 //! of [`values`] are plain data that the wrapper builds. The Cap'n Proto conversion (`wire`) is not part of this step
 //! (it needs the level-2 schema words that the stage 3 landing fixes); the values mirror `schema/formsource.capnp`.

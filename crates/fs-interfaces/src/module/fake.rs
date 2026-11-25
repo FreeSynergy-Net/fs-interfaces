@@ -13,8 +13,8 @@ use fs_types::PersonRef;
 
 use super::ModuleCore;
 use super::{
-    Applied, Ask, Blob, ChangeFeed, ChangePage, ChangesQuery, Context, Invocation, Page, PageQuery,
-    RecordView, Refusal, RightsRules, StepRef, Value, Verdict,
+    Applied, Ask, Blob, ChangeFeed, ChangePage, ChangesQuery, Context, HiddenReason, Invocation,
+    Page, PageQuery, RecordView, Refusal, RightsRules, StepRef, Value, Verdict,
 };
 
 type Owners = Arc<Mutex<HashMap<String, PersonRef>>>;
@@ -41,6 +41,10 @@ impl RightsRules for OwnerOnly {
             Some(_) => Verdict::deny("not-owner"),
             None => Verdict::deny("unknown-record"),
         }
+    }
+
+    fn hidden(&self, _who: &Context, _record: &str, _field: &str) -> Option<HiddenReason> {
+        None
     }
 }
 

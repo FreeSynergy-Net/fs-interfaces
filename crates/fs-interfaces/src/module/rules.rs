@@ -38,13 +38,15 @@ impl<'a> Ask<'a> {
 /// Deviation: assumes no living caller (`Ask.at`, open `Caller`); there is no method "who is logged in now".
 pub trait RightsRules: Send + Sync {
     /// May `ask.who` run `ask.command` on `ask.record` at `ask.at`?
+    ///
+    /// Decides from `ask.who.person` (and `actor`/`caller`) and `ask.at` only. It NEVER reads `ask.who.claimed`: what a program
+    /// says about itself is history, not a right.
     fn may(&self, ask: &Ask<'_>) -> Verdict;
 
-    /// Is the field `field` of `record` hidden from `who`, and why? Default: nothing is hidden.
-    fn hidden(&self, who: &Context, record: &str, field: &str) -> Option<HiddenReason> {
-        let _ = (who, record, field);
-        None
-    }
+    /// Is the field `field` of `record` hidden from `who`, and why? Required (no default): a default of "nothing hidden"
+    /// would be fail-open, so every module must decide, even if the answer is always `None`. Like `may`, it never reads
+    /// `who.claimed`.
+    fn hidden(&self, who: &Context, record: &str, field: &str) -> Option<HiddenReason>;
 }
 
 /// Pattern: Result Object - the answer of the rules. `Deny` becomes `form-source-forbidden` 403.

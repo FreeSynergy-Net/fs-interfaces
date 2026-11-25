@@ -1,11 +1,13 @@
 //! Plain values of the module contract (mirror `schema/formsource.capnp`; the wire conversion comes with the stage 3 landing).
 //!
-//! Pattern: Value Object - data without behaviour, equal values are equal. Deviation: none.
+//! Pattern: Value Object - data without behaviour, equal values are equal. Deviation: the structs are `#[non_exhaustive]` (fields
+//! may be appended later), so code outside this crate builds them with `Default` plus assignment or a constructor, not a literal.
 
 use fs_types::Utc;
 
 /// Where a change came from (`introduce` gave program and instance, never a right; `person` is from the connection).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Origin {
     /// IRI of the person.
     pub person: String,
@@ -17,8 +19,22 @@ pub struct Origin {
     pub device: String,
 }
 
+impl Origin {
+    /// An origin of `person` with program, instance and device (empty allowed).
+    #[must_use]
+    pub fn new(person: &str, program: &str, instance: &str, device: &str) -> Self {
+        Self {
+            person: person.into(),
+            program: program.into(),
+            instance: instance.into(),
+            device: device.into(),
+        }
+    }
+}
+
 /// Pattern: Idempotent Receiver - the same non-empty key acts once; both empty = no run.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct StepRef {
     /// The run (opaque text).
     pub run: String,
@@ -28,6 +44,7 @@ pub struct StepRef {
 
 /// Pattern: Memento (reference) - the module holds the data, the caller only the reference.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ChangeRef {
     /// Head activity of the unit (UUIDv7 as text) = the id of the change.
     pub activity: String,
@@ -49,6 +66,7 @@ pub struct ChangeRef {
 
 /// One field: dotted field name of the module and the value as text.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Value {
     /// The field name.
     pub path: String,
@@ -58,6 +76,7 @@ pub struct Value {
 
 /// A hidden field and why.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct HiddenField {
     /// The field name.
     pub path: String,
@@ -67,6 +86,7 @@ pub struct HiddenField {
 
 /// One record as shown to the asking person.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct RecordView {
     /// The record id.
     pub id: String,
@@ -80,6 +100,7 @@ pub struct RecordView {
 
 /// What `page` asks.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct PageQuery {
     /// The form key `name@x.y.z`.
     pub form: String,
@@ -93,6 +114,7 @@ pub struct PageQuery {
 
 /// One page of records.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Page {
     /// The records.
     pub records: Vec<RecordView>,
@@ -108,6 +130,7 @@ pub struct Page {
 
 /// The bytes of a binary field.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Blob {
     /// The media type.
     pub media_type: String,
@@ -117,6 +140,7 @@ pub struct Blob {
 
 /// Pattern: Command - one change asked for.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Invocation {
     /// The key of the contract (`card.move`).
     pub command: String,
@@ -132,6 +156,7 @@ pub struct Invocation {
 
 /// What a write made or changed.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Applied {
     /// The record it points at; empty = none.
     pub record: String,
@@ -143,6 +168,7 @@ pub struct Applied {
 
 /// One field of a conflict: what the record has now and what the caller wanted.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FieldClash {
     /// The field.
     pub path: String,
@@ -154,6 +180,7 @@ pub struct FieldClash {
 
 /// The conflict, typed.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Conflict {
     /// The change that came in between.
     pub by: ChangeRef,
@@ -163,6 +190,7 @@ pub struct Conflict {
 
 /// Pattern: Result Object - a refusal as a value: `form-source-<kind>` with a status, never a foreign sentence.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Refusal {
     /// The kind (`forbidden`, `conflict`, ...).
     pub kind: String,
@@ -189,6 +217,7 @@ impl Refusal {
 
 /// What `changes` asks.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ChangesQuery {
     /// Only this run; empty = the changes of the asking program, newest first.
     pub run: String,
@@ -200,6 +229,7 @@ pub struct ChangesQuery {
 
 /// One page of changes.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ChangePage {
     /// The changes.
     pub changes: Vec<ChangeRef>,
