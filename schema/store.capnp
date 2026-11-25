@@ -36,6 +36,8 @@ enum PackageKind {
   component @2;
   theme     @3;
   server    @4;   # a program that runs on a server (0.0.20; ADR 0077)
+  module    @5;   # a module package: a data-type service, not a program (ADR 0077 catalogue kinds)
+  data      @6;   # a pure data package, e.g. the description of fs-tasks (ADR 0077 catalogue kinds)
 }
 
 enum PackageFormat {
