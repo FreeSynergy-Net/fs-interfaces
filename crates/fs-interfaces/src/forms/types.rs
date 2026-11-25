@@ -210,7 +210,7 @@ pub enum Relation {
         /// The channel that says "whole days" (`flag`, one value), if the form has one.
         all_day: Option<String>,
     },
-    /// `= parent parent`: the `reference` channel points to a record of the same form (a tree; ActivityStreams 2 `inReplyTo`/`context`).
+    /// `= parent parent`: the `reference` channel points to a record of the same form (a tree; `ActivityStreams` 2 `inReplyTo`/`context`).
     Parent {
         /// The channel of the reference (`reference`, one value).
         channel: String,
