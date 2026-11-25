@@ -17,6 +17,7 @@ use crate::fake::{FakeSource, Mode, Refusal};
 use crate::fake_l2::{Entry, Outcome, Who};
 use crate::fake_l2_wire::PERSON;
 use crate::fake_rows::window;
+use crate::fixture::CommandKind;
 
 /// Pattern: Strategy (test variant of `RightsRules`) - the rights of the fake: the locked card `c3` and the set command `card.clear` are
 /// denied (`locked`), everything else is allowed, nothing is hidden. The rule itself is `FakeSource::locked`, the same the level 1 server asks.
@@ -88,6 +89,16 @@ fn uuid_number(text: &str) -> Option<u128> {
     (h.len() == 32)
         .then(|| u128::from_str_radix(&h, 16).ok())
         .flatten()
+}
+
+/// The commands the module OFFERS of one kind (declared, in order): the module lists them in `may`; it checks no rights, the wrapper strikes
+/// what the rules deny (see `FakeRules`). Pattern: Fake Object (the same declaration `FakeSource::commands` gives the suite).
+fn offered(kind: CommandKind) -> Vec<String> {
+    FakeSource::commands()
+        .into_iter()
+        .filter(|c| c.kind == kind)
+        .map(|c| c.key)
+        .collect()
 }
 
 /// A log entry as a `ChangeRef` (the person is the one the fake says for every connection).
@@ -195,11 +206,13 @@ impl ModuleCore for FakeCore {
             .map(|row| {
                 let mut v = RecordView::default();
                 v.id = row.id;
+                v.may = offered(CommandKind::Record);
                 v.values = row.values.iter().map(|(p, t)| Value::new(p, t)).collect();
                 v
             })
             .collect();
         page.total = Some(rows.total as u64);
+        page.may = offered(CommandKind::Set);
         page.next = rows.next.unwrap_or_default();
         Ok(page)
     }

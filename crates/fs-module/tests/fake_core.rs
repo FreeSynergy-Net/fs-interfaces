@@ -96,9 +96,13 @@ async fn page_gives_rows_total_cursor_and_values_like_the_wire_fake() {
         (p.records.len(), p.total, p.next.as_str()),
         (2, Some(3), "2")
     );
-    assert!(
-        p.may.is_empty() && p.records[0].may.is_empty(),
-        "the wrapper fills may, not the module"
+    assert_eq!(
+        (p.may.as_slice(), p.records[0].may.as_slice()),
+        (
+            &["card.clear".to_owned(), "card.create".to_owned()][..],
+            &["card.move".to_owned(), "card.delete".to_owned()][..]
+        ),
+        "the module offers its declared commands per kind (the wrapper strikes what the rules deny)"
     );
     let c1 = &p.records[0];
     assert!(
