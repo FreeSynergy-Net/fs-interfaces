@@ -1,25 +1,29 @@
-# cargo-nextest profiles for fs-interfaces (workflow testlauf, CLAUDE.md §4: little but often). Vorlage fs-components 216594c0.
-# Geprüft mit `cargo nextest list` (C4 Batch 1), nicht ausgeführt.
-# Namenskonvention wie im Muster; Zuordnung nur nach Dateiname (Binary = <paket>::<datei>, Paket = Verzeichnis angenommen).
-# Nur Stufen, zu denen das Repo Treffer hat; binary(...) nur mit nachgewiesenem Treffer (nextest verweigert leere Mengen).
-# Stufen: quick (Unit/Modell) | time (--stress-count 10) | socket | security | platform | picture | release (nur CI).
+# cargo-nextest-Profile für fs-interfaces (Workflow testlauf, CLAUDE.md §4: wenig, aber oft). Vorlage fs-components 216594c0.
+# Geprüft mit `cargo nextest list --workspace --all-features` (C3, 25.11.); die Treffer wurden mit --workspace gezählt, nie mit -p.
+# Ohne --all-features bauen die Tests von fs-storage nicht (Feature `fake`).
+# Stufen: quick (Unit/Modell, ohne die Sicherheitsnamen) | security (ganz fs-mcp) | release (nur CI, alles).
+# Zahlen (Workspace): release 485 | quick 437 | security 194.
+# Filter nur mit nachgewiesenem Treffer (nextest verweigert leere Mengen); test(/restricted|security/) hat im Workspace 0 Treffer und steht deshalb nicht drin.
 
 [profile.default]
 fail-fast = false
 
+# quick: alles außer den Binaries mit Sicherheitsnamen (hardening, canary_, secrets, sensitive); das sind 48 Tests, alle in fs-mcp.
 [profile.quick]
-default-filter = "not (binary(/hardening|canary_|secrets|sensitive/) | test(/restricted|security/))"
+default-filter = "not binary(/hardening|canary_|secrets|sensitive/)"
 fail-fast = true
 retries = 0
 slow-timeout = { period = "30s", terminate-after = 4 }
 
-# Security (fs-mcp, MCP "nur Mensch"; CLAUDE.md §4 harte Grenze 2): Dateinamen hardening*, canary_*, *secrets*, *sensitive*. Voller Lauf vor dem Release.
+# security: das ganze Paket fs-mcp (MCP "nur Mensch": real_admin, real_contracts, real_free, rules, exclusions, review2-4, tool_release*, hardening, canary_*, secrets, sensitive), 194 Tests (CLAUDE.md §4 harte Grenze 2).
+# Überschneidung mit quick: security enthält die 48 Namens-Tests, die quick ausschließt, und alle übrigen fs-mcp-Tests, die auch in quick laufen. Vor dem Release voller Lauf.
 [profile.security]
-default-filter = "binary(/hardening|canary_|secrets|sensitive/)"
+default-filter = "binary_id(/^fs-mcp(::|$)/)"
 fail-fast = false
 retries = 0
 slow-timeout = { period = "60s", terminate-after = 5 }
 
+# release: alles (485 Tests), nur in der CI.
 [profile.release]
 fail-fast = false
 retries = 0
