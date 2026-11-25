@@ -2,7 +2,7 @@
 # Geprüft mit `cargo nextest list` (C4 Batch 1), nicht ausgeführt.
 # Namenskonvention wie im Muster; Zuordnung nur nach Dateiname (Binary = <paket>::<datei>, Paket = Verzeichnis angenommen).
 # Nur Stufen, zu denen das Repo Treffer hat; binary(...) nur mit nachgewiesenem Treffer (nextest verweigert leere Mengen).
-# Stufen: quick (Unit/Modell) | time (--stress-count 10) | socket | security | platform | picture | release (nur CI).
+# Stufen: quick (Unit/Modell) | security (ganz fs-mcp + restricted/security, additiv: quick enthält sie weiter) | release (nur CI, alles).
 
 [profile.default]
 fail-fast = false
