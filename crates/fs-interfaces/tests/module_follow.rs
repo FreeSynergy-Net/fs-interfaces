@@ -88,7 +88,10 @@ fn query_default_means_all_and_old_fields_stay() {
     let mut q = ChangesQuery::default();
     q.scope = "b1".into();
     q.form = "cards-in-columns@1.4.0".into();
-    assert_eq!((q.scope.as_str(), q.form.as_str()), ("b1", "cards-in-columns@1.4.0"));
+    assert_eq!(
+        (q.scope.as_str(), q.form.as_str()),
+        ("b1", "cards-in-columns@1.4.0")
+    );
 }
 
 #[test]
@@ -121,7 +124,11 @@ fn override_narrows_by_scope_and_other_scopes_hear_nothing() {
     let f = m.follows(&cx(), "", "b1").expect("scoped");
     assert!(f.admits(&change("b1/c1")));
     assert!(!f.admits(&change("b2/c1")));
-    assert!(m.follows(&cx(), "", "").expect("all").admits(&change("b2/c1")));
+    assert!(
+        m.follows(&cx(), "", "")
+            .expect("all")
+            .admits(&change("b2/c1"))
+    );
 }
 
 #[test]
@@ -135,7 +142,9 @@ fn override_refuses_an_unknown_form() {
 fn counter_proof_default_is_not_the_narrow_one() {
     // The default would hide nothing; the override does: the same call differs, so the tests above do not pass by accident.
     let d = OwnerOnlyModule::new().follows(&cx(), "", "b1").expect("d");
-    let s = Scoped(OwnerOnlyModule::new()).follows(&cx(), "", "b1").expect("s");
+    let s = Scoped(OwnerOnlyModule::new())
+        .follows(&cx(), "", "b1")
+        .expect("s");
     assert!(d.admits(&change("b2/c1")) && !s.admits(&change("b2/c1")));
 }
 
