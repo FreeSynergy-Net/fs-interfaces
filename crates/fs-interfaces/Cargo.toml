@@ -12,7 +12,7 @@ capnp = "0.27"
 # Versions of forms: SemVer, read directly with the crate (ENTSCHEID-schnitt V-2, no adapter).
 semver = "1.0.28"
 # The basic types (ADR 0093): the generated code points at `::fs_types::types_capnp`. No re-export from here.
-fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", rev = "722d3ce0156711d40cb278f2e835e865d9448290" }
+fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", version = "0.0.7", rev = "722d3ce0156711d40cb278f2e835e865d9448290" }
 
 [dev-dependencies]
 # Our own pure-Rust schema compiler (ADR 0040), by the Git rev f600c8ee of fs-capnpc main (0.2.3, enum fallback landed; stays on the rev until a tag v0.2.x exists, then switch to the tag).

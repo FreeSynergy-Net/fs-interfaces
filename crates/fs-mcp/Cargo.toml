@@ -22,7 +22,7 @@ capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", rev = "f600
 serde_json = "1"
 toml = "0.8"
 # The basic types (ADR 0093): their schema directory is an import path of the contracts.
-fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", rev = "722d3ce0156711d40cb278f2e835e865d9448290", optional = true }
+fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", version = "0.0.7", rev = "722d3ce0156711d40cb278f2e835e865d9448290", optional = true }
 # The generated command code (`src/generated/tasks_cli.rs`) names the contracts of this repository and starts listeners.
 fs-interfaces = { path = "../fs-interfaces", version = "0.2.0", optional = true }
 capnp-rpc = { version = "0.27", optional = true }
