@@ -4,7 +4,7 @@
 //! check -> change -> record -> report stands ONCE in `fs_rpc::Guarded<M>`.
 
 use super::{
-    Applied, Blob, ChangePage, ChangeRef, ChangesQuery, Context, Invocation, Page, PageQuery,
+    Applied, Blob, ChangePage, ChangeRef, ChangesQuery, Context, Follow, Invocation, Page, PageQuery,
     Refusal, RightsRules, StepRef,
 };
 
@@ -68,4 +68,15 @@ pub trait ModuleCore: 'static {
 
     /// Register `sink` for every change of this module; the wrapper filters per subscriber.
     fn feed(&self, sink: ChangeFeed);
+
+    /// Pattern: Specification - which changes of `form` and `scope` a subscriber (`watch`) or a query (`changes`) sees; the wrapper
+    /// stores it per subscriber and filters the feed and the page of `changes` with [`Follow::admits`].
+    /// Appended (S4-B1) with a default body, so a module written before keeps its behaviour: the default follows everything.
+    /// A module with scopes overrides it. Empty `form` and `scope` mean "all".
+    ///
+    /// # Errors
+    /// [`Refusal`]: unknown form or scope (like `page`).
+    fn follows(&self, _cx: &Context, _form: &str, _scope: &str) -> Result<Follow, Refusal> {
+        Ok(Follow::all())
+    }
 }
