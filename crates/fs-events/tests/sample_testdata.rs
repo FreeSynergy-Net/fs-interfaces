@@ -87,9 +87,10 @@ fn a_series_is_expanded_synchronously_in_a_window() {
         utc(2026, 11, 16, 0, 0),
         utc(2026, 11, 24, 0, 0),
     );
-    assert!(damaged.is_empty());
+    assert_eq!(damaged.len(), 0);
     // Mo 16th 10:00, We 18th moved to 11:00 Berlin, Mo 23rd cancelled.
-    let starts: Vec<_> = found.iter().map(|i| i.start).collect();
+    let mut starts: Vec<_> = found.iter().map(|i| i.start).collect();
+    starts.sort();
     assert_eq!(
         starts,
         vec![utc(2026, 11, 16, 9, 0), utc(2026, 11, 18, 10, 0)]

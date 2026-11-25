@@ -155,7 +155,13 @@ async fn the_sample_knows_only_invented_people_on_example_org() {
         let p = s.person(name).expect("person");
         assert_eq!(p.art, PersonArt::Person);
         let (shown, address) = s.people.display(&p).await.expect("display").expect("known");
-        assert_eq!(shown, name);
+        // Alice and Bob are entries of the directory sample (`fs-person-directory`): its names; Gina is invented here.
+        let expected = match name {
+            "Alice Chair" => "Amara Zolenko",
+            "Bob Deputy" => "Soo-jin Marchetti",
+            other => other,
+        };
+        assert_eq!(shown, expected);
         assert!(
             address.is_some_and(|a| a.ends_with("@example.org")),
             "{name}"
