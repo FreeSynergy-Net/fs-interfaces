@@ -7,11 +7,14 @@
 //! and the lookups ([`catalog`], [`find`]) work on the built-in file. Pattern: Registry (a fixed table), like `capabilities`.
 
 mod catalog;
+mod error;
 mod parse;
+mod relation;
 mod types;
 
 pub use catalog::{
     FORM_SOURCE_LEVEL, FORM_SOURCE_MIN_LEVEL, SOURCE, catalog, find, find_key, key, parse_key,
 };
-pub use parse::{ErrorKind, ParseError, parse};
-pub use types::{Art, Channel, Count, Form, Status, Version, parse_version};
+pub use error::{ErrorKind, ParseError};
+pub use parse::parse;
+pub use types::{Art, Channel, Count, Form, Relation, Status, Version, parse_version};

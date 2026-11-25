@@ -1,72 +1,8 @@
 //! Reading a catalog text: strict, a bad line is an error with its number, never skipped. Pattern: Parser (one line, one rule).
 
-use std::fmt;
-
+use super::error::{ErrorKind, ParseError};
+use super::relation::{check_relations, parse_relation};
 use super::types::{Art, Channel, Count, Form, Status, Write, number, parse_version};
-
-/// Why a line was refused.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum ErrorKind {
-    /// Not of the form `name@H.N.P | display | status | description` or `> channel | art | required | count`.
-    Shape,
-    /// The form name is not lower-case words joined by `-`.
-    Name,
-    /// The version is not `H.N.P` (`SemVer`, three parts).
-    Version,
-    /// The status is neither `stable` nor `planned`.
-    Status,
-    /// The same `name@H.N.P` twice.
-    DuplicateForm,
-    /// A channel line before any form line.
-    ChannelWithoutForm,
-    /// The channel name is not lower-case words joined by `-`.
-    ChannelName,
-    /// The same channel twice in one form.
-    DuplicateChannel,
-    /// The art is not one of the seven words (or the set is empty or has a blank element).
-    Art,
-    /// The same art twice in one set.
-    ArtDuplicate,
-    /// The required mark is neither `!` nor `-`.
-    Required,
-    /// The count is not `1`, `a..b` or `a..n` (`?` is refused too).
-    Count,
-    /// A required channel whose count allows none (`0..`).
-    RequiredButOptionalCount,
-    /// A form without any channel.
-    NoChannel,
-    /// A form without a required channel (a module could fill nothing).
-    NoRequiredChannel,
-    /// A 5th field (`writes`) on a channel whose art is not `command`.
-    WritesOnNonCommand,
-    /// An entry of `writes` is not a channel name (lower-case words joined by `-`, optional trailing `!`).
-    WritesName,
-    /// The same channel twice in one `writes`.
-    WritesDuplicate,
-    /// `writes` names a channel the form does not have.
-    WritesUnknownChannel,
-    /// `writes` names a channel of art `command` (a command writes data channels only).
-    WritesCommandChannel,
-    /// `writes` names a channel whose count allows more than one field (`facts 0..4`): the gesture would have to carry the field path.
-    WritesManyChannel,
-}
-
-/// A refused line (number counted from 1).
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ParseError {
-    /// The line number.
-    pub line: usize,
-    /// Why.
-    pub kind: ErrorKind,
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "forms line {}: {:?}", self.line, self.kind)
-    }
-}
-
-impl std::error::Error for ParseError {}
 
 fn is_word_name(name: &str) -> bool {
     !name.is_empty()
@@ -118,6 +54,7 @@ fn parse_form(fields: &[&str]) -> Result<Form, ErrorKind> {
         status,
         description: (*description).to_owned(),
         channels: Vec::new(),
+        relations: Vec::new(),
     })
 }
 
@@ -197,6 +134,7 @@ pub fn parse(text: &str) -> Result<Vec<Form>, ParseError> {
     let mut forms: Vec<Form> = Vec::new();
     let mut form_line = 0;
     let mut channel_lines: Vec<usize> = Vec::new();
+    let mut relation_lines: Vec<usize> = Vec::new();
     for (index, raw) in text.lines().enumerate() {
         let line = index + 1;
         let trimmed = raw.trim();
@@ -224,9 +162,17 @@ pub fn parse(text: &str) -> Result<Vec<Form>, ParseError> {
             }
             form.channels.push(channel);
             channel_lines.push(line);
+        } else if let Some(rest) = trimmed.strip_prefix('=') {
+            let relation = parse_relation(rest).map_err(err)?;
+            let form = forms
+                .last_mut()
+                .ok_or_else(|| err(ErrorKind::RelationWithoutForm))?;
+            form.relations.push(relation);
+            relation_lines.push(line);
         } else {
-            check_complete(forms.last(), form_line, &channel_lines)?;
+            check_complete(forms.last(), form_line, &channel_lines, &relation_lines)?;
             channel_lines.clear();
+            relation_lines.clear();
             let fields: Vec<&str> = trimmed.splitn(4, '|').map(str::trim).collect();
             let form = parse_form(&fields).map_err(err)?;
             if forms
@@ -239,7 +185,7 @@ pub fn parse(text: &str) -> Result<Vec<Form>, ParseError> {
             forms.push(form);
         }
     }
-    check_complete(forms.last(), form_line, &channel_lines)?;
+    check_complete(forms.last(), form_line, &channel_lines, &relation_lines)?;
     Ok(forms)
 }
 
@@ -265,6 +211,7 @@ fn check_complete(
     form: Option<&Form>,
     line: usize,
     channel_lines: &[usize],
+    relation_lines: &[usize],
 ) -> Result<(), ParseError> {
     let Some(form) = form else { return Ok(()) };
     if form.channels.is_empty() {
@@ -279,5 +226,12 @@ fn check_complete(
             kind: ErrorKind::NoRequiredChannel,
         });
     }
-    check_writes(form, channel_lines)
+    check_writes(form, channel_lines)?;
+    match check_relations(form) {
+        Some((i, kind)) => Err(ParseError {
+            line: relation_lines[i],
+            kind,
+        }),
+        None => Ok(()),
+    }
 }

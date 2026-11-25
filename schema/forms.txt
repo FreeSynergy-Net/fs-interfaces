@@ -255,3 +255,36 @@ cards-in-columns@1.4.0 | Cards in columns | planned | Cards sorted into columns,
 > move | command | - | 0..1 | column! after before lane
 > create | command | - | 0..1 | title! column! lane
 > remove | command | - | 0..1 |
+
+# Paket F (25.11.; sources: woche-11-23/decisions/ENTSCHEID-modul-event.md section 3.2 and ENTSCHEID-fixture-fragen.md questions 1 and 5, sonnet/c4/ENTWURF-fuenf-bloecke.md task-row). Appended only: bars-in-time@1.0.0 and checklist@1.0.0 above stay as they are.
+# Third kind of line: `= interval start end [all-day]` and `= parent channel` (after the channels of the form; the reader checks that the channels exist and have the art the kind needs). Pattern: Value Object.
+bars-in-time@1.1.0 | Bars in time | planned | As 1.0.0, plus colour, create, remove, open and what move writes (ENTSCHEID-modul-event 3.2)
+> items | records | ! | 1
+> start | time | ! | 1
+> end | time | ! | 1
+> label | text | ! | 1
+> lane | text | - | 0..1
+> state | text | - | 0..1
+> depends | reference | - | 0..n
+> progress | number | - | 0..1
+> all-day | flag | - | 0..1
+> color | text | - | 0..1
+> move | command | - | 0..1 | start! end! lane
+> create | command | - | 0..1 | label! start! end! all-day lane
+> remove | command | - | 0..1 |
+> open | command | - | 0..1 |
+= interval start end all-day
+#   Standards: color = JSCalendar `color` (RFC 8984 section 4.2.10, a CSS colour value). start/end when written = RFC 3339 `date-time` with offset, or `full-date` when `all-day` is set. The relation `interval` = ISO 8601-1 interval `start/end`, half-open [start, end), end >= start (zero length allowed; RFC 8984 `duration` is never negative, section 1.4.6); `all-day` = RFC 8984 `showWithoutTime`. open = own and open (as tiles@1.0.0, writes nothing). remove and move are in the form so level 2 needs no new minor; the module offers a command only when it can (`may` per record), there are no dead buttons.
+
+checklist@1.1.0 | Checklist | planned | As 1.0.0, plus a sub line, facts, a group, and the commands toggle, create and open (task row; ENTWURF-fuenf-bloecke TR0)
+> items | records | ! | 1
+> label | text | ! | 1
+> done | flag | ! | 1
+> order | number | - | 0..1
+> sub | text | - | 0..1
+> facts | text|number|time|flag | - | 0..4
+> group | text | - | 0..1
+> toggle | command | - | 0..1 | done!
+> create | command | - | 0..1 | label! group
+> open | command | - | 0..1 |
+#   Standards: done = iCalendar VTODO `STATUS:COMPLETED` / `COMPLETED` (RFC 5545 section 3.8.1.11). group: the words (today, ready, blocked ...) belong to the module, the frontend only sorts into sections. sub, facts, group, toggle, create, open are own and open.

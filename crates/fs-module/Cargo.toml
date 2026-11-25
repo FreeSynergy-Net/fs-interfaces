@@ -14,7 +14,7 @@ publish = false
 tokio = { version = "1", features = ["time"] }
 capnp = "0.27"
 # Same crate as the rest of this workspace; NO fs-rpc here (it depends on fs-interfaces itself: two sources in the lock).
-fs-interfaces = { path = "../fs-interfaces", version = "0.2.0" }
+fs-interfaces = { path = "../fs-interfaces", version = "0.3.0" }
 capnp-rpc = "0.27"
 # Art `time` is read as the shared type `DateTime` (strict RFC 3339); the same pin as fs-interfaces, ONE fs-types in the lock.
 # Zone names (rule 22, `time-zone`): the same fs-jscalendar pin as fs-events; no zone parser of our own.
@@ -24,4 +24,4 @@ fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", version = "0.0
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros"] }
 # `owner::fake::person` builds the person of a test context.
-fs-interfaces = { path = "../fs-interfaces", version = "0.2.0", features = ["fake"] }
+fs-interfaces = { path = "../fs-interfaces", version = "0.3.0", features = ["fake"] }

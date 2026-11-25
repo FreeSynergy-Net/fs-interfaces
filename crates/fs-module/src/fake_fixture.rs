@@ -73,7 +73,7 @@ impl FormSourceFixture for FakeFixture {
         self.second.clone()
     }
     fn provider(&self) -> Option<&str> {
-        Some("fake")
+        Some(fs_interfaces::module::SAMPLE_PROVIDER)
     }
     fn forms(&self) -> Vec<DeclaredForm> {
         FakeSource::forms()

@@ -91,6 +91,7 @@ impl Count {
 }
 
 /// One channel of a form.
+#[non_exhaustive]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Channel {
     /// The channel name (`items`, `label` ...).
@@ -138,6 +139,7 @@ pub(super) fn number(text: &str) -> Option<u32> {
 /// Abweichung: Brücke als Daten (Tabelle), die Übersetzung macht fs-forms-run `args_of`, nicht der Dienst.
 /// A form of the catalog.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Form {
     /// The form name without version (`tree`).
     pub name: String,
@@ -151,6 +153,8 @@ pub struct Form {
     pub description: String,
     /// The channels in file order.
     pub channels: Vec<Channel>,
+    /// How channels belong together (lines `= ...`, see [`Relation`]); empty for most forms.
+    pub relations: Vec<Relation>,
 }
 
 impl Channel {
@@ -186,4 +190,29 @@ impl Form {
     pub fn required(&self) -> impl Iterator<Item = &Channel> {
         self.channels.iter().filter(|c| c.required)
     }
+}
+
+/// How channels of one form belong together: a line `= <kind> <channel> ...` after the channels of the form.
+///
+/// Pattern: Value Object - a relation is data a reader checks (the channels exist and have the art the kind needs); the kinds are a closed,
+/// named set. Deviation: none. New kinds only append (`#[non_exhaustive]`).
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum Relation {
+    /// `= interval start end all-day`: two `time` channels form the half-open interval `[start, end)` (ISO 8601-1; RFC 8984 `start` plus a
+    /// never negative `duration`, zero length allowed): `end >= start`. With the optional `flag` channel set, both are `full-date` (RFC 8984
+    /// `showWithoutTime`).
+    Interval {
+        /// The channel of the start (`time`, one value).
+        start: String,
+        /// The channel of the end (`time`, one value).
+        end: String,
+        /// The channel that says "whole days" (`flag`, one value), if the form has one.
+        all_day: Option<String>,
+    },
+    /// `= parent parent`: the `reference` channel points to a record of the same form (a tree; ActivityStreams 2 `inReplyTo`/`context`).
+    Parent {
+        /// The channel of the reference (`reference`, one value).
+        channel: String,
+    },
 }

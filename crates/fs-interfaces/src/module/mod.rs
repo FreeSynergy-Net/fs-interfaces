@@ -18,6 +18,7 @@ mod change;
 mod context;
 mod core;
 mod follow;
+mod provider_kind;
 mod rules;
 mod values;
 
@@ -28,6 +29,7 @@ pub use self::change::{ChangeKind, ChangePage, ChangeRef, ChangesQuery, Conflict
 pub use self::context::{Actor, Caller, Claimed, Context};
 pub use self::core::{ChangeFeed, ModuleCore};
 pub use self::follow::Follow;
+pub use self::provider_kind::{ProviderKind, SAMPLE_PROVIDER};
 pub use self::rules::{Ask, HiddenReason, RightsRules, Verdict};
 pub use self::values::{
     Applied, Blob, HiddenField, Invocation, Origin, Page, PageQuery, RecordView, Refusal, StepRef,

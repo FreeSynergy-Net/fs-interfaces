@@ -23,7 +23,7 @@ impl form_source::Server for FakeSource {
     ) -> Reply {
         let mut out = r.get();
         out.set_level(self.level); // its OWN level (a plain number); never the constant
-        out.set_provider("fake");
+        out.set_provider(fs_interfaces::module::SAMPLE_PROVIDER);
         Ok(())
     }
 

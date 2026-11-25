@@ -88,9 +88,16 @@ fn the_standards_of_the_time_and_depends_channels_are_named() {
 /// Mutants: a form without `label`, or with the required channel set to optional, is a different form; the pin above would see it.
 #[test]
 fn a_bars_form_without_label_has_a_different_required_set() {
+    // Only the label line of bars-in-time@1.0.0 goes (1.1.0 and checklist name `label` in a `writes` and would stop parsing).
+    let mut in_bars = false;
     let text = forms::SOURCE
         .lines()
-        .filter(|l| !l.starts_with("> label | text | ! | 1"))
+        .filter(|l| {
+            if !l.starts_with('>') && !l.starts_with('#') && !l.is_empty() {
+                in_bars = l.starts_with("bars-in-time@1.0.0");
+            }
+            !(in_bars && l.starts_with("> label | text | ! | 1"))
+        })
         .collect::<Vec<_>>()
         .join("\n");
     let all = parse(&text).unwrap();

@@ -172,7 +172,7 @@ impl ModuleCore for FakeCore {
     }
 
     fn provider(&self) -> &str {
-        "fake"
+        fs_interfaces::module::SAMPLE_PROVIDER
     }
 
     fn rules(&self) -> &dyn RightsRules {
