@@ -9,11 +9,13 @@ use std::rc::Rc;
 
 use super::ChangeRef;
 
+type Test = Rc<dyn Fn(&ChangeRef) -> bool>;
+
 /// Pattern: Specification - which changes one subscriber follows. [`Follow::all`] admits every change (the default of
 /// [`ModuleCore::follows`](super::ModuleCore::follows)); a module with scopes (boards, folders) builds a narrower one with [`Follow::by`].
 #[derive(Clone)]
 pub struct Follow {
-    test: Option<Rc<dyn Fn(&ChangeRef) -> bool>>,
+    test: Option<Test>,
 }
 
 impl Follow {

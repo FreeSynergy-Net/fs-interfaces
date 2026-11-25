@@ -4,8 +4,8 @@
 //! check -> change -> record -> report stands ONCE in `fs_rpc::Guarded<M>`.
 
 use super::{
-    Applied, Blob, ChangePage, ChangeRef, ChangesQuery, Context, Follow, Invocation, Page, PageQuery,
-    Refusal, RightsRules, StepRef,
+    Applied, Blob, ChangePage, ChangeRef, ChangesQuery, Context, Follow, Invocation, Page,
+    PageQuery, Refusal, RightsRules, StepRef,
 };
 
 /// Pattern: Observer - a callback and no stream type, so this crate gets no new dependency (decision S4-1).
@@ -76,6 +76,7 @@ pub trait ModuleCore: 'static {
     ///
     /// # Errors
     /// [`Refusal`]: unknown form or scope (like `page`).
+    #[allow(clippy::result_large_err)] // `Refusal` is the one refusal type of every method of this trait (the async ones are not linted)
     fn follows(&self, _cx: &Context, _form: &str, _scope: &str) -> Result<Follow, Refusal> {
         Ok(Follow::all())
     }
