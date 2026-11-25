@@ -148,3 +148,28 @@ async fn core_speaks_level_2_as_provider_fake() {
     let core = FakeCore::new(Mode::Strict);
     assert_eq!((core.level(), core.provider()), (2, "fake"));
 }
+
+// S4-B1: `follows` is not overridden by `FakeCore`; it gets the default of the trait (every change, any form and scope).
+#[test]
+fn core_inherits_the_default_follows_of_the_trait() {
+    use fs_interfaces::module::{ChangeKind, ChangeRef, Origin};
+    let (core, c) = (FakeCore::new(Mode::Strict), cx("p"));
+    let change = ChangeRef::new(
+        "a1",
+        "c1",
+        "2",
+        "1",
+        Origin::default(),
+        ChangeKind::Update,
+        Utc::from_millis(0),
+    );
+    for (form, scope) in [(FORM, ""), (FORM, "board-1"), ("other@1.0.0", "x")] {
+        let follow = core
+            .follows(&c, form, scope)
+            .expect("the default accepts any pair");
+        assert!(
+            follow.admits(&change),
+            "default follows admits all: {form} {scope}"
+        );
+    }
+}
