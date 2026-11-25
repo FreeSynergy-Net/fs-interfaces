@@ -11,6 +11,6 @@ publish = false
 # Our own pure-Rust schema compiler (ADR 0040), by the Git rev f600c8ee of fs-capnpc main (0.2.3, enum fallback landed; stays on the rev until a tag v0.2.x exists, then switch to the tag).
 capnp-compiler = { git = "https://github.com/FreeSynergy/fs-capnpc", rev = "f600c8ee25b234b83b36fa6bfb8baa46b2eeb45f", default-features = false }
 capnpc = "0.27"
-fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", rev = "722d3ce0156711d40cb278f2e835e865d9448290" }
+fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", version = "0.0.7", rev = "722d3ce0156711d40cb278f2e835e865d9448290" }
 # The marks of the program (an adapter of `MarkSource`) for the command code and the tool tables.
 fs-mcp = { path = "../fs-mcp", version = "0.2.0", default-features = false }

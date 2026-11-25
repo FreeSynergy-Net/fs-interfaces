@@ -12,7 +12,7 @@ publish = false
 [dependencies]
 async-trait = "0.1"
 # Same fs-types tag as fs-interfaces and fs-person-directory.
-fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", rev = "722d3ce0156711d40cb278f2e835e865d9448290" }
+fs-types = { git = "https://github.com/FreeSynergy-Net/fs-types", version = "0.0.7", rev = "722d3ce0156711d40cb278f2e835e865d9448290" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros"] }
