@@ -17,6 +17,17 @@
 # `source.enable`, `package.install`, `package.update` are writes; `package.update` of a running program
 # is refused. Nothing here reads anything sensitive.
 #
+# A `Source` is a catalog source (a place that offers an AppStream catalog). A dnf channel is not a source: it
+# arrives as a `*-release` package through `install`. All write commands below (`source.add`, `source.remove`,
+# `source.enable`, `package.install`, `package.update`, `package.uninstall`, `source.refresh`) are "person only,
+# never a tool": they install code or change a trust anchor (ADR 0054).
+#
+# Commands (K7, one command surface): the keys are the FormSource commands of the module, `<record kind>.<verb>`,
+# never with the module name: `package.install`, `package.update` (parameter `step` = `check` | `offer` | `run`;
+# no record = all our packages), `package.uninstall`, `source.add`, `source.enable`, `source.remove`,
+# `source.refresh`, `job.cancel`. Reading goes through the records `package`, `source` and `job`. The methods below
+# that write are DEPRECATED (never removed, never renumbered); the server rejects them.
+#
 # Evolution rules (Cap'n Proto): never renumber or remove fields/methods; only append.
 # 0.0.19: `Package` got fields @7 to @18, `Release`, `Origin`, `Trust`, `CapabilityRef` and `Picture` are new; nothing was renumbered.
 
@@ -157,22 +168,34 @@ struct Job {
 interface Store {
   capabilities  @0 () -> (capabilities :CapabilityList);
   supportReport @1 () -> (report :SupportReport);                 # provider rule (ADR 0045)
+  # DEPRECATED (K7): read the record `source` through FormSource page/watch; served until STW-4b.
   sources       @2 () -> (list :List(Source));                    # source.read
   # Allowed schemes: https, ssh and file (file only for a source the person adds on this machine). A release
   # address in a catalog must be https, or file when the catalog itself came from a file source.
+  # DEPRECATED (K7): use the FormSource command source.add, rejected by the server. Person only, never a tool.
   addSource     @3 (url :Text) -> (source :Source);               # source.add
+  # DEPRECATED (K7): use the FormSource command source.enable, rejected by the server. Person only, never a tool.
   setEnabled    @4 (id :Text, enabled :Bool) -> ();               # source.enable
+  # DEPRECATED (K7): use the FormSource command source.remove, rejected by the server. Person only, never a tool.
   removeSource  @5 (id :Text) -> ();                              # source.remove; refused for the reference source
+  # DEPRECATED (K7): read the record `package` through FormSource page/watch; served until STW-4b.
   available     @6 () -> (list :List(Package), skipped :List(Skipped));  # package.read
+  # DEPRECATED (K7): read the record `package` through FormSource page/watch; served until STW-4b.
   installed     @7 () -> (list :List(Package));                   # package.read
   # `source` empty = the best verified offer of all enabled sources; with two sources offering one name
   # the caller names the source, or the call is refused as ambiguous
+  # DEPRECATED (K7): use the FormSource command package.install, rejected by the server. Person only, never a tool.
   install       @8 (name :Text, source :Text) -> (job :Job);                  # package.install
+  # DEPRECATED (K7): use the FormSource command package.update (step check|offer|run), rejected by the server. Person only, never a tool.
   update        @9 (name :Text, source :Text) -> (job :Job);                  # package.update; "fs-packages" updates the store itself
+  # DEPRECATED (K7): read the record `job` through FormSource page/watch; served until STW-4b.
   job           @10 (id :Text) -> (found :Bool, job :Job);        # package.read
   # changes of jobs (phase); each job is announced as `created` and then `updated`
+  # DEPRECATED (K7): watch the records through FormSource watch; served until STW-4b.
   subscribe     @11 (listener :ChangeListener) -> (subscription :Subscription);
   # appended after the review of 2026-11-08
+  # DEPRECATED (K7): use the FormSource command package.uninstall, rejected by the server. Person only, never a tool.
   uninstall     @12 (name :Text) -> (job :Job);                   # package.uninstall; refused while running
+  # DEPRECATED (K7): use the FormSource command source.refresh, rejected by the server. Person only, never a tool.
   refresh       @13 () -> (skipped :List(Skipped));               # source.refresh: reads every enabled source again
 }
