@@ -1,23 +1,28 @@
 # Risk marks for store.capnp (stage 1, provisional; they move into the contract as annotations later).
 # A method or union member without an entry counts as `unknown` and is listed by the tests.
-# Installing, updating or adding a source puts foreign code on the person's machine: it acts in their name and asks
-# every time. Removing a package or a source destroys something. Reading is listed too, not harmless (ADR 0054).
+# Writing commands are never an AI tool: installing or updating puts foreign code on the person's machine, adding or
+# removing a source and enabling or disabling one change a trust anchor (a channel is what the signature check
+# trusts). An AI never acts in the name of the person: a person only (ADR 0054, addendum 17.11., lines 206 and 213).
+# `excluded` is not "asks every time": asking would still make a tool, and the class `change` does not always ask
+# (`RiskClass::asks_always`, risk.rs), so `setEnabled` could be allowed for good. `refresh` only re-reads the signed
+# catalog and stays `change`. Reading is listed too, not harmless (ADR 0054).
+# Decision: ENTSCHEID-store-schreiben, STW-0.
 
 [Store]
-addSource = "acts-in-name"
+addSource = { risk = "excluded", reason = "changes a trust anchor: a person only (ADR 0054 lines 206/213)" }
 available = "read"
 capabilities = "read"
-install = "acts-in-name"
+install = { risk = "excluded", reason = "installs code: a person only (ADR 0054 lines 206/213)" }
 installed = "read"
 job = "read"
 refresh = "change"
-removeSource = "destructive"
-setEnabled = "change"
+removeSource = { risk = "excluded", reason = "changes a trust anchor: a person only (ADR 0054 lines 206/213)" }
+setEnabled = { risk = "excluded", reason = "enables or disables a source, a trust anchor, and `change` does not always ask: a person only (ADR 0054 lines 206/213)" }
 sources = "read"
 subscribe = "read"
 supportReport = "read"
-uninstall = "destructive"
-update = "acts-in-name"
+uninstall = { risk = "excluded", reason = "removes installed code: a person only (ADR 0054 lines 206/213)" }
+update = { risk = "excluded", reason = "installs code: a person only (ADR 0054 lines 206/213)" }
 
 [format]
 "Package.summary" = "one-line description of a package from the signed catalog (plain text, AppStream <summary>); a display text, not a secret field"

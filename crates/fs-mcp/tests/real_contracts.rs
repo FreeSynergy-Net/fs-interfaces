@@ -132,3 +132,90 @@ fn without_the_block_list_the_secret_check_still_keeps_the_secret_out() {
                 && matches!(l.why, Why::SecretSuspect { .. }))
     );
 }
+
+const STORE_WRITES: [&str; 6] = [
+    "install",
+    "update",
+    "uninstall",
+    "addSource",
+    "removeSource",
+    "setEnabled",
+];
+
+fn store_marks(text: &str) -> MarkFiles {
+    // all real marks, with the `store` file replaced
+    let mut sources: Vec<(String, String)> = std::fs::read_dir(support::real::marks_dir())
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .filter(|p| p.extension().is_some_and(|x| x == "toml"))
+        .map(|p| {
+            (
+                p.file_stem().unwrap().to_string_lossy().into_owned(),
+                std::fs::read_to_string(&p).unwrap(),
+            )
+        })
+        .collect();
+    sources.retain(|(f, _)| f != "store");
+    sources.push(("store".to_owned(), text.to_owned()));
+    MarkFiles::from_sources(
+        &sources
+            .iter()
+            .map(|(a, b)| (a.as_str(), b.as_str()))
+            .collect::<Vec<_>>(),
+    )
+    .unwrap()
+}
+
+#[test]
+fn the_store_write_commands_are_excluded_a_person_only() {
+    let c = real_catalog();
+    for m in STORE_WRITES {
+        let t = Target::item("store", "Store", m);
+        assert!(c.tools.iter().all(|x| x.source != t), "{m} is a tool");
+        assert!(
+            c.left_out.iter().any(
+                |l| l.target == t && matches!(&l.why, Why::Marked(r) if r.contains("ADR 0054"))
+            ),
+            "{m} is not left out as marked"
+        );
+        assert!(!c.unmarked.contains(&t), "{m} has no mark");
+    }
+    // `refresh`, `capabilities` and `job` stay tools (the other reads are held back by the secret check, not by a mark)
+    for m in ["capabilities", "job", "refresh"] {
+        let t = Target::item("store", "Store", m);
+        assert!(c.tools.iter().any(|x| x.source == t), "{m} is gone");
+    }
+}
+
+#[test]
+fn counter_proof_a_store_write_command_with_an_old_class_or_no_mark_shows() {
+    let real = std::fs::read_to_string(support::real::marks_dir().join("store.toml")).unwrap();
+    for m in STORE_WRITES {
+        let t = Target::item("store", "Store", m);
+        // marked again as before: it becomes a tool
+        let old = real
+            .lines()
+            .map(|l| {
+                if l.starts_with(&format!("{m} = ")) {
+                    format!("{m} = \"acts-in-name\"")
+                } else {
+                    l.to_owned()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let c = generate_with(&contracts(), &store_marks(&old), Blocklist::standard());
+        assert!(
+            c.tools.iter().any(|x| x.source == t),
+            "{m}: mutant not seen"
+        );
+        // no mark at all: it is listed as unmarked
+        let none = real
+            .lines()
+            .filter(|l| !l.starts_with(&format!("{m} = ")))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let c = generate_with(&contracts(), &store_marks(&none), Blocklist::standard());
+        assert!(c.unmarked.contains(&t), "{m}: missing mark not listed");
+    }
+}
