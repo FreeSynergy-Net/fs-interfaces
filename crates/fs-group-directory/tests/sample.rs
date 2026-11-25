@@ -149,7 +149,7 @@ async fn the_sample_has_an_admin_group_a_sensitive_group_and_every_invitation_st
 }
 
 #[tokio::test]
-async fn the_sample_knows_only_invented_people_on_example_org() {
+async fn the_sample_people_have_their_names_and_an_address_on_example_org() {
     let s = sample();
     for name in ["Alice Chair", "Bob Deputy", "Gina Guest"] {
         let p = s.person(name).expect("person");

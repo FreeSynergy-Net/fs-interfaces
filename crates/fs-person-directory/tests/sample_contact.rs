@@ -3,9 +3,10 @@
 //! Pattern: none (tests). Red when a field of the card or a name goes missing.
 
 use fs_person_directory::{
-    ExcerptField, ExcerptValue, PersonDirectory, Resolved, SAMPLE_NAMES, sample, sample_card,
-    sample_name, sample_ref,
+    ExcerptField, ExcerptValue, PersonDirectory, Resolved, SAMPLE_NAMES, sample, sample_address,
+    sample_card, sample_name, sample_ref,
 };
+use fs_types::{ContactAddress, ContactValue};
 
 fn count(card: &[ExcerptValue], field: ExcerptField) -> usize {
     card.iter().filter(|v| v.field() == field).count()
@@ -66,4 +67,33 @@ async fn the_directory_shows_the_table_names_and_the_photo_placeholder() {
         .await
         .expect("excerpt");
     assert_eq!(x.values.len(), 2);
+}
+
+#[tokio::test]
+async fn the_address_of_the_shared_people_is_in_the_directory() {
+    let d = sample();
+    for n in [1_u8, 4, 10, 12] {
+        let wanted = sample_address(n).expect("an address");
+        let found = d
+            .find_by_address(&ContactAddress::parse(wanted).expect("address"))
+            .await
+            .expect("find");
+        let me = sample_ref(n).expect("entry");
+        assert!(
+            found.iter().any(|p| p.person.id == me.id),
+            "entry {n}: {wanted}"
+        );
+        // The card carries the same address as its first e-mail (when it has a card).
+        let card = sample_card(n);
+        if let Some(ExcerptValue::Email(first)) =
+            card.iter().find(|v| v.field() == ExcerptField::Email)
+        {
+            assert_eq!(
+                format!("mailto:{}", first.as_str()),
+                wanted,
+                "card of entry {n}"
+            );
+        }
+    }
+    assert_eq!(sample_address(2), None);
 }

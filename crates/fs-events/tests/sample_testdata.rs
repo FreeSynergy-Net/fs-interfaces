@@ -1,7 +1,8 @@
 //! The sample as test data for pictures (F5): calendar colours, people that are the people of the directory sample,
 //! and the synchronous expansion of a series in a window.
 //!
-//! Pattern: none (tests). Every test goes red when the data change it protects is taken back.
+//! Pattern: none (tests). The colour and people tests go red when the data change they protect is taken back; the series test documents
+//! behaviour that already existed (it would stay green without this branch).
 
 mod common;
 
@@ -95,4 +96,17 @@ fn a_series_is_expanded_synchronously_in_a_window() {
         starts,
         vec![utc(2026, 11, 16, 9, 0), utc(2026, 11, 18, 10, 0)]
     );
+}
+
+#[test]
+fn the_shared_people_have_the_address_of_the_directory_sample() {
+    let events = sample();
+    for (i, entry) in [1_u8, 10, 12, 4].into_iter().enumerate() {
+        assert_eq!(
+            Some(events.people[i].address.as_str()),
+            fs_person_directory::sample_address(entry),
+            "person {} is entry {entry}",
+            i + 1
+        );
+    }
 }

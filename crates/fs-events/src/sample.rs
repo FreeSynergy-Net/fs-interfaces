@@ -96,21 +96,25 @@ pub fn sample() -> Sample {
     Sample {
         calendars,
         people: vec![
-            directory_known(1, "mailto:amara@example.org"),
-            directory_known(2, "mailto:soojin.marchetti@example.org"),
-            directory_known(3, "mailto:tariq.lindqvist@example.org"),
-            directory_known(4, "mailto:assistent.sol@example.org"),
+            directory_known(1),
+            directory_known(2),
+            directory_known(3),
+            directory_known(4),
         ],
         appointments: appointments(),
     }
 }
 
 /// A known person of the sample: the IRI and the NAME are those of the directory sample (`fs-person-directory`), only
-/// the address is chosen here.
-fn directory_known(n: u64, address: &str) -> Known {
-    let name = crate::ids::directory_entry(n)
+/// the address are those of the directory sample (`sample_name`, `sample_address`): one person, one address.
+fn directory_known(n: u64) -> Known {
+    let entry = crate::ids::directory_entry(n);
+    let name = entry
         .and_then(fs_person_directory::sample_name)
         .unwrap_or("unknown sample person");
+    let address = entry
+        .and_then(fs_person_directory::sample_address)
+        .unwrap_or("mailto:unknown@example.org");
     FakePeople::known(n, name, address)
 }
 

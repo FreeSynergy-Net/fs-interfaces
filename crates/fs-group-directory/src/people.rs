@@ -89,19 +89,8 @@ impl FakePeople {
     pub fn from_directory(&self, n: u8, agent: Option<bool>) -> Option<PersonRef> {
         let person = fs_person_directory::sample_ref(n).filter(|p| p.art == PersonArt::Person)?;
         let display = fs_person_directory::sample_name(n)?;
-        let address = (agent == Some(false)).then(|| {
-            format!(
-                "mailto:{}@example.org",
-                display.to_lowercase().replace(' ', ".")
-            )
-        });
-        Some(Self::put(
-            &mut self.lock(),
-            person,
-            display,
-            address.as_deref(),
-            agent,
-        ))
+        let address = fs_person_directory::sample_address(n);
+        Some(Self::put(&mut self.lock(), person, display, address, agent))
     }
 
     /// A new human (marked as no AI).

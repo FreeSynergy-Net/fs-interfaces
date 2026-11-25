@@ -36,7 +36,7 @@ const fn directory_number(n: u64) -> u64 {
 }
 
 /// A local person IRI (`urn:uuid:...`) with the number `n`. The numbers 1 to 4 are the IRIs of the people 1, 10, 12
-/// and 4 of the directory sample of `fs-person-directory` (same IRI = same person); the others are free.
+/// and 4 of the directory sample of `fs-person-directory` (same IRI = same person). The numbers 5 to 12 are the IRIs of the entries 5 to 12 of that sample too (`person_iri(8)` is "Ilvy Hidden" there); take a number of 1000 or more for a person of your own.
 #[must_use]
 pub fn person_iri(n: u64) -> Reference {
     let n = directory_number(n);

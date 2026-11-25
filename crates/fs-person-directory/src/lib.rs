@@ -17,7 +17,7 @@ pub mod fake;
 pub use composite::CompositeDirectory;
 pub use doubles::{FailingDirectory, Gate, SlowDirectory};
 pub use fake::{
-    Entry, FakeDirectory, FakeFixture, SAMPLE_NAMES, Status, sample, sample_card, sample_name,
-    sample_ref,
+    Entry, FakeDirectory, FakeFixture, SAMPLE_NAMES, Status, sample, sample_address, sample_card,
+    sample_name, sample_ref,
 };
 pub use person_directory_v1::*;

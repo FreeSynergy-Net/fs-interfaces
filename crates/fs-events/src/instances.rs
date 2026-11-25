@@ -5,7 +5,7 @@
 //!
 //! The SYNCHRONOUS entry for a consumer without the async trait (a frontend fixture, a picture): [`in_window`] gives the
 //! occurrences of one appointment in `[from, to)` (series expanded, overrides and cancellations applied, no clock, no
-//! randomness); [`expand`] and `crate::recur::occurrences` give the wall-clock times of a rule. Nothing here parses a
+//! randomness). The result is UNSORTED: sort it by `start` yourself; [`expand`] and `crate::recur::occurrences` give the wall-clock times of a rule. Nothing here parses a
 //! rule text (the rules are the typed `RecurrenceRule` of JSCalendar, RFC 8984), so no RRULE crate is needed.
 
 use std::collections::{HashMap, HashSet};

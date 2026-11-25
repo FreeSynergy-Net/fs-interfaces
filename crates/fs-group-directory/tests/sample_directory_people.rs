@@ -32,6 +32,11 @@ async fn the_chair_the_deputy_the_lead_and_the_bot_are_directory_people() {
             sample_name(n),
             "{key} shows the directory name"
         );
+        assert_eq!(
+            shown.1.as_deref(),
+            fs_person_directory::sample_address(n),
+            "{key} has the directory address"
+        );
     }
 }
 

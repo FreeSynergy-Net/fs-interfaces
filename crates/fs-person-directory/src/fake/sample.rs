@@ -8,15 +8,21 @@
 //! | 1 | Person | Amara Zolenko, confirmed, `mailto:amara@example.org`, the asker, JSContact-style excerpt: 2 e-mails, 2 phones, postal address, photo placeholder (`avatar`) |
 //! | 2 | Profile | "Amara Z.", linked to 1 (`describes`), same address as 1 |
 //! | 3 | Profile | "A. Zolenko", unlinked, same address as 1 (two profiles with one address) |
-//! | 4 | Person | "Assistent Sol", `ai` set |
+//! | 4 | Person | "Assistent Sol", `ai` set, `mailto:assistent.sol@example.org` |
 //! | 5 | Group | "Quillon Team" (members live in fs-groups) |
 //! | 6 | Organization | "Tamarind Works Ltd" |
 //! | 7 | Person | "Brannoc Deleted", deleted (tombstone) |
 //! | 8 | Person | "Ilvy Hidden", no longer shared |
 //! | 9 | Profile | "Soo-jin M.", merged into 10 |
-//! | 10 | Person | "Soo-jin Marchetti", `tel:+49305550123` |
+//! | 10 | Person | "Soo-jin Marchetti", `mailto:soojin.marchetti@example.org` |
 //! | 11 | Profile | "Import Tariq", `Proposed`, `mailto:tariq@example.org` |
-//! | 12 | Person | "Tariq Lindqvist", confirmed, e-mail and phone in the excerpt |
+//! | 12 | Person | "Tariq Lindqvist", confirmed, e-mail (`mailto:tariq.lindqvist@example.org`) and phone in the excerpt |
+//!
+//! One person, one address: [`sample_address`] is the ONE place the addresses of entries 1, 4, 10 and 12 live.
+//! Phone numbers are drama numbers reserved by the Bundesnetzagentur for media productions (never assigned to a
+//! subscriber): Berlin `030 23125 000` to `999` and the mobile block `0171 39200 00` to `99`, see
+//! <https://www.bundesnetzagentur.de/DE/Fachthemen/Telekommunikation/Nummerierung/DramaNumbers/artikel.html>.
+//! (Sweden's PTS has no verified equivalent, so no Swedish number is used.)
 
 use super::{Entry, FakeDirectory};
 use crate::person_directory_v1::{EntryState, ExcerptValue, PersonArt, PersonRef};
@@ -66,6 +72,19 @@ pub fn sample_ref(n: u8) -> Option<PersonRef> {
     })
 }
 
+/// The address of entry `n` as `mailto:...` (the entries 1, 4, 10 and 12, the people other samples share); `None` for
+/// any other number. The ONE source: the directory entry, the events sample and the group sample all take it from here.
+#[must_use]
+pub fn sample_address(n: u8) -> Option<&'static str> {
+    match n {
+        1 => Some("mailto:amara@example.org"),
+        4 => Some("mailto:assistent.sol@example.org"),
+        10 => Some("mailto:soojin.marchetti@example.org"),
+        12 => Some("mailto:tariq.lindqvist@example.org"),
+        _ => None,
+    }
+}
+
 fn row(n: u8, address: Option<&str>) -> Option<Entry> {
     let mut e = Entry::new(sample_ref(n)?, sample_name(n)?);
     e.address = address.and_then(|a| ContactAddress::parse(a).ok());
@@ -74,6 +93,11 @@ fn row(n: u8, address: Option<&str>) -> Option<Entry> {
 
 fn mail(text: &str) -> Option<ExcerptValue> {
     EmailAddress::parse(text).ok().map(ExcerptValue::Email)
+}
+
+/// The e-mail of entry `n` for its card: the same address as [`sample_address`] (without `mailto:`).
+fn card_mail(n: u8) -> Option<ExcerptValue> {
+    mail(sample_address(n)?.strip_prefix("mailto:")?)
 }
 
 fn phone(text: &str) -> Option<ExcerptValue> {
@@ -105,10 +129,10 @@ pub fn sample_card(n: u8) -> Vec<ExcerptValue> {
                     .map(ExcerptValue::FullName),
             );
             out.extend(Text::parse("Zolenko").ok().map(ExcerptValue::Surname));
-            out.extend(mail("amara@example.org"));
+            out.extend(card_mail(1));
             out.extend(mail("amara.zolenko@arbeit.example.org"));
-            out.extend(phone("+49 30 5550100"));
-            out.extend(phone("+49 171 5550101"));
+            out.extend(phone("+49 30 23125000"));
+            out.extend(phone("+49 171 3920001"));
             let home = [
                 (AddressKind::Name, "Musterweg"),
                 (AddressKind::Number, "12"),
@@ -127,8 +151,8 @@ pub fn sample_card(n: u8) -> Vec<ExcerptValue> {
                     .ok()
                     .map(ExcerptValue::FullName),
             );
-            out.extend(mail("tariq.lindqvist@example.org"));
-            out.extend(phone("+46 8 5550123"));
+            out.extend(card_mail(12));
+            out.extend(phone("+49 30 23125002"));
         }
         _ => {}
     }
@@ -137,7 +161,7 @@ pub fn sample_card(n: u8) -> Vec<ExcerptValue> {
 
 /// Entry 1 with its card and the photo placeholder (`avatar`).
 fn amara() -> Option<Entry> {
-    let mut e = row(1, Some("mailto:amara@example.org"))?;
+    let mut e = row(1, sample_address(1))?;
     e.excerpt = sample_card(1);
     e.avatar = photo_placeholder();
     Some(e)
@@ -145,7 +169,7 @@ fn amara() -> Option<Entry> {
 
 /// Entry 12 with its card: a second person with contact fields.
 fn tariq() -> Option<Entry> {
-    let mut e = row(12, None)?;
+    let mut e = row(12, sample_address(12))?;
     e.excerpt = sample_card(12);
     Some(e)
 }
@@ -155,11 +179,11 @@ fn tariq() -> Option<Entry> {
 #[must_use]
 pub fn sample() -> FakeDirectory {
     let d = FakeDirectory::new().with_asker(sample_ref(1));
-    let linked = row(2, Some("mailto:amara@example.org")).map(|mut e| {
+    let linked = row(2, sample_address(1)).map(|mut e| {
         e.describes = sample_ref(1);
         e
     });
-    let ai = row(4, None).map(|mut e| {
+    let ai = row(4, sample_address(4)).map(|mut e| {
         e.ai = true;
         e
     });
@@ -170,14 +194,14 @@ pub fn sample() -> FakeDirectory {
     let rows = [
         amara(),
         linked,
-        row(3, Some("mailto:amara@example.org")),
+        row(3, sample_address(1)),
         ai,
         row(5, None),
         row(6, None),
         row(7, None),
         row(8, None),
         row(9, None),
-        row(10, Some("tel:+49305550123")),
+        row(10, sample_address(10)),
         proposed,
         tariq(),
     ];
