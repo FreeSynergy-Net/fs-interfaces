@@ -260,3 +260,29 @@ fn the_value_commands_are_on_the_list_for_any_module() {
     // The host prefixes the module name; the list holds the bare key only.
     assert!(!capabilities::is_known("settings.value.set"));
 }
+
+#[test]
+fn the_store_commands_are_on_the_list_as_planned() {
+    let keys = [
+        (name::PACKAGE_INSTALL, "package.install"),
+        (name::PACKAGE_UPDATE, "package.update"),
+        (name::PACKAGE_UNINSTALL, "package.uninstall"),
+        (name::SOURCE_ADD, "source.add"),
+        (name::SOURCE_ENABLE, "source.enable"),
+        (name::SOURCE_REMOVE, "source.remove"),
+        (name::SOURCE_REFRESH, "source.refresh"),
+        (name::JOB_CANCEL, "job.cancel"),
+    ];
+    for (n, text) in keys {
+        assert_eq!(n, text);
+        assert!(capabilities::is_known(n), "{n}");
+        assert!(capabilities::is_planned(n), "{n} has no interface yet");
+        assert!(capabilities::is_well_formed(n), "{n}");
+    }
+    // One line per key, no duplicates.
+    let mut all: Vec<_> = capabilities::all().map(|c| c.name).collect();
+    let n = all.len();
+    all.sort();
+    all.dedup();
+    assert_eq!(n, all.len());
+}

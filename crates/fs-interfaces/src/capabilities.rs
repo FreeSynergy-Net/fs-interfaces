@@ -70,6 +70,22 @@ pub mod name {
     pub const VALUE_UNLOCK: &str = "value.unlock";
     /// Reading the log of a typed value (read).
     pub const VALUE_LOG: &str = "value.log";
+    /// Installing a package (person only).
+    pub const PACKAGE_INSTALL: &str = "package.install";
+    /// Updating a package or all (person only).
+    pub const PACKAGE_UPDATE: &str = "package.update";
+    /// Uninstalling a package (person only).
+    pub const PACKAGE_UNINSTALL: &str = "package.uninstall";
+    /// Adding a catalog source (person only).
+    pub const SOURCE_ADD: &str = "source.add";
+    /// Switching a catalog source on or off (person only).
+    pub const SOURCE_ENABLE: &str = "source.enable";
+    /// Removing a catalog source (person only).
+    pub const SOURCE_REMOVE: &str = "source.remove";
+    /// Reading a catalog source again (person only).
+    pub const SOURCE_REFRESH: &str = "source.refresh";
+    /// Cancelling a running job (person only).
+    pub const JOB_CANCEL: &str = "job.cancel";
     /// A storage provider.
     pub const STORAGE_PROVIDER: &str = "storage.provider";
     /// Sign-in with `OpenID` Connect.

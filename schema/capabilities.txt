@@ -64,3 +64,12 @@ value.reset | Reset a value | planned | Setting a typed property back to its def
 value.lock | Lock a value | planned | Locking a typed property, with a reason
 value.unlock | Unlock a value | planned | Removing the lock of a typed property
 value.log | Value log | planned | Reading what was done to a typed property (read only)
+# package.* / source.* / job.*: command keys of the packages module (K7, FormSource commands `<record kind>.<verb>`, never with the module name; commands.json of the module). All eight: only a person may do this (ADR 0054); the risk marks of `store.capnp` (`marks/store.toml`) keep the person-only rule for the methods.
+package.install | Install a package | planned | Installing a package (the record); without a source the best checked offer is used. Only a person may do this
+package.update | Update a package | planned | Updating a package, or all when no record is given (step = check, offer or run). Only a person may do this
+package.uninstall | Uninstall a package | planned | Uninstalling a package. Only a person may do this
+source.add | Add a source | planned | Adding a catalog source by its address (https, ssh or file). Only a person may do this
+source.enable | Enable a source | planned | Switching a catalog source on or off. Only a person may do this
+source.remove | Remove a source | planned | Removing a catalog source; the built-in reference source stays. Only a person may do this
+source.refresh | Refresh a source | planned | Reading a catalog source again; without a record every enabled source. Only a person may do this
+job.cancel | Cancel a job | planned | Cancelling a running job. Only a person may do this
