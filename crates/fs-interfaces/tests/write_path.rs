@@ -282,7 +282,7 @@ fn the_store_commands_are_on_the_list_as_planned() {
     // One line per key, no duplicates.
     let mut all: Vec<_> = capabilities::all().map(|c| c.name).collect();
     let n = all.len();
-    all.sort();
+    all.sort_unstable();
     all.dedup();
     assert_eq!(n, all.len());
 }
