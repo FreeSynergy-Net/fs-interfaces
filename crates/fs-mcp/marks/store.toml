@@ -7,6 +7,7 @@
 # (`RiskClass::asks_always`, risk.rs), so `setEnabled` could be allowed for good. `refresh` only re-reads the signed
 # catalog and stays `change`. Reading is listed too, not harmless (ADR 0054).
 # Decision: ENTSCHEID-store-schreiben, STW-0.
+# Command keys (source.refresh, job.cancel) are protected by StoreRules in fs-packages, not by these marks; refresh is `change` here because the method only re-reads the signed catalog and the server refuses it anyway.
 
 [Store]
 addSource = { risk = "excluded", reason = "changes a trust anchor: a person only (ADR 0054 lines 206/213)" }
