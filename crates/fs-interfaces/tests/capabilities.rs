@@ -87,3 +87,13 @@ fn display_names_pair_with_the_schema_keys_and_planned_is_marked() {
     assert!(!capabilities::is_planned(name::COMMENTS));
     assert!(!capabilities::is_planned("nonsense"));
 }
+
+#[test]
+fn me_create_is_on_the_list_as_stable() {
+    assert_eq!(name::ME_CREATE, "me.create");
+    assert!(capabilities::is_known(name::ME_CREATE));
+    assert!(!capabilities::is_planned(name::ME_CREATE));
+    assert!(capabilities::is_well_formed(name::ME_CREATE));
+    // `me` is no topic key of its own: only the one command key is on the list.
+    assert!(!capabilities::is_known("me"));
+}

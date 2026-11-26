@@ -86,6 +86,8 @@ pub mod name {
     pub const SOURCE_REFRESH: &str = "source.refresh";
     /// Cancelling a running job (person only).
     pub const JOB_CANCEL: &str = "job.cancel";
+    /// Creating the one person of the installation, the anchor (write, no argument).
+    pub const ME_CREATE: &str = "me.create";
     /// A storage provider.
     pub const STORAGE_PROVIDER: &str = "storage.provider";
     /// Sign-in with `OpenID` Connect.

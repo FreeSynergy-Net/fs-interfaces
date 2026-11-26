@@ -73,3 +73,5 @@ source.enable | Enable a source | planned | Switching a catalog source on or off
 source.remove | Remove a source | planned | Removing a catalog source; the built-in reference source stays. Only a person may do this
 source.refresh | Refresh a source | planned | Reading a catalog source again; without a record every enabled source. Only a person may do this
 job.cancel | Cancel a job | planned | Cancelling a running job. Only a person may do this
+# me.create: command key of the person module (FormSource command `<record kind>.<verb>`, commands.json of the module); no argument, the one person of the installation (the anchor). `me` is no topic and has no schema.
+me.create | Create the person | stable | Creating the one person of this installation (the anchor); if it exists, the same person is answered and nothing is written
