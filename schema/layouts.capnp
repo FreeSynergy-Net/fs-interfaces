@@ -36,7 +36,8 @@ struct Block { elem @0 :Text; place @1 :Text; block @2 :Text; source @3 :UInt32;
 struct Page { elem @0 :Text; page @1 :Text; frame @2 :Text; navigation @3 :Text;
               blocks @4 :List(Block);    # since 0.2.0 neither written nor read (the tree `places @5` replaces it; slot stays, never reused)
               places @5 :List(PlaceNode); }   # appended 0.2.0 (A5 I1): root children of the page; the root frame is `frame @2`
-struct Action { elem @0 :Text; n @1 :UInt32; trigger @2 :Text; target @3 :Text; source @4 :UInt32; command @5 :Text; workflow @6 :Text; confirm @7 :Text; }
+struct Action { elem @0 :Text; n @1 :UInt32; trigger @2 :Text; target @3 :Text; source @4 :UInt32; command @5 :Text; workflow @6 :Text; confirm @7 :Text;
+  at @8 :Text; }   # appended (Pattern: Value object, a reference by element id): the element id of the place where the action applies; "" = no place (optional). An old reader ignores it, a writer with an empty `at` writes as before: read tolerantly
 struct Order { elem @0 :Text; by @1 :Text; name @2 :Text; descending @3 :Bool; }
 struct FilterNode { elem @0 :Text; op @1 :Text; cond @2 :Text; path @3 :Text; value @4 :Text; low @5 :Text; high @6 :Text;
                     values @7 :List(Scheme); children @8 :List(FilterNode);
