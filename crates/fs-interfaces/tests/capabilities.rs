@@ -97,3 +97,21 @@ fn me_create_is_on_the_list_as_stable() {
     // `me` is no topic key of its own: only the one command key is on the list.
     assert!(!capabilities::is_known("me"));
 }
+
+#[test]
+fn the_person_crud_commands_are_on_the_list_as_stable() {
+    for (constant, key) in [
+        (name::PERSON_PROFILE_CREATE, "person.profile.create"),
+        (name::PERSON_UPDATE, "person.update"),
+        (name::PERSON_DELETE, "person.delete"),
+    ] {
+        assert_eq!(constant, key);
+        assert!(capabilities::is_known(key), "{key}");
+        assert!(!capabilities::is_planned(key), "{key}");
+        assert!(capabilities::is_well_formed(key), "{key}");
+    }
+    // only the three keys are on the list, not a made-up fourth
+    assert!(!capabilities::is_known("person.profile.delete"));
+    // `task.edit` was on the list already (the planning module names it, nothing to append)
+    assert!(capabilities::is_known("task.edit"));
+}

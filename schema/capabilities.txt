@@ -75,3 +75,7 @@ source.refresh | Refresh a source | planned | Reading a catalog source again; wi
 job.cancel | Cancel a job | planned | Cancelling a running job. Only a person may do this
 # me.create: command key of the person module (FormSource command `<record kind>.<verb>`, commands.json of the module); no argument, the one person of the installation (the anchor). `me` is no topic and has no schema.
 me.create | Create the person | stable | Creating the one person of this installation (the anchor); if it exists, the same person is answered and nothing is written
+# person.profile.create, person.update, person.delete: command keys of the person module (FormSource commands, commands.json of the module); a profile is a written-down contact (JSContact card), never a person. Create answers the new id; update changes fields of a profile (no id = the one person "me"); delete removes a profile, never "me".
+person.profile.create | Create a profile | stable | Creating a profile (a contact without an account) with a name and optional e-mail and phone; the answer is the id of the new profile
+person.update | Change a profile | stable | Changing the name, e-mail or phone of a profile or, without an id, of the one person of this installation
+person.delete | Delete a profile | stable | Deleting a profile; the one person of this installation (the anchor) is never deleted

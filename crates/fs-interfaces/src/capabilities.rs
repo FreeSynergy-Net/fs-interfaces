@@ -88,6 +88,12 @@ pub mod name {
     pub const JOB_CANCEL: &str = "job.cancel";
     /// Creating the one person of the installation, the anchor (write, no argument).
     pub const ME_CREATE: &str = "me.create";
+    /// Creating a profile, a contact without an account (write).
+    pub const PERSON_PROFILE_CREATE: &str = "person.profile.create";
+    /// Changing a profile, or the one person without an id (write).
+    pub const PERSON_UPDATE: &str = "person.update";
+    /// Deleting a profile, never the anchor (delete).
+    pub const PERSON_DELETE: &str = "person.delete";
     /// A storage provider.
     pub const STORAGE_PROVIDER: &str = "storage.provider";
     /// Sign-in with `OpenID` Connect.
